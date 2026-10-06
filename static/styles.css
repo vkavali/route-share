@@ -1413,3 +1413,54 @@ select { background: var(--surface); }
 /* Seatbar */
 .seatbar { background: var(--surface-quiet); }
 .seatbar span { background: var(--forest); }
+
+/* ====================================================================
+   SETTINGS + PROFILE + OPS OVERRIDES
+   ==================================================================== */
+
+/* Match / booking cards */
+.match-card,
+.booking-card,
+.trip-row,
+.panel { background: var(--surface); border-color: var(--line); }
+.match-card .match-fare,
+.trip-row .fare { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* Ops metrics grid */
+.ops-metrics { background: var(--surface); border-color: var(--line); }
+.ops-metrics .metric-label { color: var(--sage); }
+.ops-metrics strong,
+.metric-grid strong { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; color: var(--forest); }
+.stats-strip b { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* Sidebar navigation */
+.sidebar { background: var(--surface); border-color: var(--line); }
+.sidebar a { color: var(--ink); }
+.sidebar a.active,
+.sidebar a[aria-current="page"] { background: rgba(0,255,136,0.1); color: var(--forest); }
+.sidebar a:hover { background: var(--surface-quiet); }
+.sidebar .nav-icon { color: var(--forest); }
+
+/* Mobile nav active states */
+.mobile-nav a.active,
+.mobile-nav a[aria-current="page"] { color: var(--forest); }
+
+/* Profile / account section */
+.profile-card,
+.account-section { background: var(--surface); border-color: var(--line); }
+.profile-avatar { background: rgba(0,255,136,0.12); color: var(--forest); }
+
+/* Verification badges */
+.verified-badge { background: rgba(0,255,136,0.12); color: var(--forest); border: 1px solid rgba(0,255,136,0.3); }
+.pending-badge { background: rgba(240,160,48,0.12); color: #f0a030; border: 1px solid rgba(240,160,48,0.3); }
+
+/* Settings toggle / switch */
+.toggle-track { background: var(--surface-quiet); border-color: var(--line); }
+.toggle-track:has(input:checked) { background: var(--forest); }
+
+/* Staff / ops action buttons */
+.staff-action { background: var(--surface-quiet); border-color: var(--line); color: var(--ink); }
+.staff-action:hover { border-color: var(--forest); color: var(--forest); }
+
+/* Language selector in nav */
+.language select { background: var(--surface); border-color: var(--line); color: var(--ink); }
