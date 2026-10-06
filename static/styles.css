@@ -1370,3 +1370,46 @@ select { background: var(--surface); }
 /* JetBrains Mono for key numeric displays */
 .rj-contribution strong { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
 .trip-share-detail dd { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+
+/* ====================================================================
+   LIVE-LOCATION + CHAT OVERRIDES
+   ==================================================================== */
+
+/* Live location map tileframe */
+.live-location-map { background: #0d1117; }
+.live-location-sheet { box-shadow: 0 -8px 24px rgba(0,0,0,0.35); }
+
+/* Live journey summary icon chip */
+.live-journey-summary .ui-icon { background: rgba(0,255,136,0.1); color: var(--forest); }
+
+/* Live privacy banner */
+.live-privacy-banner { background: rgba(0,255,136,0.06); border: 1px solid rgba(0,255,136,0.15); }
+.live-privacy-banner .ui-icon { color: var(--forest); }
+
+/* Resolve / chat textarea */
+.resolve-form textarea { background: var(--surface); border-color: var(--line); color: var(--ink); }
+
+/* Chat / community card backgrounds */
+.community-card,
+.chat-message,
+.notification-item { background: var(--surface); border-color: var(--line); }
+
+/* Unread badge */
+.unread-badge { background: var(--forest); color: var(--paper); }
+
+/* Alert / toast backgrounds */
+.alert { background: var(--surface); border-color: var(--line); }
+.alert.error { background: rgba(255,80,80,0.08); border-color: rgba(255,80,80,0.25); color: #ff8080; }
+.alert.success { background: rgba(0,255,136,0.07); border-color: rgba(0,255,136,0.22); }
+.alert.warning { background: rgba(240,160,48,0.08); border-color: rgba(240,160,48,0.25); }
+
+/* Route SVG backdrop */
+.route-svg { background: transparent; }
+
+/* Map zoom controls (all map shells) */
+.leaflet-control-zoom a { background: var(--surface); color: var(--forest); border-color: var(--line); }
+.leaflet-control-zoom a:hover { background: var(--surface-quiet); }
+
+/* Seatbar */
+.seatbar { background: var(--surface-quiet); }
+.seatbar span { background: var(--forest); }
