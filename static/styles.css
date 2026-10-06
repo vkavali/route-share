@@ -1465,6 +1465,78 @@ select { background: var(--surface); }
 /* Language selector in nav */
 .language select { background: var(--surface); border-color: var(--line); color: var(--ink); }
 
+/* ── Remaining hardcoded light-mode overrides ────────────────────
+   Covers elements whose background/border was set as a literal hex
+   or rgba(246,…) value and wasn't caught by the original override
+   block. Each rule uses a selector at the same or higher specificity
+   than the rule it overrides.
+   ─────────────────────────────────────────────────────────────── */
+
+/* Journey map shell border (was #e1e4dc green border + #e9eee5 bg) */
+.journey-map-shell {
+  background: #0d1117;
+  border-color: var(--line);
+}
+
+/* Map picker floating tools panel (was rgba(246,245,240,.97)) */
+.map-picker-tools {
+  background: var(--surface);
+  border-color: var(--line);
+  box-shadow: var(--sh-lg);
+}
+/* Map canvas backgrounds (was #e9eee5) */
+.map-picker-map-wrap,
+.map-picker-map {
+  background: #0d1117;
+}
+
+/* Route empty state (was #edf2e4 light green) */
+.route-empty {
+  background: rgba(240,160,48,0.08);
+  border: 1px solid rgba(240,160,48,0.22);
+  color: var(--warning);
+  border-radius: 12px;
+}
+
+/* Live location notice (was #edf2e4) */
+.live-location-notice {
+  background: rgba(0,255,136,0.07);
+  border: 1px solid rgba(0,255,136,0.18);
+  color: var(--sage);
+}
+
+/* Drive-choice icon circle (was #eef0e6) */
+.drive-choice .choice-icon {
+  background: var(--surface-quiet);
+  color: var(--forest);
+}
+
+/* Home route swap button (was #eef0e6) */
+.home-stop-swap {
+  background: var(--surface-quiet);
+  color: var(--sage);
+}
+
+/* Auth illustration fallback background (was #edf2e4) */
+.auth-illustration {
+  background: var(--surface-quiet);
+}
+
+/* Safety / rating page back icons (was #e9eee5) */
+.safety-page > .back-icon,
+.rating-page > .back-icon {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  color: var(--forest);
+}
+
+/* Sidebar active — match original specificity (.sidebar nav a.active) */
+.sidebar nav a.active,
+.sidebar nav a[aria-current="page"] {
+  background: rgba(0,255,136,0.1);
+  color: var(--forest);
+}
+
 /* ====================================================================
    POLISH — elevation layers, micro-interactions, status density,
             map treatment, typography, skeleton, toast, progress bar

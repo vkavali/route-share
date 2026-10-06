@@ -400,6 +400,11 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     @app.after_request
     def harden_response(response):
         response.headers["Cache-Control"] = "no-store"
+        # ETag + no-store is contradictory: a browser that retained a stale ETag
+        # can get a 304 and serve outdated CSS. Strip validators so revalidation
+        # is never attempted against a no-store response.
+        response.headers.pop("ETag", None)
+        response.headers.pop("Last-Modified", None)
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
         response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org; connect-src 'self' https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
