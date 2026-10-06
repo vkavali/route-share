@@ -12,32 +12,39 @@
   font-weight: 100 800;
   font-display: swap;
 }
+@font-face {
+  font-family: 'JetBrains Mono';
+  src: local('JetBrains Mono'), local('JetBrainsMono-Regular'), local('JetBrains Mono Regular');
+  font-style: normal;
+  font-weight: 400 700;
+  font-display: swap;
+}
 
 :root {
-  color-scheme: light;
-  --paper: #f6f5f0;
-  --surface: #fffefa;
-  --surface-quiet: #eef0e6;
-  --ink: #173d34;
-  --forest: #173d34;
-  --forest-deep: #102f29;
-  --sage: #62736b;
-  --sage-light: #dfe3d9;
-  --line: #e3e4dc;
-  --citron: #d6ee7a;
-  --citron-quiet: #edf4d4;
-  --warning: #765833;
-  --danger: #a0463d;
-  --green: #52745b;
-  --red: #a0463d;
-  --blue-muted: #75827a;
-  --clay: #d6ee7a;
-  --cobalt: #173d34;
-  --signal: #d6ee7a;
-  --cobalt-soft: #edf2e4;
-  --muted: #62736b;
-  --shadow: 0 10px 28px rgba(23, 61, 52, .07);
-  font-family: Manrope, 'Anek Telugu', 'Nirmala UI', sans-serif;
+  color-scheme: dark;
+  --paper: #0a0a0f;
+  --surface: #141420;
+  --surface-quiet: #1a1a2a;
+  --ink: #f5f5f7;
+  --forest: #00ff88;
+  --forest-deep: #00cc6e;
+  --sage: #8b8fa8;
+  --sage-light: rgba(255,255,255,0.12);
+  --line: rgba(255,255,255,0.08);
+  --citron: #00ff88;
+  --citron-quiet: rgba(0,255,136,0.1);
+  --warning: #f0a030;
+  --danger: #ff5050;
+  --green: #00ff88;
+  --red: #ff5050;
+  --blue-muted: #8b8fa8;
+  --clay: #00ff88;
+  --cobalt: #00ff88;
+  --signal: #00ff88;
+  --cobalt-soft: rgba(0,255,136,0.1);
+  --muted: #8b8fa8;
+  --shadow: 0 10px 28px rgba(0,0,0,0.5);
+  font-family: 'Inter', Manrope, 'Anek Telugu', 'Nirmala UI', sans-serif;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
 }
@@ -1269,3 +1276,97 @@ html:lang(te) .journey-submit { font-weight:600; letter-spacing:0; }
   border-radius:0;
   object-fit:initial;
 }
+
+/* ====================================================================
+   DARK PALETTE OVERRIDES — electric green on #0a0a0f
+   Corrects hardcoded light-mode colors not reached by :root tokens.
+   ==================================================================== */
+
+/* Focus ring */
+:focus-visible { outline-color: rgba(0,255,136,0.6); }
+.safety-category-option:has(input:focus-visible),
+.rating-star:has(input:focus-visible) { outline-color: rgba(0,255,136,0.6); }
+
+/* Topbar / mobile-nav glass */
+.topbar { background: rgba(10,10,15,0.97); }
+.mobile-nav { background: rgba(10,10,15,0.97) !important; border-top: 1px solid var(--line); }
+.mode-switch { background: rgba(10,10,15,0.72) !important; }
+.topbar .menu-toggle:hover { background: var(--surface-quiet); }
+.map-picker-map .leaflet-control-attribution { background: rgba(10,10,15,0.78); color: var(--sage); }
+.auth-topbar .language select { background: rgba(10,10,15,0.8); border: 1px solid var(--line); color: var(--ink); }
+
+/* Form inputs — replace hardcoded #fff */
+.field input,
+.field select,
+.field textarea { background: var(--surface); }
+.safety-form textarea,
+.rating-panel textarea { background: var(--surface); border-color: var(--line); }
+.safety-category-option { background: var(--surface); }
+.safety-category-option:has(input:checked) { background: rgba(0,255,136,0.1); border-color: var(--forest); }
+select { background: var(--surface); }
+
+/* Journey sheet form containers */
+.journey-sheet,
+.map-workspace > .journey-sheet { background: var(--surface); border-color: var(--line); }
+.journey-sheet .route-location-row.map-pick-button { background: var(--surface); border-color: var(--line); }
+.journey-sheet .date-control input { background: var(--surface); border-color: var(--line); }
+.journey-sheet .detour-control select { background: var(--surface); border-color: var(--line); }
+.journey-sheet .stepper-control button,
+.journey-sheet .stepper-control input { background: var(--surface); border-color: var(--line); }
+.journey-sheet .sheet-heading .back-icon { background: var(--surface-quiet); }
+.home-map-page.ref-home .home-route-composer .route-location-row.map-pick-button { background: var(--surface); }
+
+/* Map containers */
+.map-picker-backdrop { background: rgba(0,0,0,0.72); }
+.map-picker-dialog { background: var(--paper); }
+.map-picker-map-wrap,
+.map-picker-map { background: #0d1117; }
+.rating-route-map,
+.safety-panel .rating-route-map { background: #0d1117; }
+.map-picker-search-button,
+.map-picker-gps { background: rgba(0,255,136,0.1); color: var(--forest); }
+
+/* Primary button text — electric green bg needs near-black text */
+.primary { color: var(--paper); }
+.auth-submit { background: var(--forest); color: var(--paper); }
+.search-action { color: var(--paper); }
+.offer-action { background: rgba(0,255,136,0.14); color: var(--forest); border: 1px solid rgba(0,255,136,0.3); }
+.home-map-page .home-actions .secondary { background: var(--surface); border-color: var(--line); color: var(--ink); }
+.journey-sheet .primary { color: var(--paper); }
+.live-location-controls .primary { color: var(--paper); }
+
+/* Icon container backgrounds */
+.live-journey-summary .ui-icon { background: rgba(0,255,136,0.1); color: var(--forest); }
+.live-privacy-banner { background: rgba(0,255,136,0.07); border: 1px solid rgba(0,255,136,0.15); }
+.live-privacy-banner .ui-icon { color: var(--forest); }
+.safety-page > .back-icon,
+.rating-page > .back-icon { background: var(--surface-quiet); }
+.live-page-head .back { background: var(--surface-quiet); }
+.home-route-composer .route-swap-button { background: var(--surface-quiet); }
+
+/* Rating stars */
+.rating-star span { color: rgba(255,255,255,0.2); }
+.rating-star:has(input:checked) span,
+.rating-stars:has(input[value="2"]:checked) label:nth-child(-n+2) span,
+.rating-stars:has(input[value="3"]:checked) label:nth-child(-n+3) span,
+.rating-stars:has(input[value="4"]:checked) label:nth-child(-n+4) span,
+.rating-stars:has(input[value="5"]:checked) label:nth-child(-n+5) span { color: var(--forest); }
+
+/* Auth components */
+.account-choice { background: var(--surface-quiet); border-color: transparent; }
+.account-choice[aria-pressed="true"],
+.account-choice.selected { background: rgba(0,255,136,0.12); border: 1px solid var(--forest); color: var(--forest); }
+.beta-notice { background: var(--surface-quiet); }
+.auth-page .auth-footnote { background: var(--surface-quiet); color: var(--sage); }
+.auth-page.ref-login .auth-footnote { background: var(--surface-quiet); }
+
+/* Route compose dashed connector */
+.home-route-composer .route-compose:before { border-color: rgba(255,255,255,0.15); }
+.home-route-composer .route-compose:has(.route-swap-button) .location-field { border-color: transparent; }
+
+/* Dropdown menu */
+.header-menu { box-shadow: 0 12px 32px rgba(0,0,0,0.45); }
+
+/* JetBrains Mono for key numeric displays */
+.rj-contribution strong { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+.trip-share-detail dd { font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
