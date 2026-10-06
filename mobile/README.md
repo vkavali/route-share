@@ -4,7 +4,7 @@ This is a native Expo / React Native client for the same local beta API used by 
 
 ## Local setup
 
-Use Node 20.19 or newer. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the API base. Plain HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1`; use HTTPS for every non-loopback host. The shared beta API is available at `https://route-share-beta.up.railway.app`. For local Android emulator testing, `adb reverse tcp:5000 tcp:5000` makes the loopback development API reachable at `http://127.0.0.1:5000`. A physical phone's loopback points to the phone itself. The iOS simulator has reached the hosted login API. Physical-device and complete native signed-in flow verification remain incomplete; see `BUILD_EVIDENCE.md`.
+Use Node 20.19 or newer. Copy `.env.example` to `.env` and set `EXPO_PUBLIC_API_URL` to the API base. Plain HTTP is accepted only for `localhost`, `127.0.0.1`, or `::1`; use HTTPS for every non-loopback host. The shared beta API is available at `https://route-share-beta.up.railway.app`. For local Android emulator testing, `adb reverse tcp:5000 tcp:5000` makes the loopback development API reachable at `http://127.0.0.1:5000`. A physical phone's loopback points to the phone itself. The iOS simulator passed hosted sign-in, driver form EN/TE, session restoration and sign-out checks. Physical-device and booking/location-sharing end-to-end verification remain incomplete; see `BUILD_EVIDENCE.md`.
 
 Run `npm install`, `npm run sync:shared`, and `npm run start`. The app uses the API's invited development accounts; this is not public registration. Tokens are stored in platform secure storage and sent as Bearer authorization. The API remains authoritative for booking, matching, capacity, safety and location-sharing rules.
 

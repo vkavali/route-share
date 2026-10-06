@@ -32,6 +32,7 @@ FILES = (
     "mobile/BUILD_EVIDENCE.md",
     "mobile/eas.json",
     "mobile/app.config.js",
+    "mobile/metro.config.js",
     "mobile/index.ts",
     "mobile/package.json",
     "mobile/package-lock.json",
