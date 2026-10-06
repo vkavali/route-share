@@ -15,7 +15,8 @@ module.exports = ({ config }) => {
   const api = getApiBase();
   return {
     ...config,
-    name: 'Route share · Local beta',
+    name: 'Route Share',
+    icon: './assets/route-share-mark.png',
     slug: 'route-share-mobile',
     version: '0.1.0',
     orientation: 'portrait',
@@ -25,11 +26,13 @@ module.exports = ({ config }) => {
     scheme: 'routesharesandbox',
     ios: {
       ...(config.ios || {}),
-      bundleIdentifier: 'com.routeshare.beta',
+      bundleIdentifier: 'com.vkavali.routeshare',
+      appleTeamId: '722J78K2H6',
       buildNumber: '1',
       supportsTablet: true,
       infoPlist: {
         ...((config.ios && config.ios.infoPlist) || {}),
+        ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription: 'Share your location with the other participant during this accepted booking. Sharing stops when you stop it or arrive.',
         NSAppTransportSecurity: api?.loopback && api.url.protocol === 'http:'
           ? {NSAllowsArbitraryLoads: false, NSAllowsLocalNetworking: true}
@@ -65,7 +68,7 @@ module.exports = ({ config }) => {
     },
     extra: {
       ...(config.extra || {}),
-      nativeBundleIdsArePlaceholders: true,
+      androidBundleIdIsPlaceholder: true,
       apiBaseConfigured: Boolean(api),
     },
   };

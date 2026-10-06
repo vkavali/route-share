@@ -183,7 +183,7 @@ export default function App(){
  let content:React.ReactNode;
  if(screen==='login')content=<ScrollView contentContainerStyle={styles.loginScroll} keyboardShouldPersistTaps="handled">
   <View style={styles.referenceLoginHero}>
-   <Image source={require('../assets/higgsfield-signin-reference.png')} style={styles.referenceLoginImage} resizeMode="contain" accessibilityLabel={t('loginStoryArt')}/>
+   <Image source={require('../assets/higgsfield-signin-reference.png')} style={[styles.referenceLoginImage,{width:screenWidth,height:screenWidth*3840/2160}]} resizeMode="contain" accessibilityLabel={t('loginStoryArt')}/>
    <Pressable accessibilityRole="button" accessibilityLabel={t('language')} onPress={cycleLanguage} style={styles.heroLanguage}><AppText style={styles.heroLanguageText}>{lang.toUpperCase()}</AppText></Pressable>
   </View>
   <View style={[styles.loginBody,styles.referenceLoginBody]}>
