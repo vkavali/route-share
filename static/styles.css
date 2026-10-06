@@ -1464,3 +1464,509 @@ select { background: var(--surface); }
 
 /* Language selector in nav */
 .language select { background: var(--surface); border-color: var(--line); color: var(--ink); }
+
+/* ====================================================================
+   POLISH — elevation layers, micro-interactions, status density,
+            map treatment, typography, skeleton, toast, progress bar
+   ==================================================================== */
+
+/* ── Extended design tokens ──────────────────────────────────── */
+:root {
+  /* Elevation (tighter, deliberate step) */
+  --surface-quiet:   #1c1c2b;  /* was #1a1a2a — raised card layer */
+  --surface-overlay: #22223a;  /* tooltip / sheet layer */
+
+  /* Shadow scale */
+  --sh-sm:   0 1px 4px rgba(0,0,0,0.35);
+  --sh-md:   0 4px 14px rgba(0,0,0,0.4), 0 1px 4px rgba(0,0,0,0.25);
+  --sh-lg:   0 12px 32px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3);
+  --sh-glow: 0 0 0 1px rgba(0,255,136,0.28), 0 4px 20px rgba(0,255,136,0.14);
+  --sh-in:   inset 0 1px 0 rgba(255,255,255,0.05);
+
+  /* Transition presets */
+  --t-fast:   120ms ease-out;
+  --t-base:   160ms ease-out;
+  --t-slow:   260ms ease-out;
+
+  /* Radius scale */
+  --r-xs:   6px;
+  --r-sm:   10px;
+  --r-md:   14px;
+  --r-lg:   18px;
+  --r-xl:   22px;
+  --r-2xl:  28px;
+  --r-pill: 9999px;
+
+  /* Status semantic palette */
+  --st-active-fg:  #00ff88;  --st-active-bg:  rgba(0,255,136,0.1);
+  --st-pending-fg: #f0a030;  --st-pending-bg: rgba(240,160,48,0.11);
+  --st-moving-fg:  #4fc3f7;  --st-moving-bg:  rgba(79,195,247,0.1);
+  --st-done-fg:    #8b8fa8;  --st-done-bg:    rgba(139,143,168,0.1);
+  --st-err-fg:     #ff5050;  --st-err-bg:     rgba(255,80,80,0.1);
+}
+
+/* ── Micro-interactions ──────────────────────────────────────── */
+
+.primary, .secondary {
+  transition: transform var(--t-fast), box-shadow var(--t-fast),
+              background-color var(--t-base), border-color var(--t-base),
+              filter var(--t-fast);
+  will-change: transform;
+}
+
+.primary:not(:disabled):hover {
+  box-shadow: var(--sh-glow);
+  transform: translateY(-1px);
+  filter: brightness(1.06);
+}
+.primary:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: none;
+  filter: brightness(0.94);
+}
+
+.secondary:not(:disabled):hover {
+  border-color: rgba(0,255,136,0.4);
+  background: rgba(0,255,136,0.04);
+  transform: translateY(-1px);
+}
+.secondary:not(:disabled):active {
+  transform: translateY(1px) scale(0.985);
+}
+
+/* Back icon */
+.back-icon {
+  transition: background-color var(--t-fast), transform var(--t-fast);
+}
+.back-icon:not(.auth-topbar):hover { background: var(--surface-quiet); }
+.back-icon:active { transform: scale(0.88); }
+
+/* Home action tiles — lift + shadow */
+.home-action {
+  transition: transform var(--t-base), box-shadow var(--t-base),
+              background-color var(--t-base);
+}
+.home-action:not(:disabled):hover {
+  transform: translateY(-3px);
+  box-shadow: var(--sh-md);
+}
+.home-action:not(:disabled):active {
+  transform: translateY(0) scale(0.97);
+  box-shadow: none;
+}
+
+/* Cards */
+.rj-card {
+  transition: transform var(--t-base), box-shadow var(--t-base) !important;
+}
+.rj-card:hover {
+  transform: translateY(-3px) !important;
+  box-shadow: var(--sh-lg) !important;
+}
+.rj-card:active { transform: translateY(0) !important; }
+
+/* Account choice chips */
+.account-choice {
+  transition: background-color var(--t-fast), border-color var(--t-fast),
+              transform var(--t-fast);
+}
+.account-choice:hover { background: rgba(255,255,255,0.05); }
+.account-choice:active { transform: scale(0.97); }
+
+/* Safety category options */
+.safety-category-option {
+  transition: background-color var(--t-fast), border-color var(--t-fast);
+}
+
+/* Stepper buttons */
+.stepper-control button {
+  transition: background-color var(--t-fast), border-color var(--t-fast),
+              transform var(--t-fast);
+}
+.stepper-control button:hover { background: var(--surface-quiet); border-color: rgba(0,255,136,0.35); }
+.stepper-control button:active { transform: scale(0.93); }
+
+/* Hf-action tiles */
+.hf-action {
+  transition: transform var(--t-base), box-shadow var(--t-base),
+              background-color var(--t-base);
+}
+.hf-action:not(.hf-lime):hover {
+  background: var(--surface-overlay);
+  transform: translateY(-2px);
+  box-shadow: var(--sh-sm);
+}
+.hf-action.hf-lime:hover { filter: brightness(1.07); transform: translateY(-2px); }
+.hf-action:active { transform: translateY(0) scale(0.97); }
+
+/* Input focus glow — replaces browser outline */
+.field input:focus-visible, .field select:focus-visible,
+.field textarea:focus-visible, .map-picker-search-row input:focus-visible,
+.hf-composer .hf-detour select:focus-visible {
+  outline: none;
+  border-color: rgba(0,255,136,0.5);
+  box-shadow: 0 0 0 3px rgba(0,255,136,0.12);
+}
+textarea:focus-visible {
+  outline: none;
+  border-color: rgba(0,255,136,0.5);
+  box-shadow: 0 0 0 3px rgba(0,255,136,0.12);
+}
+
+/* Trip return link hover */
+.trip-return-link {
+  transition: color var(--t-fast), gap var(--t-fast);
+}
+.trip-return-link:hover { gap: 12px; }
+
+/* ── Map treatment — dark tiles ──────────────────────────────── */
+
+/* Invert + hue-rotate makes any standard tile set dark */
+.journey-map-shell .leaflet-tile-pane,
+.live-location-map .leaflet-tile-pane,
+.map-picker-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.72) saturate(0.45) contrast(0.88);
+}
+/* Forms map already has a filter — upgrade it */
+.hf-map .leaflet-tile-pane {
+  filter: invert(1) hue-rotate(180deg) brightness(0.65) saturate(0.42) !important;
+}
+
+/* Accent-color route polylines */
+.journey-map-shell .leaflet-overlay-pane path,
+.live-location-map .leaflet-overlay-pane path,
+.map-picker-map .leaflet-overlay-pane path {
+  stroke: var(--forest);
+  stroke-opacity: 0.9;
+  stroke-width: 4;
+  filter: drop-shadow(0 0 6px rgba(0,255,136,0.4));
+}
+
+/* Route SVG (mini preview in trip cards) */
+.route-svg path { stroke: var(--forest); }
+
+/* Origin pin glow */
+.route-picker-marker::before {
+  box-shadow:
+    0 0 0 4px rgba(0,255,136,0.2),
+    0 0 0 8px rgba(0,255,136,0.07),
+    0 4px 10px rgba(0,0,0,0.6);
+}
+
+/* Leaflet zoom controls */
+.leaflet-control-zoom {
+  border: 1px solid var(--line) !important;
+  border-radius: var(--r-md) !important;
+  overflow: hidden;
+  box-shadow: var(--sh-sm) !important;
+}
+.leaflet-control-zoom a {
+  background: var(--surface) !important;
+  color: var(--forest) !important;
+  border-bottom-color: var(--line) !important;
+  font-size: 18px !important;
+  transition: background-color var(--t-fast) !important;
+}
+.leaflet-control-zoom a:hover { background: var(--surface-quiet) !important; }
+
+/* ── Status pills — color + animated presence dot ────────────── */
+
+.rj-chip, [class*="rj-status--"] {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  padding: 4px 10px;
+  border-radius: var(--r-pill);
+  line-height: 1.4;
+}
+
+/* Animated pulse dot on live states */
+.rj-status--published::before,
+.rj-status--accepted::before,
+.rj-status--pending::before,
+.rj-status--started::before {
+  content: '';
+  display: block;
+  flex-shrink: 0;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: currentColor;
+}
+.rj-status--published::before,
+.rj-status--accepted::before {
+  animation: status-pulse 2.6s ease-in-out infinite;
+}
+.rj-status--started::before {
+  animation: status-pulse 1.4s ease-in-out infinite;
+}
+.rj-status--pending::before {
+  animation: status-pulse 3.2s ease-in-out infinite;
+}
+@keyframes status-pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.35; transform: scale(0.6); }
+}
+
+/* Re-anchor chip colors to semantic palette */
+.rj-chip--accent,
+.rj-status--published,
+.rj-status--accepted  { background: var(--st-active-bg);  color: var(--st-active-fg);  }
+.rj-status--pending   { background: var(--st-pending-bg); color: var(--st-pending-fg); }
+.rj-status--started   { background: var(--st-moving-bg);  color: var(--st-moving-fg);  }
+.rj-status--completed { background: var(--st-done-bg);    color: var(--st-done-fg);    }
+.rj-status--declined,
+.rj-status--cancelled { background: var(--st-err-bg);     color: var(--st-err-fg);     }
+
+/* ── Typography — hero numbers ───────────────────────────────── */
+
+/* Bigger, more weighted contribution amount */
+.rj-contribution strong {
+  font-size: clamp(1.9rem, 3.8vw, 2.6rem);
+  font-weight: 800;
+  color: var(--forest);
+  font-feature-settings: "tnum";
+  letter-spacing: -0.02em;
+}
+.rj-contribution small,
+.rj-contribution span   { font-size: 0.79rem; }
+
+/* Reusable hero number class */
+.hero-num,
+.fare-estimate,
+.eta-display {
+  display: block;
+  font-family: 'JetBrains Mono', 'Cascadia Code', ui-monospace, monospace;
+  font-size: clamp(2.4rem, 6vw, 4rem);
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  line-height: 1;
+  color: var(--forest);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Trip summary values */
+.trip-view-heading h1 {
+  color: var(--ink);
+}
+
+/* ── Empty states ─────────────────────────────────────────────── */
+
+.rj-empty {
+  padding: 36px 24px 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 0;
+}
+.rj-empty h2 {
+  margin: 0 0 10px;
+  font-size: clamp(1.15rem, 3vw, 1.5rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+.rj-empty p {
+  margin: 0;
+  font-size: 14px;
+  color: var(--sage);
+  max-width: 360px;
+  line-height: 1.65;
+}
+.rj-empty-actions {
+  margin-top: 24px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ── Skeleton screens ─────────────────────────────────────────── */
+
+@keyframes sk-shimmer {
+  0%   { background-position: -200% 0; }
+  100% { background-position:  200% 0; }
+}
+
+.skeleton, .sk {
+  position: relative;
+  background: var(--surface);
+  border-radius: var(--r-md);
+  overflow: hidden;
+  color: transparent !important;
+  pointer-events: none;
+  user-select: none;
+}
+.skeleton::after, .sk::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255,255,255,0.055) 50%,
+    transparent 100%
+  );
+  background-size: 200% 100%;
+  animation: sk-shimmer 1.8s linear infinite;
+}
+.sk-text           { height: 13px; width: 65%;  border-radius: var(--r-xs); margin-bottom: 8px; }
+.sk-text.w-80      { width: 80%; }
+.sk-text.w-40      { width: 40%; }
+.sk-card           { height: 92px; border-radius: var(--r-xl); margin-bottom: 12px; border: 1px solid var(--line); }
+.sk-map            { border-radius: var(--r-2xl); aspect-ratio: 16/9; }
+.sk-pill           { display: inline-block; height: 26px; width: 72px; border-radius: var(--r-pill); }
+.sk-num            { height: 38px; width: 100px; border-radius: var(--r-sm); }
+
+/* ── Toast notifications ──────────────────────────────────────── */
+
+#toast-container {
+  position: fixed;
+  z-index: 9990;
+  display: flex;
+  gap: 8px;
+  pointer-events: none;
+}
+@media (max-width: 800px) {
+  #toast-container {
+    flex-direction: column-reverse;
+    bottom: calc(80px + env(safe-area-inset-bottom));
+    left: 12px;
+    right: 12px;
+    align-items: center;
+  }
+}
+@media (min-width: 801px) {
+  #toast-container {
+    flex-direction: column;
+    top: 88px;
+    right: 22px;
+    width: 360px;
+    align-items: flex-end;
+  }
+}
+
+.toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 11px;
+  min-width: 0;
+  width: 100%;
+  max-width: 360px;
+  padding: 13px 15px;
+  border-radius: var(--r-lg);
+  background: var(--surface-quiet);
+  border: 1px solid var(--line);
+  box-shadow: var(--sh-lg);
+  pointer-events: all;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--ink);
+  cursor: pointer;
+  animation: toast-in var(--t-base) ease-out;
+}
+.toast-icon {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-size: 11px;
+  font-weight: 800;
+  margin-top: 1px;
+}
+.toast-body { flex: 1; min-width: 0; }
+.toast-title { font-weight: 700; margin-bottom: 2px; }
+.toast-close {
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: var(--sage);
+  font-size: 18px;
+  padding: 0;
+  cursor: pointer;
+  line-height: 1;
+  opacity: 0.65;
+  margin-top: -1px;
+  transition: opacity var(--t-fast);
+}
+.toast-close:hover { opacity: 1; }
+
+.toast--success { border-color: rgba(0,255,136,0.28);  background: rgba(0,255,136,0.07); }
+.toast--success .toast-icon { background: rgba(0,255,136,0.15); color: var(--forest); }
+.toast--error   { border-color: rgba(255,80,80,0.28);  background: rgba(255,80,80,0.07); }
+.toast--error   .toast-icon { background: rgba(255,80,80,0.18); color: #ff5050; }
+.toast--warning { border-color: rgba(240,160,48,0.28); background: rgba(240,160,48,0.07); }
+.toast--warning .toast-icon { background: rgba(240,160,48,0.18); color: #f0a030; }
+.toast--info    .toast-icon { background: rgba(139,143,168,0.15); color: var(--sage); }
+
+.toast.is-leaving {
+  animation: toast-out var(--t-fast) ease-in forwards;
+  pointer-events: none;
+}
+@keyframes toast-in {
+  from { opacity: 0; transform: translateY(10px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+@keyframes toast-out {
+  from { opacity: 1; transform: translateY(0) scale(1); }
+  to   { opacity: 0; transform: translateY(-8px) scale(0.97); }
+}
+
+/* ── Navigation progress bar ─────────────────────────────────── */
+
+#nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 9998;
+  height: 2px;
+  pointer-events: none;
+  overflow: hidden;
+}
+#nav-progress-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 33%;
+  background: var(--forest);
+  box-shadow: 0 0 10px rgba(0,255,136,0.7), 0 0 26px rgba(0,255,136,0.3);
+  border-radius: 0 2px 2px 0;
+  opacity: 0;
+  transition: opacity var(--t-fast);
+}
+#nav-progress.is-active #nav-progress-fill {
+  opacity: 1;
+  animation: nav-progress-run 1.5s ease-in-out infinite;
+}
+@keyframes nav-progress-run {
+  0%   { left: -40%;  width: 33%; }
+  55%  { left:  55%;  width: 45%; }
+  100% { left: 120%;  width: 33%; }
+}
+
+/* ── Reduced motion ───────────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .primary, .secondary, .home-action, .hf-action,
+  .rj-card, .back-icon, .account-choice, .stepper-control button {
+    transition: none !important;
+  }
+  .skeleton::after, .sk::after,
+  #nav-progress-fill,
+  .rj-status--published::before,
+  .rj-status--accepted::before,
+  .rj-status--started::before,
+  .rj-status--pending::before {
+    animation: none !important;
+  }
+  .toast { animation: none !important; }
+}
