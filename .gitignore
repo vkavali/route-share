@@ -1,0 +1,66 @@
+# Local state and credentials
+work/
+.env
+.env.*
+!.env.example
+*.secret
+*.pem
+*.key
+*.p12
+*.pfx
+*.p8
+*.cer
+*.crt
+*.der
+*.mobileprovision
+*.provisionprofile
+*.keystore
+*.jks
+credentials.json
+credentials/
+secrets/
+.aws/
+.ssh/
+.netrc
+.pypirc
+id_rsa
+id_ed25519
+
+# User databases
+*.db
+*.db-*
+*.sqlite
+*.sqlite-*
+*.sqlite3
+*.sqlite3-*
+
+# Dependencies, caches, and generated output
+.venv/
+venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+*.py[cod]
+node_modules/
+.expo/
+dist/
+# Vendored runtime modules are source dependencies, not local builds.
+!static/vendor/maplibre/maplibre-gl/dist/
+build/
+target/
+outputs/
+*.log
+*.ipa
+*.apk
+*.aab
+*.xcarchive/
+*.zip
+
+# Local editor and agent state
+.serena/
+.codex/
+.agents/
+.playwright-cli/
+.DS_Store
+Thumbs.db

@@ -1,0 +1,36 @@
+/* The selected illustrated cover flows directly into the real white sign-in sheet. */
+.auth-page.ref-login .auth-welcome { font-weight:800; color:#15382f; letter-spacing:-.04em; }
+.auth-page.ref-login .auth-subtitle { margin:-2px 0 15px; color:#8a9690; font-size:15px; line-height:1.4; }
+.auth-page.ref-login .auth-introduction { margin:0 0 19px; color:#5f6863; font-size:14px; line-height:1.5; }
+.auth-page.ref-login .account-choice-fieldset legend { color:#263d32; font-size:14px; font-weight:600; }
+.auth-page.ref-login .account-choice-grid { gap:5px; grid-auto-rows:57px; margin-bottom:15px; }
+.auth-page.ref-login .account-choice { min-width:0; min-height:57px; height:auto; padding:5px 3px; border:0; border-radius:10px; background:#f3f3ef; font-size:11px; color:#6f7c73; }
+.auth-page.ref-login .account-choice.selected { outline:0; background:#dbef8c; color:#173d32; font-weight:700; box-shadow:none; }
+.auth-page.ref-login .account-choice .ui-icon { width:22px; height:22px; }
+.auth-page.ref-login .password-label { gap:7px; margin:0 0 14px; color:#263d32; font-size:14px; font-weight:500; }
+.auth-page.ref-login .password-control { position:relative; display:flex; align-items:center; border:1px solid #d8ded6; border-radius:10px; background:#fff; }
+.auth-page.ref-login .password-control > .ui-icon { position:absolute; left:12px; color:#869689; }
+.auth-page.ref-login .password-control input { width:100%; min-height:47px; padding:10px 44px 10px 42px; border:0; background:transparent; color:#173d34; font-size:14px; }
+.auth-page.ref-login .password-control input::placeholder { color:#98a09a; }
+.auth-page.ref-login .password-label small { color:#909a90; font-size:10px; font-weight:400; }
+.auth-page.ref-login .auth-submit { min-height:49px; justify-content:center; border-radius:11px; font-size:17px; font-weight:750; }
+.auth-page.ref-login .auth-footnote { display:flex; align-items:center; gap:10px; margin:13px 0 0; padding:12px; border-radius:11px; background:#f3f3ef; color:#8a938c; font-size:11px; line-height:1.4; text-align:left; }
+.auth-page.ref-login .auth-footnote > .ui-icon { flex:none; color:#9baa78; }
+@media(max-width:800px) {
+  .main.logged-out { padding:0; margin:0; }
+  .auth-page.ref-login { display:block; padding:0; gap:0; }
+  .auth-page.ref-login .auth-hero { width:100%; margin:0; border-radius:0; aspect-ratio:1152 / 936; }
+  .auth-page.ref-login .auth-card { width:100%; margin:0; padding:23px 25px 20px; border:0; border-radius:23px 23px 0 0; background:#fff; }
+  .auth-page.ref-login .auth-welcome { margin:0 0 5px; font-size:25px; line-height:1.12; }
+  .auth-page.ref-login .auth-subtitle { font-size:13px; }
+  .auth-page.ref-login .auth-introduction { font-size:13px; }
+  html:lang(te) .auth-page.ref-login .auth-welcome { font-size:26px; font-weight:650; line-height:1.4; letter-spacing:0; }
+  html:lang(te) .auth-page.ref-login .account-choice { font-size:12px; font-weight:500; }
+}
+@media(min-width:801px) {
+  .auth-page.ref-login { max-width:1150px; grid-template-columns:1.15fr 1fr; gap:55px; margin:auto; }
+  .auth-page.ref-login .auth-hero { width:100%; min-height:0; height:auto; align-self:center; }
+  .auth-page.ref-login .auth-card { padding:30px; border:0; background:#fff; border-radius:25px; }
+  .auth-page.ref-login .account-choice-grid { grid-auto-rows:68px; }
+  .auth-page.ref-login .account-choice { font-size:13px; }
+}

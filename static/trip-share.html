@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="referrer" content="no-referrer">
+  <meta name="theme-color" content="#f6f5f0">
+  <meta name="robots" content="noindex, nofollow, noarchive">
+  <link rel="preload" href="/static/fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/static/fonts/AnekTelugu-Variable.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="/static/styles.css">
+  <title>Shared journey</title>
+  <style>
+    .trip-share-page { width:min(100% - 32px, 640px); margin:clamp(24px,8vh,80px) auto; }
+    .trip-share-top { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:22px; }
+    .trip-share-brand { color:var(--forest); font-size:14px; font-weight:700; }
+    .trip-share-lang { min-height:42px; padding:7px 10px; border:1px solid var(--line); border-radius:10px; background:var(--surface); }
+    .trip-share-card { padding:clamp(20px,5vw,34px); border:1px solid var(--line); border-radius:22px; background:var(--surface); box-shadow:var(--shadow); }
+    .trip-share-card h1 { margin:0 0 8px; font-size:clamp(28px,6vw,38px); }
+    .trip-share-card > p { color:var(--sage); }
+    .trip-share-details { display:grid; grid-template-columns:1fr 1fr; gap:12px; margin:25px 0; }
+    .trip-share-detail { min-width:0; padding:14px; border:1px solid var(--line); border-radius:14px; background:var(--paper); }
+    .trip-share-detail dt { color:var(--sage); font-size:12px; font-weight:600; }
+    .trip-share-detail dd { margin:5px 0 0; overflow-wrap:anywhere; font-size:16px; font-weight:700; }
+    .trip-share-notice { padding:14px; border-radius:13px; background:var(--surface-quiet); color:var(--sage); font-size:13px; }
+    .trip-share-actions { display:flex; flex-wrap:wrap; align-items:center; gap:12px; margin-top:18px; }
+    .trip-share-actions a { font-weight:700; }
+    .trip-share-copy-fallback { width:100%; min-height:44px; padding:8px; border:1px solid var(--line); border-radius:10px; background:var(--paper); }
+    [hidden] { display:none !important; }
+    @media (max-width:520px) { .trip-share-details { grid-template-columns:1fr; gap:8px; margin:18px 0; } }
+  </style>
+</head>
+<body>
+  <main class="trip-share-page" id="trip-share" aria-live="polite">
+    <header class="trip-share-top">
+      <span class="trip-share-brand" data-copy="brand">Route Share</span>
+      <label class="sr-only" for="trip-share-language" data-copy="languageLabel">Language</label>
+      <select class="trip-share-lang" id="trip-share-language" aria-label="Language" data-copy="languageLabel">
+        <option value="en">English</option>
+        <option value="te">తెలుగు</option>
+      </select>
+    </header>
+    <section class="trip-share-card" aria-labelledby="trip-share-title">
+      <h1 id="trip-share-title" data-copy="loadingTitle">Opening shared journey</h1>
+      <p id="trip-share-status" role="status" data-copy="loadingBody">Checking whether this journey link is still available…</p>
+      <div id="trip-share-data" hidden>
+        <dl class="trip-share-details">
+          <div class="trip-share-detail"><dt data-copy="dateLabel">Journey date</dt><dd data-field="trip_date"></dd></div>
+          <div class="trip-share-detail"><dt data-copy="statusLabel">Status</dt><dd data-field="trip_status"></dd></div>
+          <div class="trip-share-detail"><dt data-copy="pickupLabel">Pickup</dt><dd data-field="pickup"></dd></div>
+          <div class="trip-share-detail"><dt data-copy="dropoffLabel">Drop-off</dt><dd data-field="dropoff"></dd></div>
+          <div class="trip-share-detail"><dt data-copy="driverLabel">Driver</dt><dd data-field="driver_name"></dd></div>
+          <div class="trip-share-detail"><dt data-copy="vehicleLabel">Vehicle</dt><dd><span data-field="vehicle_model"></span><span data-plate-wrap hidden> · <span data-field="vehicle_plate"></span></span></dd></div>
+          <div class="trip-share-detail" data-alias-wrap hidden><dt data-copy="aliasLabel">Shared with</dt><dd data-field="alias"></dd></div>
+        </dl>
+        <p class="trip-share-notice" data-copy="safetyNotice">This is a trip summary, not live location or emergency monitoring. For an emergency in India, call 112.</p>
+        <div class="trip-share-actions">
+          <button class="secondary" type="button" id="trip-share-copy" data-copy="copyLink">Copy link</button>
+          <a href="tel:112" data-copy="callEmergency">Call 112</a>
+          <input class="trip-share-copy-fallback" id="trip-share-copy-fallback" type="url" readonly hidden aria-label="Share link">
+        </div>
+      </div>
+      <button class="secondary" type="button" id="trip-share-retry" hidden data-copy="retry">Try again</button>
+    </section>
+  </main>
+  <script type="module" src="/static/trip-share.js"></script>
+</body>
+</html>

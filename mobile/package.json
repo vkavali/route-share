@@ -1,0 +1,34 @@
+{
+  "name": "route-share-mobile",
+  "version": "0.1.0",
+  "private": true,
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "sync:shared": "node scripts/sync-shared.mjs && node scripts/sync-leaflet.mjs && node scripts/sync-icons.mjs",
+    "check:translations": "node scripts/sync-shared.mjs --check",
+    "typecheck": "tsc --noEmit",
+    "export:ios": "npm run sync:shared && expo export --platform ios --output-dir dist/ios",
+    "export:android": "npm run sync:shared && expo export --platform android --output-dir dist/android",
+    "export:all": "npm run sync:shared && npm run typecheck && expo export --platform ios --output-dir dist/ios && expo export --platform android --output-dir dist/android",
+    "android": "expo run:android",
+    "ios": "expo run:ios"
+  },
+  "dependencies": {
+    "@react-native-community/datetimepicker": "8.4.4",
+    "expo": "~54.0.0",
+    "expo-crypto": "~15.0.0",
+    "expo-font": "~14.0.12",
+    "expo-location": "~19.0.0",
+    "expo-secure-store": "~15.0.0",
+    "react": "19.1.0",
+    "react-native": "0.81.5",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-svg": "15.12.1",
+    "react-native-webview": "13.15.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.1.10",
+    "typescript": "~5.9.2"
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Route share · Local beta",
+  "short_name": "Route share",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f8f5ee",
+  "theme_color": "#163e34",
+  "icons": [{ "src": "/static/icon.svg", "type": "image/svg+xml", "sizes": "any" }]
+}

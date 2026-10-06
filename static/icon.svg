@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title id="title">Route share</title>
+  <rect width="64" height="64" rx="18" fill="#163e34"/>
+  <path d="M8 47c8-10 14-14 22-12 9 2 11 12 26-8" fill="none" stroke="#edb44c" stroke-linecap="round" stroke-width="7"/>
+  <path d="M8 47c8-10 14-14 22-12 9 2 11 12 26-8" fill="none" stroke="#fffefa" stroke-dasharray="2 6" stroke-linecap="round" stroke-width="1.8"/>
+  <circle cx="10" cy="46" r="4.5" fill="#fffefa" stroke="#163e34" stroke-width="2"/>
+  <path d="M53 12c-5 0-9 4-9 9 0 6.4 9 15 9 15s9-8.6 9-15c0-5-4-9-9-9Z" fill="#fffefa"/>
+  <circle cx="53" cy="21" r="3.3" fill="#163e34"/>
+</svg>

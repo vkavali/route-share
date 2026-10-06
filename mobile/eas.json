@@ -1,0 +1,17 @@
+{
+  "build": {
+    "preview": {
+      "distribution": "internal",
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://route-share-beta.up.railway.app"
+      }
+    },
+    "testflight": {
+      "distribution": "store",
+      "autoIncrement": true,
+      "env": {
+        "EXPO_PUBLIC_API_URL": "https://route-share-beta.up.railway.app"
+      }
+    }
+  }
+}
