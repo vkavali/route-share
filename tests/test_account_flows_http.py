@@ -6,6 +6,7 @@ import struct
 import zlib
 
 import pytest
+from cryptography.fernet import Fernet
 from werkzeug.test import EnvironBuilder
 
 from app import create_app
@@ -32,7 +33,7 @@ def system(tmp_path):
             'BETA_PASSWORD':PASSWORD,'DIRECT_UPI_ENABLED':True,'VOICE_ENABLED':False,
             'PHONE_AUTH_ENABLED':True,'PHONE_AUTH_PROVIDER':SMSFixture(),
             'PUBLIC_OPERATOR_NAME':'Test operator','PUBLIC_SUPPORT_EMAIL':'support@example.test',
-            'PHONE_AUTH_HMAC_KEY':'h'*48,'PHONE_AUTH_DAILY_LIMIT':100}
+            'IDENTITY_EVIDENCE_KEY':Fernet.generate_key(),'PHONE_AUTH_HMAC_KEY':'h'*48,'PHONE_AUTH_DAILY_LIMIT':100}
     application=create_app(config)
     application.extensions['beta_service'].router=FixtureRoadProvider()
     store=application.extensions['beta_store']

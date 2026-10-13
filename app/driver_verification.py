@@ -1,6 +1,6 @@
 """Private driver applications and bounded human document review, not government checks.
 
-Evidence is stored as BLOBs in the same SQLite transaction as private metadata.
+Evidence is Fernet-encrypted in the same SQLite transaction as private metadata.
 Only status summaries and expiry metadata are written to users. Maintenance deletes
 logical primary-store evidence; backup/WAL retention remains an operational duty.
 """
@@ -13,6 +13,12 @@ import struct
 import uuid
 from contextlib import contextmanager
 from datetime import date, datetime, time, timedelta, timezone
+
+try:
+    from cryptography.fernet import Fernet, InvalidToken
+except ImportError:  # Never fall back to plaintext if the deployment is incomplete.
+    Fernet = None
+    InvalidToken = ValueError
 
 from .permissions import has_current_identity_review, has_verified_phone, access_summary
 from . import review_progress
@@ -34,6 +40,7 @@ REQUIREMENTS = {
     "review_scope": "Human review of supplied evidence only; not government or police verification.",
 }
 UTC = timezone.utc
+KEY_GUARD = b"driver-evidence-key-v1"
 
 
 class DriverVerificationError(Exception):
@@ -106,13 +113,89 @@ def _content_type(raw, kind):
     _error("Use a PNG or JPEG image, or a PDF for documents other than the selfie.", 400, "document_type_invalid")
 
 
+def _unavailable():
+    _error("Private driver evidence is unavailable. Contact support before continuing.", 503, "verification_evidence_unavailable")
+
+
+def _cipher_for(key):
+    try:
+        return Fernet(key.encode() if isinstance(key, str) else key) if Fernet is not None and key else None
+    except (ValueError, TypeError, UnicodeError):
+        return None
+
+
+def _validate_guard(connection, cipher, *, allow_create=False):
+    # The configured key is shared with identity evidence, but its driver binding is distinct.
+    tables = {row[0] for row in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+    for table, expected in (("identity_encryption_config", b"identity-evidence-key-v1"),
+                            ("driver_encryption_config", KEY_GUARD)):
+        row = connection.execute(f"SELECT token FROM {table} WHERE id=1").fetchone() if table in tables else None
+        if row:
+            try:
+                if cipher.decrypt(bytes(row[0])) != expected:
+                    _unavailable()
+            except (InvalidToken, ValueError, TypeError):
+                _unavailable()
+        elif table == "driver_encryption_config":
+            if not allow_create:
+                _unavailable()
+            columns = {r[1] for r in connection.execute("PRAGMA table_info(driver_document_blobs)")}
+            if "encoding" in columns and connection.execute("SELECT 1 FROM driver_document_blobs WHERE encoding!=0 LIMIT 1").fetchone():
+                _unavailable()  # A missing guard is not permission to replace a lost binding.
+            connection.execute("CREATE TABLE IF NOT EXISTS driver_encryption_config (id INTEGER PRIMARY KEY, token BLOB NOT NULL)")
+            connection.execute("INSERT INTO driver_encryption_config(id,token) VALUES (1,?)", (cipher.encrypt(KEY_GUARD),))
+
+
+def _check_plaintext(raw, doc):
+    if (not raw or len(raw) > MAX_DOCUMENT_BYTES or len(raw) != doc.get("bytes")
+            or hashlib.sha256(raw).hexdigest() != doc.get("sha256")):
+        _unavailable()
+    try:
+        media, _ = _content_type(raw, doc.get("kind"))
+    except DriverVerificationError:
+        _unavailable()
+    if media != doc.get("content_type"):
+        _unavailable()
+
+
 class DriverVerificationService:
-    def __init__(self, store, *, clock=None):
+    def __init__(self, store, *, encryption_key=None, clock=None):
         self.store = store
         self.clock = clock or (lambda: datetime.now(UTC))
+        self._cipher = _cipher_for(encryption_key)
         with store.transaction() as tx:
-            tx._connection.execute("""CREATE TABLE IF NOT EXISTS driver_document_blobs
-                (id TEXT PRIMARY KEY, content BLOB NOT NULL)""")
+            connection = tx._connection
+            connection.execute("""CREATE TABLE IF NOT EXISTS driver_document_blobs
+                (id TEXT PRIMARY KEY, content BLOB NOT NULL, encoding INTEGER NOT NULL DEFAULT 0)""")
+            if "encoding" not in {row[1] for row in connection.execute("PRAGMA table_info(driver_document_blobs)")}:
+                connection.execute("ALTER TABLE driver_document_blobs ADD COLUMN encoding INTEGER NOT NULL DEFAULT 0")
+            connection.execute("CREATE TABLE IF NOT EXISTS driver_encryption_config (id INTEGER PRIMARY KEY, token BLOB NOT NULL)")
+            if self._cipher:
+                try:
+                    _validate_guard(connection, self._cipher, allow_create=True)
+                except DriverVerificationError:
+                    self._cipher = None
+
+    @property
+    def available(self):
+        return self._cipher is not None
+
+    def _require_key(self, tx):
+        if not self._cipher:
+            _unavailable()
+        _validate_guard(tx._connection, self._cipher)
+
+    def _read_blob(self, tx, doc):
+        self._require_key(tx)
+        row = tx._connection.execute("SELECT content,encoding FROM driver_document_blobs WHERE id=?", (doc["id"],)).fetchone()
+        if not row or row[1] != 1:
+            _unavailable()
+        try:
+            raw = self._cipher.decrypt(bytes(row[0]))
+        except (InvalidToken, ValueError, TypeError):
+            _unavailable()
+        _check_plaintext(raw, doc)
+        return raw
 
     def _now(self):
         return self.clock().astimezone(UTC)
@@ -161,8 +244,11 @@ class DriverVerificationService:
                                for d in sorted(self._documents(tx, application), key=lambda row: row["kind"])]
         return result
 
+    def requirements(self):
+        return {**REQUIREMENTS, "available": self.available}
+
     def _result(self, tx, application):
-        return {"application": self._view(tx, application), "requirements": dict(REQUIREMENTS)}
+        return {"application": self._view(tx, application), "requirements": self.requirements()}
 
     @staticmethod
     def _invalidate_user(tx, user_id, state="not_checked"):
@@ -186,15 +272,23 @@ class DriverVerificationService:
             if datetime.fromisoformat(doc["delete_after"]) <= at:
                 self._delete_document(tx, doc["id"])
                 deleted += 1
-        expired = 0
+        expired = reopened = 0
         for app in tx.list(APPLICATIONS):
+            # Retention must not strand a submitted application without reviewable evidence.
+            if app["status"] == "submitted" and {d["kind"] for d in self._documents(tx, app)} != set(KINDS):
+                app.update(status="needs_changes", version=app["version"] + 1,
+                           decision_reason="Some documents reached their retention limit. Upload the missing documents and submit again.",
+                           updated_at=at.isoformat())
+                tx.put(APPLICATIONS, app["id"], app)
+                review_progress.discard_application(tx, "driver", app["id"])
+                reopened += 1
             if app["status"] == "approved" and datetime.fromisoformat(app["approval_expires_at"]) <= at:
                 app.update(status="expired", version=app["version"] + 1)
                 tx.put(APPLICATIONS, app["id"], app)
                 review_progress.discard_application(tx, "driver", app["id"])
                 self._invalidate_user(tx, app["user_id"], "expired")
                 expired += 1
-        return {"deleted_documents": deleted, "expired_applications": expired}
+        return {"deleted_documents": deleted, "expired_applications": expired, "reopened_applications": reopened}
 
     @staticmethod
     def _delete_document(tx, document_id):
@@ -256,6 +350,7 @@ class DriverVerificationService:
         # Reject unauthorized actors before reading the stream. Recheck under write transaction.
         with self.store.read() as tx:
             self._actor(tx, user, member=True)
+            self._require_key(tx)
         raw = _read_content(content)
         media, extension = _content_type(raw, kind)
         name = filename if isinstance(filename, str) else "document"
@@ -277,6 +372,8 @@ class DriverVerificationService:
                 _error("Consent to private document review is required.", 409)
             if expiry and expiry <= at:
                 _error("Upload a document that has not expired.", 400, "document_expired")
+            self._require_key(tx)
+            encrypted = self._cipher.encrypt(raw)
             # Selfie retention is initially bounded to 30 days from upload, then tied
             # to the earliest reviewed document expiry on approval.
             delete_after = (expiry or at) + timedelta(days=30)
@@ -284,7 +381,7 @@ class DriverVerificationService:
                 if old["kind"] == kind:
                     self._delete_document(tx, old["id"])
             identity = uuid.uuid4().hex
-            tx._connection.execute("INSERT INTO driver_document_blobs(id,content) VALUES (?,?)", (identity, raw))
+            tx._connection.execute("INSERT INTO driver_document_blobs(id,content,encoding) VALUES (?,?,1)", (identity, encrypted))
             tx.put(DOCUMENTS, identity, {"id": identity, "application_id": app["id"], "user_id": current["id"],
                    "kind": kind, "expires_on": expires_on or None, "filename": name, "content_type": media,
                    "bytes": len(raw), "sha256": hashlib.sha256(raw).hexdigest(),
@@ -296,6 +393,7 @@ class DriverVerificationService:
             return self._result(tx, app)
 
     def _ready(self, tx, app, at):
+        self._require_key(tx)
         if not all(app.get(f) is True for f in ("adult_attested", "planned_trip_attested", "document_consent")):
             _error("Confirm the adult, planned-trip and document-review declarations.", 409, "verification_incomplete")
         docs = {d["kind"]: d for d in self._documents(tx, app)}
@@ -304,6 +402,8 @@ class DriverVerificationService:
         expiries = {kind: _expiry(docs[kind]["expires_on"]) for kind in EXPIRING_KINDS}
         if any(expiry <= at for expiry in expiries.values()):
             _error("Replace expired documents before submitting or approving.", 409, "document_expired")
+        for doc in docs.values():
+            self._read_blob(tx, doc)
         return docs, expiries
 
     def submit_application(self, user, payload):
@@ -429,10 +529,8 @@ class DriverVerificationService:
             doc = tx.get(DOCUMENTS, document_id)
             if not doc or doc["user_id"] != current["id"]:
                 _error("Document not found.", 404)
-            row = tx._connection.execute("SELECT content FROM driver_document_blobs WHERE id = ?", (document_id,)).fetchone()
-            if not row:
-                _error("Document not found.", 404)
-            return {"content": bytes(row[0]), "content_type": doc["content_type"], "filename": doc["filename"]}
+            raw = self._read_blob(tx, doc)
+            return {"content": raw, "content_type": doc["content_type"], "filename": doc["filename"]}
 
 
     def _preview_record(self, tx, current, document_id):
@@ -460,7 +558,7 @@ class DriverVerificationService:
             row = tx._connection.execute("SELECT content FROM driver_document_blobs WHERE id=?", (document_id,)).fetchone()
             if not row:
                 _error("Document not found.", 404)
-            raw = bytes(row[0])
+            raw = self._read_blob(tx, doc)
             version, app_id = app["version"], app["id"]
             stored_digest = hashlib.sha256(bytes(row[0])).digest()
         # Do not hold a SQLite writer lock during native decoding. Re-authorize
@@ -471,12 +569,150 @@ class DriverVerificationService:
             _error(str(exc), exc.status, exc.code)
         with self._access(user, reviewer=True) as (tx, current, at):
             doc, app = self._preview_record(tx, current, document_id)
-            row = tx._connection.execute("SELECT content FROM driver_document_blobs WHERE id=?", (document_id,)).fetchone()
+            self._require_key(tx)
+            row = tx._connection.execute("SELECT content,encoding FROM driver_document_blobs WHERE id=?", (document_id,)).fetchone()
             if (app["id"] != app_id or app["version"] != version or not row
-                    or hashlib.sha256(bytes(row[0])).digest() != stored_digest):
+                    or row[1] != 1 or hashlib.sha256(bytes(row[0])).digest() != stored_digest):
                 _error("This application changed. Reload it before inspection.", 409, "document_preview_stale")
             receipt_id = hashlib.sha256(f"{current['id']}:{document_id}:{version}:{page}".encode()).hexdigest()
             tx.put(DOCUMENT_ACCESS, receipt_id, {"id": receipt_id, "actor_id": current["id"],
                    "document_id": document_id, "application_id": app_id, "application_version": version,
                    "page": page, "page_count": result["page_count"], "mode": "watermarked_preview", "at": at.isoformat()})
             return result
+
+
+
+def _stored_blob_rows(connection):
+    # Stable IDs while migration updates only content/encoding; never materialize all BLOBs.
+    cursor = connection.execute("SELECT id,content,encoding FROM driver_document_blobs ORDER BY id")
+    try:
+        while True:
+            batch = cursor.fetchmany(1)
+            if not batch:
+                break
+            yield batch[0]
+    finally:
+        cursor.close()
+
+
+def migrate_legacy_evidence(database_path, *, encryption_key, offline=False):
+    """Explicit offline conversion only; no runtime migration or key rotation.
+
+    Caller must stop all application/worker access and keep a protected backup.
+    A single SQLite transaction includes schema, guard and every BLOB conversion.
+    """
+    import sqlite3
+    from pathlib import Path
+    if offline is not True:
+        raise ValueError("Stop all database users and explicitly confirm offline conversion.")
+    cipher = _cipher_for(encryption_key)
+    if cipher is None:
+        _unavailable()
+    path = Path(database_path).resolve(strict=True)
+    connection = sqlite3.connect(path.as_uri() + "?mode=rw", uri=True, timeout=5, isolation_level=None)
+    try:
+        connection.execute("BEGIN EXCLUSIVE")
+        tables = {r[0] for r in connection.execute("SELECT name FROM sqlite_master WHERE type='table'")}
+        if not {"driver_document_blobs", "documents"} <= tables:
+            _unavailable()
+        _validate_guard(connection, cipher, allow_create=True)
+        columns = {r[1] for r in connection.execute("PRAGMA table_info(driver_document_blobs)")}
+        if "encoding" not in columns:
+            connection.execute("ALTER TABLE driver_document_blobs ADD COLUMN encoding INTEGER NOT NULL DEFAULT 0")
+        converted = 0
+        for document_id, content, encoding in _stored_blob_rows(connection):
+            metadata = connection.execute("SELECT data FROM documents WHERE collection=? AND id=?", (DOCUMENTS, document_id)).fetchone()
+            if not metadata:
+                _unavailable()
+            try:
+                doc = json.loads(metadata[0])
+                raw = bytes(content) if encoding == 0 else cipher.decrypt(bytes(content)) if encoding == 1 else None
+            except (InvalidToken, ValueError, TypeError):
+                _unavailable()
+            if not isinstance(doc, dict) or doc.get("id") != document_id:
+                _unavailable()
+            _check_plaintext(raw, doc)
+            if encoding == 0:
+                connection.execute("UPDATE driver_document_blobs SET content=?,encoding=1 WHERE id=?", (cipher.encrypt(raw), document_id))
+                converted += 1
+        # Metadata without evidence is also corruption; never report a partial clean conversion.
+        missing = connection.execute("""SELECT 1 FROM documents d LEFT JOIN driver_document_blobs b ON b.id=d.id
+            WHERE d.collection=? AND b.id IS NULL LIMIT 1""", (DOCUMENTS,)).fetchone()
+        if missing:
+            _unavailable()
+        connection.commit()
+        return {"converted_documents": converted}
+    except BaseException:
+        connection.rollback()
+        raise
+    finally:
+        connection.close()
+
+
+def audit_evidence_storage(database_path, *, encryption_key):
+    """Read-only release gate. Return aggregate counts only, never evidence or IDs."""
+    import sqlite3
+    from pathlib import Path
+    path = Path(database_path).resolve(strict=True)
+    connection = sqlite3.connect(path.as_uri() + "?mode=ro", uri=True, timeout=5, isolation_level=None)
+    result = {"legacy_documents": 0, "encrypted_documents": 0, "invalid_encoding_documents": 0, "ready": False}
+    try:
+        connection.execute("BEGIN")
+        columns = {r[1] for r in connection.execute("PRAGMA table_info(driver_document_blobs)")}
+        if not columns:
+            return result
+        if "encoding" in columns:
+            counts = connection.execute("""SELECT
+                COALESCE(SUM(CASE WHEN encoding=0 THEN 1 ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN encoding=1 THEN 1 ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN encoding IN (0,1) THEN 0 ELSE 1 END),0)
+                FROM driver_document_blobs""").fetchone()
+            result.update(zip(("legacy_documents", "encrypted_documents", "invalid_encoding_documents"), counts))
+        else:
+            result["legacy_documents"] = connection.execute("SELECT COUNT(*) FROM driver_document_blobs").fetchone()[0]
+        cipher = _cipher_for(encryption_key)
+        if cipher is None:
+            return result
+        _validate_guard(connection, cipher)
+        if "encoding" not in columns or result["legacy_documents"] or result["invalid_encoding_documents"]:
+            return result
+        for document_id, content, _ in _stored_blob_rows(connection):
+            metadata = connection.execute("SELECT data FROM documents WHERE collection=? AND id=?", (DOCUMENTS, document_id)).fetchone()
+            if not metadata:
+                return result
+            doc = json.loads(metadata[0])
+            if not isinstance(doc, dict) or doc.get("id") != document_id:
+                return result
+            _check_plaintext(cipher.decrypt(bytes(content)), doc)
+        missing = connection.execute("""SELECT 1 FROM documents d LEFT JOIN driver_document_blobs b ON b.id=d.id
+            WHERE d.collection=? AND b.id IS NULL LIMIT 1""", (DOCUMENTS,)).fetchone()
+        result["ready"] = missing is None
+        return result
+    except (DriverVerificationError, InvalidToken, ValueError, TypeError, sqlite3.Error):
+        return result
+    finally:
+        connection.rollback()
+        connection.close()
+
+
+if __name__ == "__main__":
+    import argparse
+    import os
+    import sys
+    parser = argparse.ArgumentParser(description="Offline driver evidence encryption; never run against a live database.")
+    parser.add_argument("--database", required=True)
+    mode = parser.add_mutually_exclusive_group(required=True)
+    mode.add_argument("--offline", action="store_true", help="Confirm all database users are stopped and a protected backup exists")
+    mode.add_argument("--check", action="store_true", help="Read-only aggregate audit; exit nonzero unless storage is ready")
+    args = parser.parse_args()
+    try:
+        if args.check:
+            result = audit_evidence_storage(args.database, encryption_key=os.environ.get("IDENTITY_EVIDENCE_KEY"))
+        else:
+            result = migrate_legacy_evidence(args.database, encryption_key=os.environ.get("IDENTITY_EVIDENCE_KEY"), offline=args.offline)
+    except Exception:
+        print("Driver evidence conversion failed; transaction rolled back. Check the key, guard and source integrity offline.", file=sys.stderr)
+        sys.exit(1)
+    print(json.dumps(result))
+    if args.check and not result["ready"]:
+        sys.exit(1)

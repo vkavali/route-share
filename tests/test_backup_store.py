@@ -36,7 +36,7 @@ def populated(tmp_path):
             ("driver_documents", "synthetic-document", {"filename": "private-evidence.pdf"}),
         ):
             tx.put(collection, identity, {"id": identity, **extra})
-        tx._connection.execute("INSERT INTO driver_document_blobs VALUES (?,?)", ("synthetic-document", b"private synthetic BLOB\x00\xff"))
+        tx._connection.execute("INSERT INTO driver_document_blobs(id,content) VALUES (?,?)", ("synthetic-document", b"private synthetic BLOB\x00\xff"))
         tx._connection.execute("CREATE TABLE identity_document_blobs (id TEXT PRIMARY KEY, content BLOB NOT NULL)")
         tx._connection.execute("CREATE TABLE identity_encryption_config (id INTEGER PRIMARY KEY, token BLOB NOT NULL)")
         tx._connection.execute("INSERT INTO identity_document_blobs VALUES (?,?)", ("synthetic-identity-document", b"synthetic encrypted identity evidence"))
@@ -75,7 +75,7 @@ def test_backup_reads_committed_snapshot_while_writer_has_uncommitted_changes(po
     def writer():
         with populated.transaction() as tx:
             tx.put("users", "later", {"id": "later"})
-            tx._connection.execute("INSERT INTO driver_document_blobs VALUES (?,?)", ("later", b"later"))
+            tx._connection.execute("INSERT INTO driver_document_blobs(id,content) VALUES (?,?)", ("later", b"later"))
             entered.set()
             assert release.wait(10)
     with ThreadPoolExecutor(max_workers=1) as pool:

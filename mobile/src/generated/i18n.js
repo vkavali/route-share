@@ -539,6 +539,10 @@ Object.assign(messages.hi, {
   communityNewMessage:'नया संदेश', communitySaveFailed:'प्रोफ़ाइल सेव नहीं हो सकी।', communityEmptyProfile:'अभी प्रोफ़ाइल की जानकारी नहीं है।'
 });
 
+Object.assign(messages.en, {afEvidenceUnavailable:'Driver document storage is unavailable. Uploads, document viewing, and review submission are disabled. You can still view application status or withdraw consent to remove its documents.'});
+Object.assign(messages.te, {afEvidenceUnavailable:'డ్రైవర్ డాక్యుమెంట్ స్టోరేజ్ అందుబాటులో లేదు. అప్‌లోడ్, డాక్యుమెంట్ వీక్షణ, రివ్యూ సబ్మిట్ చేయడం నిలిపివేశాం. అప్లికేషన్ స్థితి చూడవచ్చు లేదా డాక్యుమెంట్లను తొలగించేందుకు సమ్మతిని వెనక్కి తీసుకోవచ్చు.'});
+Object.assign(messages.hi, {afEvidenceUnavailable:'ड्राइवर दस्तावेज़ स्टोरेज उपलब्ध नहीं है। अपलोड, दस्तावेज़ देखना और समीक्षा के लिए भेजना बंद है। आप आवेदन की स्थिति देख सकते हैं या दस्तावेज़ हटाने के लिए सहमति वापस ले सकते हैं।'});
+
 Object.assign(messages.en, {
   communityPhoneInvalid:'Enter a valid phone number.', communityNameRequired:'Enter your name.', communitySaving:'Saving…', communityNotification:'Journey update',
   communityNotificationRideRequest:'New ride request', communityNotificationRideAccepted:'Ride request accepted',
@@ -825,7 +829,7 @@ Object.assign(messages.en, {
   "afInvalidAmount": "Enter a valid rupee amount with at most two decimal places.",
   "afExpiryRequired": "Enter the document’s expiry date.",
   "afOpenAndCheck": "Open every current document and affirm all four checks before approval.",
-  "afApplicationStatusHelp": "Open Driver verification to see your application and document status.",
+  "afApplicationStatusHelp": "Identity review applies to passengers and drivers. Drivers also have a separate Driver verification process.",
   "afApprovalEditWarning": "Changing an approved application removes driving access until it is reviewed again.",
   "afSubmissionHelp": "Save any changes first, then submit the complete application for staff review.",
   "afReference": "Agreement reference",
@@ -941,7 +945,7 @@ Object.assign(messages.te, {
   "afInvalidAmount": "గరిష్ఠంగా రెండు దశాంశాలతో సరైన రూపాయల మొత్తం ఇవ్వండి.",
   "afExpiryRequired": "డాక్యుమెంట్ గడువు తేదీ ఇవ్వండి.",
   "afOpenAndCheck": "ఆమోదించే ముందు ప్రస్తుత డాక్యుమెంట్లన్నీ తెరిచి, నాలుగు చెక్‌లకు టిక్ పెట్టండి.",
-  "afApplicationStatusHelp": "మీ అప్లికేషన్, డాక్యుమెంట్ల స్థితి కోసం డ్రైవర్ వెరిఫికేషన్ తెరవండి.",
+  "afApplicationStatusHelp": "ప్రయాణికులు, డ్రైవర్లు అందరికీ గుర్తింపు సమీక్ష వర్తిస్తుంది. డ్రైవర్లకు విడిగా డ్రైవర్ వెరిఫికేషన్ ప్రక్రియ కూడా ఉంటుంది.",
   "afApprovalEditWarning": "ఆమోదించిన అప్లికేషన్ మార్చితే మళ్లీ చెక్ చేసే వరకు డ్రైవింగ్ యాక్సెస్ ఆగుతుంది.",
   "afSubmissionHelp": "మార్పులు ముందు సేవ్ చేయండి. తర్వాత పూర్తి అప్లికేషన్‌ను స్టాఫ్ చెక్ కోసం పంపండి.",
   "afReference": "ఒప్పందం రిఫరెన్స్",
@@ -1035,7 +1039,7 @@ Object.assign(messages.en, {
   "phoneFlowInvalid": "This sign-in attempt is no longer current. Change the number or request a new code.",
   "phoneInvalidName": "Enter your name using 1 to 80 characters.",
   "phoneSignOutFirst": "Sign out before signing in with another phone number.",
-  "phoneNumberChangeHelp": "To change your sign-in number, contact support. Phone sharing is still your choice.",
+  "phoneNumberChangeHelp": "To change your sign-in number, first save a recovery code in Profile → Account security and deletion. Then sign out and choose “Lost access to your phone?”; you’ll need that code and access to the new number. Sign-in uses phone OTP, so there is no password reset. Phone sharing is optional.",
   "phoneSessionRetry": "You are signed in. Retry loading your account.",
   "phoneStaffAccount": "Staff account ID"
 });
@@ -1074,7 +1078,7 @@ Object.assign(messages.te, {
   "phoneFlowInvalid": "ఈ సైన్ ఇన్ ప్రయత్నం ఇక చెల్లదు. నంబర్ మార్చండి లేదా కొత్త కోడ్ కోరండి.",
   "phoneInvalidName": "1 నుంచి 80 అక్షరాల్లో మీ పేరు ఇవ్వండి.",
   "phoneSignOutFirst": "మరో ఫోన్ నంబర్‌తో సైన్ ఇన్ అయ్యే ముందు సైన్ అవుట్ అవ్వండి.",
-  "phoneNumberChangeHelp": "సైన్ ఇన్ నంబర్ మార్చడానికి సపోర్ట్‌ను సంప్రదించండి. ఫోన్ నంబర్ షేర్ చేయాలా వద్దా అనేది మీ ఇష్టం.",
+  "phoneNumberChangeHelp": "సైన్ ఇన్ నంబర్ మార్చాలంటే ముందుగా ప్రొఫైల్ → అకౌంట్ భద్రత, తొలగింపు లో రికవరీ కోడ్ సేవ్ చేయండి. తర్వాత సైన్ అవుట్ చేసి “ఫోన్ యాక్సెస్ పోయిందా?” ఎంచుకోండి; ఆ కోడ్, కొత్త నంబర్‌కు యాక్సెస్ అవసరం. సైన్ ఇన్ ఫోన్ OTPతోనే, పాస్‌వర్డ్ రీసెట్ లేదు. ఫోన్ షేర్ చేయడం మీ ఇష్టం.",
   "phoneSessionRetry": "మీరు సైన్ ఇన్ అయ్యారు. అకౌంట్ లోడ్ చేయడానికి మళ్లీ ప్రయత్నించండి.",
   "phoneStaffAccount": "స్టాఫ్ అకౌంట్ ID"
 });
@@ -1148,7 +1152,7 @@ Object.assign(messages.en, {
   "lcViewBlocker": "Open and review",
   "lcNotEligible": "These controls are for personal phone accounts. Staff and test accounts cannot use them.",
   "lcLostPhone": "Lost access to your phone?",
-  "lcNoRecoveryKey": "Recovery needs the private code you saved earlier and access to a new phone. Without the old phone or that saved code, there is no automatic recovery.",
+  "lcNoRecoveryKey": "To recover after losing phone access, you must have saved a recovery code first in Profile → Account security and deletion. You also need access to the new number. Without the saved code and old phone, there is no automatic recovery.",
   "lcNewPhone": "New mobile number",
   "lcRecover": "Recover account to this phone",
   "lcRecoveryNewKey": "Save this replacement recovery code before continuing. Recovery invalidates the previous code, signs out old sessions and turns contact sharing off.",
@@ -1183,7 +1187,7 @@ Object.assign(messages.te, {
   "lcViewBlocker": "తెరిచి చూడండి",
   "lcNotEligible": "ఈ కంట్రోల్స్ వ్యక్తిగత ఫోన్ అకౌంట్ల కోసం. స్టాఫ్, టెస్ట్ అకౌంట్లు వాడలేవు.",
   "lcLostPhone": "మీ ఫోన్ యాక్సెస్ పోయిందా?",
-  "lcNoRecoveryKey": "రికవరీకి మీరు ముందు సేవ్ చేసిన ప్రైవేట్ కోడ్, కొత్త ఫోన్ యాక్సెస్ అవసరం. పాత ఫోన్ లేదా ఆ కోడ్ లేకపోతే ఆటోమేటిక్ రికవరీ లేదు.",
+  "lcNoRecoveryKey": "ఫోన్ యాక్సెస్ పోయిన తర్వాత రికవరీకి, ప్రొఫైల్ → అకౌంట్ భద్రత, తొలగింపు లో ముందే సేవ్ చేసిన రికవరీ కోడ్ తప్పనిసరి. కొత్త నంబర్‌కు కూడా యాక్సెస్ ఉండాలి. ఆ కోడ్, పాత ఫోన్ రెండూ లేకపోతే ఆటోమేటిక్ రికవరీ లేదు.",
   "lcNewPhone": "కొత్త మొబైల్ నంబర్",
   "lcRecover": "ఈ ఫోన్‌కు అకౌంట్ రికవర్ చేయండి",
   "lcRecoveryNewKey": "కొనసాగించే ముందు ఈ కొత్త రికవరీ కోడ్ సేవ్ చేసుకోండి. రికవరీ చేస్తే పాత కోడ్ పని చేయదు, పాత సెషన్లు సైన్ అవుట్ అవుతాయి, కాంటాక్ట్ షేరింగ్ ఆగుతుంది.",
@@ -1231,3 +1235,8 @@ Object.assign(messages.hi, {afFileHelp:"JPG, PNG या PDF, हर फ़ाइ
 Object.assign(messages.en, {afStepCount:'Step {step} of {total}',afStepComplete:'Saved',afProgressLoading:'Loading saved review progress…',afProgressInvalid:'The review checklist is invalid. Refresh the queue and retry.',afProgressVersionConflict:'This application changed. The latest version was loaded; review it before continuing.',afProgressRevisionConflict:'Another reviewer changed this checklist. The latest saved progress is shown; refresh it before continuing.',afProgressStepLocked:'Complete the earlier document step before continuing.',afProgressPagesUnread:'Render every page of this document before saving this step.',afProgressIncomplete:'Complete and save every document step before approving.',afProgressLocked:'This checklist is locked because the application is no longer under review.',afProgressSaveFailed:'The checklist could not be saved. Your selections are still here; retry.',afProgressReload:'Discard unsaved checks and reload saved progress',afProgressRefresh:'Progress changed elsewhere. Reload saved progress before making further edits.',afProgressComplete:'Every document step is saved. Approval is now available.',afStepReview:'Review all pages, then record each manual check below. Checks are never selected automatically.',afStepOpenPages:'Open this document and render every page before recording checks.',afStepMissing:'This review step has no attached document.',afStepSaveChanges:'Save changes to this step',afStepSaveNext:'Save and continue',afStepBack:'Previous step',afCompareReference:'Compare with driving licence',afApprovalProgressRequired:'Approval stays unavailable until every saved review step is complete.',afPrivateFile:'Private file',afReasonShort:'Enter a review reason of at least 10 characters.',afProgressUnsaved:'Checklist edits are not saved. Save them before approval is available.',afQueueDenied:'Review access changed. Private queue details were cleared; reload to check your access.'});
 Object.assign(messages.te, {afStepCount:'దశ {step} / {total}',afStepComplete:'సేవ్ అయింది',afProgressLoading:'సేవ్ చేసిన సమీక్ష ప్రగతి లోడ్ అవుతోంది…',afProgressInvalid:'సమీక్ష చెక్‌లిస్ట్ చెల్లదు. క్యూను రిఫ్రెష్ చేసి మళ్లీ ప్రయత్నించండి.',afProgressVersionConflict:'ఈ దరఖాస్తు మారింది. తాజా సంచిక లోడ్ అయింది; కొనసాగించే ముందు మళ్లీ సమీక్షించండి.',afProgressRevisionConflict:'మరో సమీక్షకుడు ఈ చెక్‌లిస్ట్ మార్చారు. తాజా ప్రగతి చూపబడింది; కొనసాగించే ముందు రిఫ్రెష్ చేయండి.',afProgressStepLocked:'కొనసాగించే ముందు ముందు పత్ర దశను పూర్తి చేయండి.',afProgressPagesUnread:'ఈ దశ సేవ్ చేసే ముందు పత్రంలోని ప్రతి పేజీని తెరవండి.',afProgressIncomplete:'ఆమోదానికి ముందు ప్రతి పత్ర దశను పూర్తి చేసి సేవ్ చేయండి.',afProgressLocked:'దరఖాస్తు సమీక్షలో లేకపోవడంతో ఈ చెక్‌లిస్ట్ లాక్ చేయబడింది.',afProgressSaveFailed:'చెక్‌లిస్ట్ సేవ్ కాలేదు. మీ ఎంపికలు అలాగే ఉన్నాయి; మళ్లీ ప్రయత్నించండి.',afProgressReload:'సేవ్ కాని తనిఖీలను తీసివేసి సేవ్ చేసిన ప్రగతిని లోడ్ చేయండి',afProgressRefresh:'ప్రగతి మరెక్కడో మారింది. మరిన్ని మార్పులు చేసే ముందు సేవ్ చేసిన ప్రగతిని రిఫ్రెష్ చేయండి.',afProgressComplete:'ప్రతి పత్ర దశ సేవ్ అయింది. ఇప్పుడు ఆమోదం అందుబాటులో ఉంది.',afStepReview:'అన్ని పేజీలను సమీక్షించి, ప్రతి మాన్యువల్ తనిఖీని నమోదు చేయండి. తనిఖీలు స్వయంగా ఎంపిక కావు.',afStepOpenPages:'తనిఖీలు నమోదు చేసే ముందు ఈ పత్రంలోని ప్రతి పేజీని తెరవండి.',afStepMissing:'ఈ సమీక్ష దశకు పత్రం జత చేయబడలేదు.',afStepSaveChanges:'ఈ దశ మార్పులను సేవ్ చేయండి',afStepSaveNext:'సేవ్ చేసి కొనసాగండి',afStepBack:'మునుపటి దశ',afCompareReference:'డ్రైవింగ్ లైసెన్స్‌తో పోల్చండి',afApprovalProgressRequired:'ప్రతి సమీక్ష దశను పూర్తి చేసి సేవ్ చేసిన తర్వాతే ఆమోదం అందుబాటులో ఉంటుంది.',afPrivateFile:'ప్రైవేట్ ఫైల్',afReasonShort:'కనీసం 10 అక్షరాల సమీక్ష కారణం నమోదు చేయండి.',afProgressUnsaved:'చెక్‌లిస్ట్ మార్పులు సేవ్ కాలేదు. ఆమోదానికి ముందు వాటిని సేవ్ చేయండి.',afQueueDenied:'సమీక్ష అనుమతి మారింది. ప్రైవేట్ క్యూను క్లియర్ చేశాం; అనుమతిని మళ్లీ తనిఖీ చేయండి.'});
 Object.assign(messages.hi, {afStepCount:'चरण {step} / {total}',afStepComplete:'सहेजा गया',afProgressLoading:'सहेजी गई समीक्षा प्रगति लोड हो रही है…',afProgressInvalid:'समीक्षा चेकलिस्ट अमान्य है। कतार रीफ़्रेश करके फिर कोशिश करें।',afProgressVersionConflict:'यह आवेदन बदल गया है। नवीनतम संस्करण लोड हुआ; आगे बढ़ने से पहले समीक्षा करें।',afProgressRevisionConflict:'दूसरे समीक्षक ने यह चेकलिस्ट बदली। नवीनतम प्रगति दिख रही है; आगे बढ़ने से पहले रीफ़्रेश करें।',afProgressStepLocked:'आगे बढ़ने से पहले पिछला दस्तावेज़ चरण पूरा करें।',afProgressPagesUnread:'इस चरण को सहेजने से पहले दस्तावेज़ के हर पृष्ठ को खोलें।',afProgressIncomplete:'स्वीकृति से पहले हर दस्तावेज़ चरण पूरा करके सहेजें।',afProgressLocked:'आवेदन समीक्षा में नहीं है, इसलिए यह चेकलिस्ट लॉक है।',afProgressSaveFailed:'चेकलिस्ट सहेजी नहीं जा सकी। आपकी पसंद मौजूद है; फिर कोशिश करें।',afProgressReload:'बिना सहेजी जांच हटाकर सहेजी प्रगति लोड करें',afProgressRefresh:'प्रगति कहीं और बदली गई। आगे संपादन से पहले सहेजी प्रगति रीफ़्रेश करें।',afProgressComplete:'हर दस्तावेज़ चरण सहेजा गया। अब स्वीकृति उपलब्ध है।',afStepReview:'हर पृष्ठ देखें, फिर नीचे हर मैन्युअल जांच दर्ज करें। जांच अपने आप नहीं चुनी जातीं।',afStepOpenPages:'जांच दर्ज करने से पहले इस दस्तावेज़ का हर पृष्ठ खोलें।',afStepMissing:'इस समीक्षा चरण में कोई दस्तावेज़ संलग्न नहीं है।',afStepSaveChanges:'इस चरण के बदलाव सहेजें',afStepSaveNext:'सहेजें और आगे बढ़ें',afStepBack:'पिछला चरण',afCompareReference:'ड्राइविंग लाइसेंस से तुलना करें',afApprovalProgressRequired:'हर समीक्षा चरण पूरा करके सहेजने के बाद ही स्वीकृति उपलब्ध होगी।',afPrivateFile:'निजी फ़ाइल',afReasonShort:'कम से कम 10 अक्षरों का समीक्षा कारण लिखें।',afProgressUnsaved:'चेकलिस्ट के बदलाव सहेजे नहीं गए हैं। स्वीकृति से पहले उन्हें सहेजें।',afQueueDenied:'समीक्षा पहुंच बदल गई। निजी कतार जानकारी हटाई गई; पहुंच फिर जांचें।'});
+Object.assign(messages.hi, {
+  phoneNumberChangeHelp: 'साइन-इन नंबर बदलने के लिए पहले प्रोफ़ाइल → अकाउंट सुरक्षा और हटाना में रिकवरी कोड सेव करें। फिर साइन आउट करके “क्या आपने फ़ोन का ऐक्सेस खो दिया?” चुनें; इसके लिए कोड और नए नंबर तक पहुँच चाहिए। साइन-इन फ़ोन OTP से होता है, पासवर्ड रीसेट नहीं है। फ़ोन शेयर करना आपकी पसंद है।',
+  lcNoRecoveryKey: 'फ़ोन का ऐक्सेस खोने पर रिकवरी के लिए पहले प्रोफ़ाइल → अकाउंट सुरक्षा और हटाना में कोड सेव करना ज़रूरी है। नए नंबर तक पहुँच भी चाहिए। सेव किया कोड और पुराना फ़ोन, दोनों न हों तो अपने-आप रिकवरी नहीं हो सकती।',
+  afApplicationStatusHelp: 'पहचान समीक्षा यात्रियों और ड्राइवरों, दोनों के लिए है। ड्राइवरों के लिए अलग ड्राइवर सत्यापन प्रक्रिया भी है.'
+});

@@ -291,7 +291,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     service = Service(store, OSRMProvider(store=store))
     service.community.maintenance()
     app.extensions["beta_service"] = service
-    verification_service = DriverVerificationService(store)
+    verification_service = DriverVerificationService(store, encryption_key=app.config.get("IDENTITY_EVIDENCE_KEY"))
     identity_service = IdentityVerificationService(store, encryption_key=app.config.get("IDENTITY_EVIDENCE_KEY"))
     reviews_service = ReviewsService(store)
     payment_service = PaymentService(store, enabled=_hosted_enabled(app.config["DIRECT_UPI_ENABLED"]))

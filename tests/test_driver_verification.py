@@ -8,6 +8,7 @@ import json
 import threading
 
 import pytest
+from cryptography.fernet import Fernet
 
 from app.driver_verification import (
     APPLICATIONS, DECISIONS, DOCUMENTS, DOCUMENT_ACCESS, MAX_DOCUMENT_BYTES,
@@ -17,6 +18,7 @@ from app.permissions import can_drive
 from app.store import Store
 
 UTC = timezone.utc
+EVIDENCE_KEY = Fernet.generate_key()
 PNG = base64.b64decode('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+a2ioAAAAASUVORK5CYII=')
 PDF = b'%PDF-1.7\n1 0 obj\n<<>>\nendobj\n%%EOF\n'
 
@@ -34,7 +36,7 @@ def system(tmp_path):
     }
     with store.transaction() as tx:
         for u in users.values(): tx.put('users',u['id'],u)
-    service = DriverVerificationService(store, clock=lambda:clock[0])
+    service = DriverVerificationService(store, encryption_key=EVIDENCE_KEY, clock=lambda:clock[0])
     return service,store,users,clock
 
 
@@ -101,7 +103,7 @@ def test_complete_private_application_review_and_restart(system):
             assert secret not in serialized
         assert len(tx.list(DECISIONS))==1
         assert tx.list('events')==[]
-    restarted=DriverVerificationService(Store(store.path),clock=lambda:clock[0])
+    restarted=DriverVerificationService(Store(store.path),encryption_key=EVIDENCE_KEY,clock=lambda:clock[0])
     assert restarted.get_application(users['alice'])['application']==approved
     for doc in approved['documents']:
         assert restarted.get_document(users['alice'],doc['id'])['content']==PNG
@@ -252,6 +254,54 @@ def test_retention_deletes_blobs_metadata_and_marks_expired_on_access(system):
         assert tx.list(DOCUMENTS)==[]
         assert tx._connection.execute('SELECT count(*) FROM driver_document_blobs').fetchone()[0]==0
     for identity in ids:error(404,lambda:service.get_document(users['alice'],identity))
+
+
+
+@pytest.mark.parametrize('trigger', ['access', 'scheduled'])
+def test_submitted_retention_reopens_preserving_documents_and_requires_fresh_review(system, trigger):
+    service,store,users,clock=system
+    submitted=ready(system)
+    retained={d['kind']:d['id'] for d in submitted['documents'] if d['kind']!='selfie'}
+    old_selfie=next(d['id'] for d in submitted['documents'] if d['kind']=='selfie')
+    with store.read() as tx:
+        assert tx.list('document_review_progress')
+    clock[0]+=timedelta(days=31)
+    if trigger=='scheduled':
+        outcome=service.maintenance()
+        assert outcome['deleted_documents']==1
+        assert outcome['reopened_applications']==1
+    reopened=service.get_application(users['alice'])['application']
+    assert reopened['status']=='needs_changes'
+    assert reopened['version']==submitted['version']+1
+    assert 'upload' in reopened['decision_reason'].lower()
+    assert {d['kind']:d['id'] for d in reopened['documents']}==retained
+    assert service.maintenance()['reopened_applications']==0
+    assert service.get_application(users['alice'])['application']==reopened
+    with store.read() as tx:
+        assert tx.list('document_review_progress')==[]
+        assert tx._connection.execute('SELECT count(*) FROM driver_document_blobs').fetchone()[0]==3
+        assert not can_drive(tx.get('users','alice'),clock[0])
+    error(404,lambda:service.get_document(users['alice'],old_selfie))
+    error(409,lambda:service.review_application(users['reviewer'],decision(submitted)),
+          'verification_version_conflict')
+    error(403,lambda:service.verification_queue(users['ops']))
+
+    corrected=draft(service,users['alice'],version=reopened['version'])
+    corrected=service.upload_document(users['alice'],kind='selfie',expires_on=None,
+        filename='replacement.png',content=PNG,expected_version=corrected['version'])['application']
+    corrected=service.submit_application(users['alice'],{'expected_version':corrected['version']})['application']
+    assert {d['kind']:d['id'] for d in corrected['documents'] if d['kind']!='selfie'}==retained
+    error(409,lambda:service.review_application(users['reviewer'],decision(corrected)),
+          'verification_documents_unread')
+    for document in corrected['documents']:
+        service.get_document_preview(users['reviewer'],document['id'])
+    error(409,lambda:service.review_application(users['reviewer'],decision(corrected)),
+          'review_progress_incomplete')
+    complete_checklist(service,users['reviewer'],corrected)
+    approved=service.review_application(users['reviewer'],decision(corrected))['application']
+    assert approved['status']=='approved'
+    with store.read() as tx:
+        assert can_drive(tx.get('users','alice'),clock[0])
 
 
 def test_edit_approval_or_withdraw_consent_invalidates_drive_permission(system):

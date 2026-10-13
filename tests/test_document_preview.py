@@ -106,7 +106,7 @@ def case(tmp_path, request):
     with store.transaction() as tx:
         for user in (owner, staff, outsider): tx.put('users', user['id'], user)
     service = (IdentityVerificationService(store, encryption_key=Fernet.generate_key(), clock=lambda: AT)
-               if kind == 'identity' else DriverVerificationService(store, clock=lambda: AT))
+               if kind == 'identity' else DriverVerificationService(store, encryption_key=Fernet.generate_key(), clock=lambda: AT))
     payload = {'legal_name': 'Synthetic Applicant', 'adult_attested': True, 'document_consent': True, 'expected_version': 0}
     payload.update({'document_type': 'passport'} if kind == 'identity' else
                    {'vehicle': {'model': 'Synthetic', 'plate': 'TS01AB1234'}, 'planned_trip_attested': True, 'applicant_note': ''})
@@ -184,12 +184,12 @@ def test_corrupt_render_records_no_inspection(case):
     kind, store, service, owner, staff, outsider, app = case
     document = app['documents'][0]
     raw = b'%PDF-1.7\nThis is corrupt, not evidence.'
-    stored = service._cipher.encrypt(raw) if kind == 'identity' else raw
+    stored = service._cipher.encrypt(raw)
     with store.transaction() as tx:
         tx._connection.execute('UPDATE ' + kind + '_document_blobs SET content=? WHERE id=?', (stored, document['id']))
     with pytest.raises((DriverVerificationError, IdentityVerificationError)) as caught:
         service.get_document_preview(staff, document['id'])
-    assert caught.value.code == 'document_preview_invalid'
+    assert caught.value.code == ('document_preview_invalid' if kind == 'identity' else 'verification_evidence_unavailable')
     with store.read() as tx: assert tx.list(kind + '_document_access') == []
 
 
