@@ -132,7 +132,9 @@ def test_state_includes_only_participant_bounded_routes_for_eligible_bookings(ap
     login(passenger, "passenger")
     login(outsider, "passenger2")
 
-    driver_state = driver.get("/api/state").json
+    driver_response = driver.get("/api/state")
+    assert driver_response.status_code == 200, driver_response.json
+    driver_state = driver_response.json
     rows = {booking["id"]: booking for booking in driver_state["bookings"]}
     assert rows["booking-live"]["route"]["coordinates"] == [
         [78.01, 17.01], [78.05, 17.05], [78.1, 17.1],

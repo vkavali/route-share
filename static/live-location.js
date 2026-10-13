@@ -103,9 +103,14 @@ export function mountLiveLocation({
   const center = pickupPoint || dropoffPoint || displayedRoute[0] || null;
 
   element.innerHTML = `<section class="live-location" aria-labelledby="live-location-title">
-    <h2 id="live-location-title" class="sr-only">${escapeHtml(t('liveTitle'))}</h2>
     <div class="live-location-map" role="img" aria-label="${escapeHtml(t('liveTitle'))}"></div>
     <div class="live-location-sheet">
+      <header class="trip-live-heading"><span>${appIcon('mapPin', {size: 26})}</span><div><h2 id="live-location-title">${escapeHtml(t('liveConsentTitle'))}</h2><p>${escapeHtml(t('liveOtherParticipant'))}</p></div></header>
+      <ul class="trip-live-consent">
+        <li>${appIcon('user', {size: 21})}<div><strong>${escapeHtml(t('liveConsentChoice'))}</strong><p>${escapeHtml(t('liveConsentChoiceHelp'))}</p></div></li>
+        <li>${appIcon('eye', {size: 21})}<div><strong>${escapeHtml(t('liveConsentForeground'))}</strong><p>${escapeHtml(t('liveForegroundOnly'))}</p></div></li>
+        <li>${appIcon('checkCircle', {size: 21})}<div><strong>${escapeHtml(t('liveConsentEnds'))}</strong><p>${escapeHtml(t('liveConsentEndsHelp'))}</p></div></li>
+      </ul>
       <div class="live-journey-summary"><span class="live-journey-icon">${appIcon('car')}</span>
         <div class="live-journey-labels"><strong class="live-pickup-label">${escapeHtml(labelPoint(pickup) || t('origin'))}</strong>
           ${appIcon('arrowRight', {className: 'live-journey-arrow', size: 18})}<strong class="live-dropoff-label">${escapeHtml(labelPoint(dropoff) || t('destination'))}</strong></div>
@@ -123,7 +128,8 @@ export function mountLiveLocation({
         <button type="button" class="primary live-location-stop" hidden>${appIcon('prohibit')}<span>${escapeHtml(t('liveStop'))}</span></button>
         <a class="secondary live-location-ended-link" href="#/bookings" hidden>${escapeHtml(t('bookings'))}${appIcon('arrowRight')}</a>
       </div>
-      <a class="secondary" href="tel:112">${appIcon('phone')} ${escapeHtml(policyCopy.emergency)}</a>
+      <a class="secondary trip-live-not-now" href="#/bookings">${escapeHtml(t('liveNotNow'))}</a>
+      <div class="trip-live-secondary"><a class="secondary" href="#/safety/${encodeURIComponent(bookingId)}">${appIcon('warning', {size: 19})} ${escapeHtml(t('tripNeedHelp'))}</a><a class="secondary" href="tel:112">${appIcon('phone', {size: 19})} ${escapeHtml(t('call112'))}</a></div>
       <p class="live-location-route-note" ${displayedRoute.length > 1 ? 'hidden' : ''}>${escapeHtml(t('liveRouteUnavailable'))}</p>
     </div>
   </section>`;
@@ -207,6 +213,12 @@ export function mountLiveLocation({
     stopButton.hidden = !localSharing && !starting && !viewerSharingId;
     stopButton.disabled = cleaned || (!localSharing && !starting && !viewerSharingId);
     endedLink.hidden = !terminal;
+    // Presentation derives from the same lease/watch state as the existing controls.
+    const sharingVisible = localSharing || Boolean(viewerSharingId);
+    root.querySelector('#live-location-title').textContent = terminal ? t('liveEnded')
+      : sharingVisible ? t('liveActiveTitle') : starting ? t('liveStarting') : t('liveConsentTitle');
+    root.querySelector('.trip-live-consent').hidden = terminal || sharingVisible || starting;
+    root.querySelector('.trip-live-not-now').hidden = terminal || sharingVisible || starting;
   };
 
   function isStale(location) {

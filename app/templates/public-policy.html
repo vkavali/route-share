@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>{{ 'Privacy notice' if privacy else 'Beta terms' }} · {{ app_name }}</title>
+  <style>
+    :root{color-scheme:light;font-family:system-ui,-apple-system,sans-serif;color:#183c35;background:#f8f8f3}
+    body{max-width:720px;margin:0 auto;padding:28px 22px 64px;line-height:1.65}a{color:inherit;text-underline-offset:3px}
+    h1{font-size:clamp(30px,6vw,42px);line-height:1.15;margin:24px 0 12px}h2{font-size:21px;margin:28px 0 8px}
+    .note{padding:16px 20px;border:1px solid #cbd8bf;border-radius:16px;background:#edf2e7}.meta{color:#526860;font-size:14px}
+    li{margin:8px 0}footer{border-top:1px solid #d5ddd4;margin-top:32px;padding-top:20px}nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 20px}
+  </style>
+</head>
+<body>
+  <nav aria-label="Public pages"><a href="/welcome?lang={{ public_lang }}">{{ app_name }}</a><a href="/faq?lang={{ public_lang }}">FAQs</a><a href="{{ '/terms' if privacy else '/privacy' }}?lang={{ public_lang }}">{{ 'Beta terms' if privacy else 'Privacy notice' }}</a></nav>
+  <h1>{{ 'Privacy notice' if privacy else 'Beta terms' }}</h1>
+  <p class="meta">Version {{ version }} · India beta · {{ app_name }} is the current working product name.</p>
+  {% if not operator_configured %}
+  <p class="note">Public signup is not open. The operator and support contact have not yet been configured. This notice describes the beta implementation; it is not an announcement of a public customer launch.</p>
+  {% else %}
+  <p>Operated by {{ operator_name }}. Contact <a href="mailto:{{ support_email }}">{{ support_email }}</a> for account help, complaints and privacy requests.</p>
+  {% if not registration_enabled %}<p class="note">Public phone signup is currently unavailable. Existing beta access remains separate.</p>{% endif %}
+  {% endif %}
+  {% if privacy %}
+  <h2>Information used by the app</h2>
+  <ul>
+    <li>Phone signup uses your Indian mobile number, verification challenge, consent choices and display name. The app stores a phone identity and verification status to let you sign in again. A verified phone number shows control of that number; it does not verify legal identity or driving safety.</li>
+    <li>Trip and booking records include the route and meeting points you choose, requested seats, lifecycle changes, contribution agreements, payment acknowledgements, reviews and safety reports.</li>
+    <li>An identity application contains your legal name, the driving licence, passport or voter ID you choose to submit, and a selfie. Do not upload Aadhaar or PAN. Staff compare this evidence and record a manual review decision.</li>
+    <li>A driver application contains the details and evidence you submit: licence, vehicle registration, insurance and a selfie.</li>
+    <li>Sign-in security uses session records, challenge state, attempt counts and keyed identifiers derived from a phone number and network address to limit abuse. The app does not store the entered OTP itself.</li>
+  </ul>
+  <h2>Who can see it</h2>
+  <p>Other members see the trip and profile information needed to arrange a ride. A contact phone number is disclosed to an eligible booking participant only when you enable phone sharing. Payment details are restricted to the relevant booking participants. Identity and driver evidence is restricted to the applicant and authorized review staff. Applicants can access their own original files. Staff use protected, watermarked page previews rather than original-file downloads, with access and review decisions recorded. The staff viewer has no download or print controls, but this cannot prevent screenshots or other copies. A human document review does not establish government authentication, document authenticity, liveness, police clearance or guaranteed safety.</p>
+  <p>Ratings relate to completed bookings. Written review comments are published only when you explicitly choose to publish them. Reports and staff review notes are not public profile content.</p>
+  <h2>Location, voice and outside services</h2>
+  <p>Live location sharing is optional, limited to eligible accepted booking participants and runs while the sharing screen remains open. You can stop it. Foreground sharing ends under the booking's sharing rules. Route and place searches use outside map services; the search text and coordinates needed for those requests are sent to those services.</p>
+  <p>If you choose voice entry, the app sends a temporary recording to the app server for transcription. You review the interpreted trip details before searching or requesting a seat. Device speech playback and microphone or location permission remain under your device controls.</p>
+  <p>When enabled, MSG91 processes the phone number and OTP verification requests needed to deliver and verify a code. UPI payments take place in your selected bank or UPI app under that provider's terms. The ride-sharing server records participant acknowledgements; it does not receive your UPI PIN or banking login.</p>
+  <h2>Storage and deletion</h2>
+  <p>Chat messages expire after 90 days and are no longer shown. Bounded cleanup at startup and during chat activity removes expired primary-store messages and their chat notifications; a content-free identifier remains to prevent an old message from being resent by a retry. Safety reports and other notification types have separate retention. This does not erase database journals or backup copies.</p>
+  <p>Account, trip, payment and security records are stored on the app's hosted infrastructure. In Profile → Account security, a phone-account member can verify their current phone and delete their account. Active journeys and unresolved payment records must first be resolved using the trip and payment controls. Deletion signs out every device and removes current profile and contact details, uploaded identity and driver evidence, recovery credentials, authored messages and reviews from the primary store.</p>
+  <p>Minimal completed trip and booking history, settled payment facts, restricted safety and audit records, and a keyed phone reservation remain. The reservation prevents deleted or restricted identities from simply registering again. These retained categories are not a promise that all personal data has been erased. Database journals, backups and outside-provider records have separate retention requirements.</p>
+  <p>You can withdraw your identity application from Identity verification. This removes its current uploaded ID and selfie, legal name and decision reason from the primary store and withdraws identity approval. You can also withdraw driver-document consent from Driver documents; this removes its current uploaded evidence and driver approval. Application and audit records remain. Deleting primary records does not promise immediate erasure of database journals or backup copies.</p>
+  <p>Identity files are marked for removal 30 days after upload. Cleanup runs when the identity service is accessed, so removal is not guaranteed at the exact 30-day boundary. A recorded approval may remain valid until its own expiry even after the files are removed. Driver documents have a separate schedule: licence, registration and insurance evidence is marked for removal 30 days after its expiry. A driver selfie is initially marked for removal 30 days after upload; approval changes that date to 30 days after the earliest reviewed document expiry. Driver cleanup also runs when that service is accessed.</p>
+  <p>Account security also lets you save an optional recovery code. Keep it private and outside the app. If you lose your phone, you can use that code and verify a different phone number to recover the same account; old sessions and the old recovery code are then revoked. Recovery is unavailable without the saved code or access to the current phone. Ordinary sign-in still uses a phone OTP, so a recovery code does not prevent access through a recycled phone number.</p>
+  <p>Contact the operator above for access and correction requests or help with unresolved records. Do not upload documents unless you are comfortable with this beta process.</p>
+  {% else %}
+  <h2>What the beta is for</h2>
+  <p>The app helps adults arrange shared seats on trips a private vehicle owner already planned. You must be at least 18 and provide accurate account, trip and document information. A phone code verifies number ownership, not identity, age or eligibility to drive.</p>
+  <h2>Driver access and rider checks</h2>
+  <p>Signing up gives member access. Requesting a seat with a real member account requires verified phone sign-in and a current identity approval from human document review. Offering rides requires separate driver approval based on submitted evidence. Approvals can expire or be withdrawn or revoked; an accepted ride may not proceed if a required approval is no longer current. A staff document-review badge is not government authentication, police clearance, insurance approval or a guarantee of safety. Before boarding, compare the driver and vehicle with the booking and decline the ride if they do not match.</p>
+  <h2>Contributions and direct UPI</h2>
+  <p>Where payment features are enabled, the owner declares a trip fuel-and-toll budget and their own positive contribution. Passenger quotes cannot collectively exceed the remaining declared budget. These expenses are owner-declared, not independently verified. The passenger accepts their amount and recipient before paying. An accepted amount cannot be increased later. Check the recipient and amount in your UPI app. Never share a UPI PIN or OTP with a driver, passenger or support contact.</p>
+  <p>The app does not hold funds, operate a wallet or independently confirm bank settlement. Opening or returning from a UPI app does not mark a payment successful. Passenger payment reports, owner receipt confirmations and refund confirmations are manual records. A refund request does not itself move money or guarantee recovery. Do not pay an unrecognized recipient or send a second payment solely because the app has not yet received an acknowledgement.</p>
+  <p>After a booking or trip ends, the owner may explicitly close an unpaid agreement with a reason if the passenger has not reported payment. Closing an unpaid agreement is not a refund or proof that no bank transfer occurred. Report any payment already made before using this action.</p>
+  <h2>Bookings, conduct and support</h2>
+  <p>A seat request is pending until the owner accepts it. Route and arrival estimates can change and do not guarantee traffic conditions or a safe pickup point. Agree on a suitable public meeting point. Use the booking's cancellation and communication controls if plans change.</p>
+  <p>Do not impersonate someone, submit false documents, harass others, drive unsafely or misuse another person's location or contact details. The app supports reporting and blocking. Accounts or driving approval may be restricted after review. Support response times are not guaranteed by this beta.</p>
+  <h2>Emergencies and your choices</h2>
+  <p>The app is not an emergency-response service. Use local emergency services for immediate danger. Live location sharing is optional and requires consent; it is not continuous background tracking.</p>
+  <p>You can stop using the beta at any time and use Account security to request deletion after resolving active journeys and payment records. The privacy notice explains what is deleted and what remains. No public-customer readiness, insurance cover, payment-provider guarantee or legal clearance is implied by access to a test build.</p>
+  {% endif %}
+  <footer><a href="/?lang={{ public_lang }}#/login">Return to the app</a> · Version {{ version }}</footer>
+</body>
+</html>

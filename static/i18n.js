@@ -1,6 +1,6 @@
 export const messages = {
   en: {
-    name:'Route share', minutes:'min', beta:'Local test environment', safety:'Development accounts only. Identity, driving licence and vehicle checks are not verified. No payments, live traffic or emergency service.',
+    name:'SeatPal', minutes:'min', beta:'Local test environment', safety:'Development accounts only. Identity, driving licence and vehicle checks are not verified. No payments, live traffic or emergency service.',
     login:'Sign in for local testing', account:'Development account', password:'Development password', signin:'Continue', development:'Development accounts',
     home:'Your next journey', ride:'I need a ride', drive:"I'm driving", journeys:'My journeys', bookings:'My bookings', inbox:'Requests', operations:'Operations', logout:'Sign out', language:'Language',
     origin:'From', destination:'To', tripDeparture:'Trip departure', detourBudget:'Maximum added driving', departure:'Departure date and time (IST)', seats:'Seats available', detour:'Maximum added driving (minutes)', preview:'Preview route', publish:'Publish this journey', search:'Find a ride', pickupFrom:'Pickup window starts (IST)', pickupUntil:'Pickup window ends (IST)', seatsNeeded:'Seats needed',
@@ -18,7 +18,7 @@ export const messages = {
     toWord:"to", homeRideDetail:"Search published routes that match your pickup and drop-off.", homeDriveDetail:"Preview a road route and share available seats.", viewAll:"View all", invitedHelp:"Use an invited development account to explore route sharing.", localDefault:"Local-only default", localTesting:"Local testing", hyderabad:"Hyderabad", example:"for example", exampleOrigin:"LB Nagar", exampleDestination:"Gachibowli", required:"Complete this field.", invalidNumber:"Enter a valid number.", invalidDate:"Enter a valid date and time.", rangeInvalid:"Enter a value within the allowed range.", mins:"min", km:"km", seat:"seat", seatsWord:"seats", roadPickup:"Road pickup", roadDropoff:"Road drop-off", roadStart:"Road start", roadEnd:"Road end", awayFromPoint:"m from selected point", routeAria:"Road route drawn from stored coordinates", tryWidenSearch:"Try widening the pickup window or changing the route.", pendingCount:"pending", developmentRows:"Development data · saved records", statusPublished:"Published", statusStarted:"Started", statusCompleted:"Completed", segmentDone:"Segment completed", roleAdmin:"administrator", roleMember:"member", dismiss:"Dismiss", signedIn:"Signed in.", searchSaved:"Search saved.", exampleKm:"km on original route", accountChange:"Account changed in another tab. Current account data loaded.", sessionExpired:"Session expired. Sign in again.", loginRequired:"Sign in to your invited development account.", invalidCredentials:"Account or password is incorrect.", missingCredentials:"Enter both an account and password.", csrfError:"Your session expired. Reload and sign in again.", forbidden:"You do not have permission to do that.", notFound:"This record was not found. Refresh and try again.", stateChanged:"Availability changed. Refresh and try again.", providerFailure:"The routing service is unavailable. Try again later.", networkFailure:"Could not reach the local service. Check the connection and retry.", serverFailure:"The service could not complete the request. Try again.", requestInvalid:"Check the details and try again.", pilotCorridor:"This local pilot is limited to Hyderabad east and south corridors.", pointInvalid:"Enter a place name and valid latitude and longitude.", timezoneRequired:"Enter a date, time and time zone.", departureWindow:"Choose a future departure within the next 90 days.", detourAllowed:"Choose a detour of 0, 5, 10 or 15 minutes.", pointsDifferent:"Choose two different points at least 1 km apart.", previewOwner:"Only the preview owner can publish it.", previewExpired:"This route preview expired. Calculate it again.", pickupWindow:"Choose a future pickup window up to 12 hours, within 90 days.", pointsFar:"Choose points at least 1 km apart.", otherPassengerMatch:"This match belongs to another passenger.", tripClosed:"This trip is no longer accepting requests.", matchExpired:"This match expired. Search again.", driverOnlyAccept:"Only the driver can accept.", bookingUnavailable:"This request or trip is no longer available.", requestConfirmedElsewhere:"Another driver has already confirmed this passenger request.", overlapExists:"This passenger already has an overlapping segment on this trip.", driverOnlyDecline:"Only the driver can decline.", bookingOtherPeople:"This booking belongs to other people.", bookingNoChange:"This booking can no longer be changed. In-progress trips require operator assistance.", cancellationReason:"Add a reason before cancelling.", driverOnlyChangeTrip:"Only the driver can change this trip.", invalidTripTransition:"This trip cannot move to that status.", finishSegmentsFirst:"Complete every accepted passenger segment before completing the trip.", participantOnly:"Only trip participants can confirm this segment.", startBeforeSegment:"Start the trip before completing an accepted segment.", participantRateOnly:"Only trip participants can rate this booking.", ratingAfterCompletion:"Ratings open after the completed journey.", adminOnly:"Operations are limited to the invited administrator.", numberRangeError:"Enter a whole number from {min} to {max}.", availabilityChanged:"Availability changed. Review the latest booking details and try again.", errorTitle:"Could not complete that action.", routeTo:"to", pointName:"Place name", coordinatesLabel:"Coordinates", requiredTimeLabel:"Enter a valid date and time.", httpUnknown:"Unknown service response.", contributionFormula:"Illustrative estimate: ₹2 per passenger-km. No payment is collected.", opsDevelopment:"Development data only · saved records", originName:"From", destinationName:"To", networkTimeout:"The local service did not respond in time.",
     homeIntro:"Choose a ride or share your route.", storyTitle:"A route you already travel", storyBody:"Find a seat along the way, or share seats on a route you are already driving.", driverFormNote:"Times use India Standard Time. Publishing requires a road route from the routing service.", searchFormNote:"Enter exact points. Pickup and drop-off windows use India Standard Time.", accountDriver:"Driver", accountPassenger:"Passenger", accountPassenger2:"Passenger 2", accountAdmin:"Administrator", minutes:"minutes", toWord:"to", invalidPickWindow:"Choose a valid pickup window.", invalidDeparture:"Choose a valid departure time.", invalidCoordinates:"Enter valid latitude and longitude.", dateHint:"Date and time", timeZoneNote:"All times are India Standard Time (UTC+05:30).", lifecyclePending:"Waiting for the driver", driverName:"Driver", passengerName:"Passenger", rawRecordNote:"Record fields are technical data; names and comments are shown as entered.",
     homeIntro:"Choose a ride or share your route.", storyTitle:"A route you already travel", storyBody:"Find a seat along the way, or share seats on a journey you already plan to drive.", driverFormNote:"Times use India Standard Time (UTC+05:30). Publishing needs a road route from the routing service.", searchFormNote:"Enter exact points. Pickup and drop-off windows use India Standard Time (UTC+05:30).", accountDriver:"Driver", accountPassenger:"Passenger", accountPassenger2:"Passenger 2", accountAdmin:"Administrator", minutes:"minutes", timeZoneNote:"All times are India Standard Time (UTC+05:30).", example:"for example", exampleOrigin:"LB Nagar", exampleDestination:"Gachibowli", driverFormNote:"Times use India Standard Time (UTC+05:30). Publishing needs a road route from the routing service.", searchFormNote:"Enter exact points. Pickup and drop-off windows use India Standard Time (UTC+05:30).",
-    documentTitle:"Route share · Local beta", cancelledByUser:"Cancelled by user", declinedByDriver:"Declined by driver", cancelledByDriver:"Cancelled by driver", languageAction:"Switch to Telugu", loginStoryArt:"A route through Telangana and Andhra Pradesh",
+    documentTitle:"SeatPal · Local beta", cancelledByUser:"Cancelled by user", declinedByDriver:"Declined by driver", cancelledByDriver:"Cancelled by driver", languageAction:"Switch to Telugu", loginStoryArt:"A route through Telangana and Andhra Pradesh",
   },
   te: {
     accept:"అభ్యర్థన అంగీకరించండి",
@@ -52,7 +52,7 @@ export const messages = {
     bookingSafety:"సేఫ్టీ, సహాయం",
     bookingUnavailable:"ఈ రిక్వెస్ట్ లేదా ప్రయాణం ఇప్పుడు అందుబాటులో లేదు.",
     bookings:"నా బుకింగ్‌లు",
-    brandTagline:"ఒక రూట్. కలిసి రైడ్.",
+    brandTagline:"రూట్ ఒకటేనా? SeatPal.",
     call112:"112కి కాల్ చేయండి",
     cancel:"బుకింగ్ రద్దు చేయండి",
     cancelReasonRequired:"బుకింగ్ రద్దు చేయడానికి కారణం రాయండి.",
@@ -110,7 +110,7 @@ export const messages = {
     dismiss:"మూసేయండి",
     distance:"దూరం",
     dl:"డ్రైవింగ్ లైసెన్స్",
-    documentTitle:"Route Share · లోకల్ టెస్ట్",
+    documentTitle:"SeatPal · లోకల్ టెస్ట్",
     drive:"నేనే డ్రైవ్ చేస్తున్నాను",
     driveTitle:"సీట్లు షేర్ చేయండి",
     driver:"డ్రైవర్",
@@ -253,7 +253,7 @@ export const messages = {
     mins:"నిమి.",
     minutes:"నిమిషాలు",
     missingCredentials:"అకౌంట్, పాస్‌వర్డ్ రెండూ ఇవ్వండి.",
-    name:"Route Share",
+    name:"SeatPal",
     networkError:"లోకల్ సర్వీస్‌ను చేరుకోలేకపోయాం. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.",
     networkFailure:"లోకల్ సర్వీస్‌ను చేరుకోలేకపోయాం. కనెక్షన్ చూసి మళ్లీ ప్రయత్నించండి.",
     networkTimeout:"లోకల్ సర్వీస్ నుంచి సమయానికి సమాధానం రాలేదు.",
@@ -434,7 +434,7 @@ export const messages = {
     timeTooFar:"వచ్చే 90 రోజుల్లో తేదీ ఎంచుకోండి."
   },
   hi: {
-    name:'रूट शेयर', minutes:'मिनट', beta:'स्थानीय परीक्षण वातावरण', safety:'केवल विकास खाते। पहचान, ड्राइविंग लाइसेंस और वाहन जाँच सत्यापित नहीं हैं। भुगतान, लाइव ट्रैफ़िक या आपातकालीन सेवा उपलब्ध नहीं है।',
+    name:'SeatPal', minutes:'मिनट', beta:'स्थानीय परीक्षण वातावरण', safety:'केवल विकास खाते। पहचान, ड्राइविंग लाइसेंस और वाहन जाँच सत्यापित नहीं हैं। भुगतान, लाइव ट्रैफ़िक या आपातकालीन सेवा उपलब्ध नहीं है।',
     login:'स्थानीय परीक्षण के लिए साइन इन करें', account:'विकास खाता', password:'विकास पासवर्ड', signin:'जारी रखें', development:'विकास खाते',
     home:'आपकी अगली यात्रा', ride:'मुझे सवारी चाहिए', drive:'मैं गाड़ी चला रहा हूँ', journeys:'मेरी यात्राएँ', bookings:'मेरी बुकिंग', inbox:'अनुरोध', operations:'ऑपरेशन्स', logout:'साइन आउट', language:'भाषा',
     origin:'कहाँ से', destination:'कहाँ तक', tripDeparture:'यात्रा रवाना होने का समय', detourBudget:'अधिकतम अतिरिक्त ड्राइविंग', departure:'रवाना होने की तारीख और समय (IST)', seats:'उपलब्ध सीटें', detour:'अधिकतम अतिरिक्त ड्राइविंग (मिनट)', preview:'रूट देखें', publish:'यह यात्रा प्रकाशित करें', search:'सवारी खोजें', pickupFrom:'पिकअप समय शुरू (IST)', pickupUntil:'पिकअप समय समाप्त (IST)', seatsNeeded:'ज़रूरी सीटें',
@@ -449,7 +449,7 @@ export const messages = {
     toWord:"तक", homeRideDetail:"आपके पिकअप और उतरने की जगह से मेल खाते प्रकाशित रूट खोजें।", homeDriveDetail:"सड़क का रूट देखें और खाली सीटें साझा करें।", viewAll:"सभी देखें", invitedHelp:"रूट देखने के लिए आमंत्रित स्थानीय परीक्षण खाते से प्रवेश करें।", localDefault:"स्थानीय परीक्षण का डिफ़ॉल्ट पासवर्ड", localTesting:"स्थानीय परीक्षण", hyderabad:"हैदराबाद", example:"उदाहरण", exampleOrigin:"एलबी नगर", exampleDestination:"गच्चीबौली", required:"यह जानकारी भरें।", invalidNumber:"सही संख्या दर्ज करें।", invalidDate:"सही तारीख और समय दर्ज करें।", rangeInvalid:"अनुमत सीमा में मान दर्ज करें।", mins:"मिनट", km:"किमी", seat:"सीट", seatsWord:"सीटें", roadPickup:"सड़क पिकअप", roadDropoff:"सड़क पर उतरने की जगह", roadStart:"सड़क की शुरुआत", roadEnd:"सड़क का अंत", awayFromPoint:"चुनी जगह से मीटर", routeAria:"सहेजे गए निर्देशांकों से बना सड़क रूट", tryWidenSearch:"पिकअप समय बढ़ाकर या रूट बदलकर देखें।", pendingCount:"लंबित", developmentRows:"स्थानीय परीक्षण डेटा · सहेजे गए रिकॉर्ड", statusPublished:"प्रकाशित", statusStarted:"शुरू हुई", statusCompleted:"पूरी हुई", segmentDone:"यात्रा खंड पूरा", roleAdmin:"व्यवस्थापक", roleMember:"सदस्य", dismiss:"बंद करें", signedIn:"साइन इन हो गया।", searchSaved:"खोज सहेजी गई।", exampleKm:"मूल रूट पर किमी", accountChange:"दूसरे टैब में खाता बदला। मौजूदा खाते की जानकारी लोड हुई।", sessionExpired:"सेशन समाप्त हुआ। फिर साइन इन करें।", loginRequired:"आमंत्रित स्थानीय परीक्षण खाते से प्रवेश करें।", invalidCredentials:"खाता या पासवर्ड गलत है।", missingCredentials:"खाता और पासवर्ड दोनों दर्ज करें।", csrfError:"आपका सेशन समाप्त हुआ। पेज फिर लोड करके प्रवेश करें।", forbidden:"आपको यह करने की अनुमति नहीं है।", notFound:"यह रिकॉर्ड नहीं मिला। रीफ़्रेश करके फिर कोशिश करें।", stateChanged:"उपलब्धता बदली है। रीफ़्रेश करके फिर कोशिश करें।", providerFailure:"रूट सेवा उपलब्ध नहीं है। थोड़ी देर बाद फिर कोशिश करें।", networkFailure:"स्थानीय सेवा से संपर्क नहीं हुआ। कनेक्शन जाँचकर फिर कोशिश करें।", serverFailure:"सेवा अनुरोध पूरा नहीं कर सकी। फिर कोशिश करें।", requestInvalid:"जानकारी जाँचकर फिर कोशिश करें।", pilotCorridor:"यह स्थानीय परीक्षण हैदराबाद के पूर्वी और दक्षिणी कॉरिडोर तक सीमित है।", pointInvalid:"जगह का नाम और सही अक्षांश-देशांतर दर्ज करें।", timezoneRequired:"तारीख, समय और टाइमज़ोन दर्ज करें।", departureWindow:"अगले 90 दिनों में भविष्य का रवाना होने का समय चुनें।", detourAllowed:"0, 5, 10 या 15 मिनट का अतिरिक्त रूट चुनें।", pointsDifferent:"कम से कम 1 किमी दूर दो अलग जगहें चुनें।", previewOwner:"सिर्फ प्रीव्यू बनाने वाला व्यक्ति इसे प्रकाशित कर सकता है।", previewExpired:"इस रूट प्रीव्यू की अवधि समाप्त हुई। फिर से रूट निकालें।", pickupWindow:"अगले 90 दिनों में, 12 घंटे के भीतर भविष्य का पिकअप समय चुनें।", pointsFar:"कम से कम 1 किमी दूर की जगहें चुनें।", otherPassengerMatch:"यह मैच दूसरे यात्री का है।", tripClosed:"इस यात्रा पर अब अनुरोध नहीं लिए जा रहे हैं।", matchExpired:"यह मैच समाप्त हुआ। फिर खोजें।", driverOnlyAccept:"सिर्फ ड्राइवर अनुरोध स्वीकार कर सकता है।", bookingUnavailable:"यह अनुरोध या यात्रा अब उपलब्ध नहीं है।", requestConfirmedElsewhere:"दूसरे ड्राइवर ने इस यात्री की पुष्टि कर दी है।", overlapExists:"इस यात्री का इसी यात्रा में मिलता-जुलता खंड पहले से है।", driverOnlyDecline:"सिर्फ ड्राइवर मना कर सकता है।", bookingOtherPeople:"यह बुकिंग दूसरे लोगों की है।", bookingNoChange:"यह बुकिंग अब नहीं बदली जा सकती। यात्रा शुरू होने पर ऑपरेटर की मदद चाहिए।", cancellationReason:"रद्द करने का कारण दर्ज करें।", driverOnlyChangeTrip:"सिर्फ ड्राइवर यह यात्रा बदल सकता है।", invalidTripTransition:"यात्रा को उस स्थिति में नहीं बदला जा सकता।", finishSegmentsFirst:"यात्रा पूरी करने से पहले सभी स्वीकृत यात्री खंड पूरे करें।", participantOnly:"सिर्फ यात्रा के लोग अपना खंड पूरा होने की पुष्टि कर सकते हैं।", startBeforeSegment:"यात्रा खंड पूरा करने से पहले यात्रा शुरू करें।", participantRateOnly:"सिर्फ इस यात्रा के लोग रेटिंग दे सकते हैं।", ratingAfterCompletion:"पूरी हुई यात्रा के बाद रेटिंग दें।", adminOnly:"ऑपरेशन्स सिर्फ आमंत्रित व्यवस्थापक के लिए हैं।", numberRangeError:"{min} से {max} तक पूर्ण संख्या दर्ज करें।", availabilityChanged:"उपलब्धता बदली है। मौजूदा बुकिंग देखकर फिर कोशिश करें।", errorTitle:"यह काम पूरा नहीं हो सका।", routeTo:"तक", pointName:"जगह का नाम", coordinatesLabel:"निर्देशांक", requiredTimeLabel:"सही तारीख और समय दर्ज करें।", httpUnknown:"सेवा का जवाब समझ नहीं आया।", contributionFormula:"प्रति यात्री-किमी ₹2 का केवल संकेतात्मक अनुमान। भुगतान नहीं होगा।", opsDevelopment:"सिर्फ स्थानीय परीक्षण डेटा · सहेजे गए रिकॉर्ड", originName:"शुरुआत", destinationName:"गंतव्य", networkTimeout:"स्थानीय सेवा ने समय पर जवाब नहीं दिया।",
     homeIntro:"सवारी खोजें या अपने रूट पर सीटें साझा करें।", storyTitle:"जिस रास्ते पर आप पहले से जा रहे हैं", storyBody:"अपने रास्ते में सीट खोजें या खाली सीट साझा करें।", driverFormNote:"समय भारतीय मानक समय के अनुसार है। प्रकाशित करने के लिए रूट सेवा का सड़क रूट ज़रूरी है।", searchFormNote:"सटीक जगहें दर्ज करें। पिकअप और उतरने का समय भारतीय मानक समय में है।", accountDriver:"ड्राइवर", accountPassenger:"यात्री", accountPassenger2:"यात्री 2", accountAdmin:"व्यवस्थापक", minutes:"मिनट", toWord:"तक", invalidPickWindow:"सही पिकअप समय चुनें।", invalidDeparture:"सही रवाना होने का समय चुनें।", invalidCoordinates:"सही अक्षांश और देशांतर दर्ज करें।", dateHint:"तारीख और समय", timeZoneNote:"सभी समय भारतीय मानक समय (UTC+05:30) में हैं।", lifecyclePending:"ड्राइवर के जवाब का इंतज़ार", driverName:"ड्राइवर", passengerName:"यात्री", rawRecordNote:"रिकॉर्ड के तकनीकी विवरण वैसे ही रहेंगे; नाम और टिप्पणियाँ उपयोगकर्ता के लिखे अनुसार दिखेंगी।",
     homeIntro:"सवारी खोजें या अपने रूट पर सीटें साझा करें।", storyTitle:"जिस रास्ते पर आप पहले से जा रहे हैं", storyBody:"अपने रास्ते में सीट खोजें या खाली सीटें साझा करें।", driverFormNote:"सभी समय भारतीय मानक समय (UTC+05:30) में हैं। प्रकाशित करने के लिए रूट सेवा का सड़क रूट ज़रूरी है।", searchFormNote:"सटीक जगहें दर्ज करें। पिकअप और उतरने का समय भारतीय मानक समय (UTC+05:30) में है।", accountDriver:"ड्राइवर", accountPassenger:"यात्री", accountPassenger2:"यात्री 2", accountAdmin:"व्यवस्थापक", minutes:"मिनट", timeZoneNote:"सभी समय भारतीय मानक समय (UTC+05:30) में हैं।", example:"उदाहरण", exampleOrigin:"एलबी नगर", exampleDestination:"गच्चीबौली", driverFormNote:"सभी समय भारतीय मानक समय (UTC+05:30) में हैं। प्रकाशित करने के लिए रूट सेवा का सड़क रूट ज़रूरी है।", searchFormNote:"सटीक जगहें दर्ज करें। पिकअप और उतरने का समय भारतीय मानक समय (UTC+05:30) में है।",
-    documentTitle:"रूट शेयर · स्थानीय परीक्षण", cancelledByUser:"उपयोगकर्ता ने रद्द किया", declinedByDriver:"ड्राइवर ने मना किया", cancelledByDriver:"ड्राइवर ने रद्द किया", languageAction:"तेलुगु में बदलें", loginStoryArt:"तेलंगाना और आंध्र प्रदेश का रास्ता",
+    documentTitle:"SeatPal · स्थानीय परीक्षण", cancelledByUser:"उपयोगकर्ता ने रद्द किया", declinedByDriver:"ड्राइवर ने मना किया", cancelledByDriver:"ड्राइवर ने रद्द किया", languageAction:"तेलुगु में बदलें", loginStoryArt:"तेलंगाना और आंध्र प्रदेश का रास्ता",
   }
 };
 
@@ -464,22 +464,22 @@ Object.assign(messages.hi,{locationNotChosen:'कोई जगह नहीं �
 Object.assign(messages.en,{choosePickup:'Choose pickup',chooseDestination:'Choose destination'});
 Object.assign(messages.hi,{choosePickup:'पिकअप की जगह चुनें',chooseDestination:'उतरने की जगह चुनें'});
 
-Object.assign(messages.en,{brandTagline:'One route. Shared rides.',privateBetaTitle:'Private beta',privateBetaNotice:'Invited local accounts only. Personal, licence and vehicle checks are not verified.',home:'Where next?',homeLead:'Find a ride along your route, or offer a seat on your drive.',findRide:'Find a ride',offerRide:'Offer seats',showPassword:'Show password',hidePassword:'Hide password',menu:'Open navigation',swapLocations:'Swap pickup and destination',decreaseSeats:'Decrease seats',increaseSeats:'Increase seats',developmentAccountsFootnote:'Local test accounts only · no production identity checks',safetyCategoryUnsafe:'Unsafe driving',safetyCategoryHarassment:'Harassment',safetyCategoryIdentity:'Identity mismatch',safetyCategoryOther:'Other concern',ratingPrompt:'How was this journey?',ratingHint:'Tap a star to rate',selectedPickup:'Pickup location',selectedDestination:'Drop-off location',homeFindSeats:'Share a route or find a ride.'});
-Object.assign(messages.hi,{brandTagline:'एक रास्ता · साथ की सवारी',privateBetaTitle:'निजी बीटा',privateBetaNotice:'केवल आमंत्रित स्थानीय खाते। पहचान, लाइसेंस और वाहन की जाँच सत्यापित नहीं हैं।',home:'कहाँ चलें?',homeLead:'अपने रास्ते पर सवारी खोजें या खाली सीट साझा करें।',findRide:'सवारी खोजें',offerRide:'सीट साझा करें',showPassword:'पासवर्ड दिखाएँ',hidePassword:'पासवर्ड छिपाएँ',menu:'नेविगेशन खोलें',swapLocations:'पिकअप और मंज़िल बदलें',decreaseSeats:'सीटें घटाएँ',increaseSeats:'सीटें बढ़ाएँ',developmentAccountsFootnote:'केवल स्थानीय परीक्षण खाते · उत्पादन पहचान जाँच नहीं',safetyCategoryUnsafe:'असुरक्षित ड्राइविंग',safetyCategoryHarassment:'उत्पीड़न',safetyCategoryIdentity:'पहचान मेल नहीं खाती',safetyCategoryOther:'अन्य चिंता',ratingPrompt:'यह यात्रा कैसी रही?',ratingHint:'रेट देने के लिए सितारा चुनें',selectedPickup:'पिकअप की जगह',selectedDestination:'उतरने की जगह',homeFindSeats:'रास्ता साझा करें या सवारी खोजें.'});
+Object.assign(messages.en,{brandTagline:'Same route? SeatPal.',privateBetaTitle:'Private beta',privateBetaNotice:'Invited local accounts only. Personal, licence and vehicle checks are not verified.',home:'Where next?',homeLead:'Find a ride along your route, or offer a seat on your drive.',findRide:'Find a ride',offerRide:'Offer seats',showPassword:'Show password',hidePassword:'Hide password',menu:'Open navigation',swapLocations:'Swap pickup and destination',decreaseSeats:'Decrease seats',increaseSeats:'Increase seats',developmentAccountsFootnote:'Local test accounts only · no production identity checks',safetyCategoryUnsafe:'Unsafe driving',safetyCategoryHarassment:'Harassment',safetyCategoryIdentity:'Identity mismatch',safetyCategoryOther:'Other concern',ratingPrompt:'How was this journey?',ratingHint:'Tap a star to rate',selectedPickup:'Pickup location',selectedDestination:'Drop-off location',homeFindSeats:'Share a route or find a ride.'});
+Object.assign(messages.hi,{brandTagline:'Same route? SeatPal.',privateBetaTitle:'निजी बीटा',privateBetaNotice:'केवल आमंत्रित स्थानीय खाते। पहचान, लाइसेंस और वाहन की जाँच सत्यापित नहीं हैं।',home:'कहाँ चलें?',homeLead:'अपने रास्ते पर सवारी खोजें या खाली सीट साझा करें।',findRide:'सवारी खोजें',offerRide:'सीट साझा करें',showPassword:'पासवर्ड दिखाएँ',hidePassword:'पासवर्ड छिपाएँ',menu:'नेविगेशन खोलें',swapLocations:'पिकअप और मंज़िल बदलें',decreaseSeats:'सीटें घटाएँ',increaseSeats:'सीटें बढ़ाएँ',developmentAccountsFootnote:'केवल स्थानीय परीक्षण खाते · उत्पादन पहचान जाँच नहीं',safetyCategoryUnsafe:'असुरक्षित ड्राइविंग',safetyCategoryHarassment:'उत्पीड़न',safetyCategoryIdentity:'पहचान मेल नहीं खाती',safetyCategoryOther:'अन्य चिंता',ratingPrompt:'यह यात्रा कैसी रही?',ratingHint:'रेट देने के लिए सितारा चुनें',selectedPickup:'पिकअप की जगह',selectedDestination:'उतरने की जगह',homeFindSeats:'रास्ता साझा करें या सवारी खोजें.'});
 
 messages.en.reportTitle='Report a safety concern';
 messages.hi.reportTitle='सुरक्षा संबंधी चिंता की रिपोर्ट करें';
 Object.assign(messages.en,{hostedBeta:'Private beta',hostedBetaNotice:'Invite-only test accounts. Use the password shared with you.',hostedAccountsFootnote:'Testing only. Identity checks and payments are not enabled.',hostedPasswordHint:'Enter your private test password.',timePast:'Choose a time later than now (India time).',timeEndBeforeStart:'End time must be after the start time.',timeWindowTooWide:'Choose a pickup window of 12 hours or less.',timeTooFar:'Choose a date within the next 90 days.'});
 Object.assign(messages.hi,{hostedBeta:'निजी बीटा',hostedBetaNotice:'केवल आमंत्रण से प्रवेश। आपको दिया गया पासवर्ड इस्तेमाल करें।',hostedAccountsFootnote:'केवल परीक्षण के लिए। पहचान जांच और भुगतान उपलब्ध नहीं हैं।',hostedPasswordHint:'अपना निजी परीक्षण पासवर्ड डालें।',timePast:'भारतीय समय के अनुसार अभी से आगे का समय चुनें।',timeEndBeforeStart:'समाप्ति का समय शुरुआत के बाद होना चाहिए।',timeWindowTooWide:'12 घंटे या उससे कम की पिकअप अवधि चुनें।',timeTooFar:'अगले 90 दिनों के भीतर की तारीख चुनें।'});
-export const placeLabels = { te: { 'Kondapur':'కొండాపూర్','LB Nagar':'ఎల్‌బీ నగర్','Suryapet':'సూర్యాపేట','Kodad':'కోదాడ్','Nandigama':'నందిగామ','Vijayawada':'విజయవాడ','Shamshabad':'శంషాబాద్','Shadnagar':'షాద్‌నగర్','Jadcherla':'జడ్చర్ల','Mahabubnagar':'మహబూబ్‌నగర్','Addakal':'అడ్డాకల్','Kothakota':'కొత్తకోట','Wanaparthy':'వనపర్తి' } };
+export const placeLabels = { te: { 'Hyderabad':'హైదరాబాద్','Warangal':'వరంగల్','Kondapur':'కొండాపూర్','LB Nagar':'ఎల్‌బీ నగర్','Suryapet':'సూర్యాపేట','Kodad':'కోదాడ్','Nandigama':'నందిగామ','Vijayawada':'విజయవాడ','Shamshabad':'శంషాబాద్','Shadnagar':'షాద్‌నగర్','Jadcherla':'జడ్చర్ల','Mahabubnagar':'మహబూబ్‌నగర్','Addakal':'అడ్డాకల్','Kothakota':'కొత్తకోట','Wanaparthy':'వనపర్తి' } };
 
 Object.assign(messages.en, {incrementalDetour:"Added driving for this pickup"});
 Object.assign(messages.te, {incrementalDetour:"ఈ పికప్ కోసం అదనపు డ్రైవింగ్"});
 Object.assign(messages.hi, {incrementalDetour:"इस पिकअप के लिए अतिरिक्त ड्राइविंग"});
 
-Object.assign(messages.en, {welcomeTitle:"Welcome to Route Share"});
-Object.assign(messages.te, {welcomeTitle:"రూట్ షేర్‌కు స్వాగతం"});
-Object.assign(messages.hi, {welcomeTitle:"रूट शेयर में आपका स्वागत है"});
+Object.assign(messages.en, {welcomeTitle:"Welcome to SeatPal"});
+Object.assign(messages.te, {welcomeTitle:"SeatPal‌కు స్వాగతం"});
+Object.assign(messages.hi, {welcomeTitle:"SeatPal में आपका स्वागत है"});
 
 Object.assign(messages.en, {
   communityProfile:'Profile', communityEditProfile:'Edit profile', communitySaveProfile:'Save profile', communityProfileSaved:'Profile saved',
@@ -497,7 +497,7 @@ Object.assign(messages.en, {
   communityNotParticipantTitle:'Chat unavailable', communityDisplayNameRequired:'Enter your name.',
   profileName:'Name', profilePhone:'Phone', profileSharePhone:'Share my phone number with trip participants', profileSave:'Save profile', profileSaved:'Profile saved',
   communityCallUnavailable:'No shared phone number is available.', communityCallConfirm:'Call {name} at {phone}?',
-  communityCallDisclosure:'Your phone app will open. Route Share does not place or record calls.', communityProfileLoading:'Loading profile…',
+  communityCallDisclosure:'Your phone app will open. SeatPal does not place or record calls.', communityProfileLoading:'Loading profile…',
   communityNewMessage:'New message', communitySaveFailed:'Profile could not be saved.', communityEmptyProfile:'No profile details yet.'
 });
 Object.assign(messages.te, {
@@ -516,7 +516,7 @@ Object.assign(messages.te, {
   communityNotParticipantTitle:'చాట్ అందుబాటులో లేదు', communityDisplayNameRequired:'మీ పేరు నమోదు చేయండి.',
   profileName:'పేరు', profilePhone:'ఫోన్', profileSharePhone:'నా ఫోన్ నంబర్‌ను ప్రయాణికులతో షేర్ చేయండి', profileSave:'ప్రొఫైల్ సేవ్ చేయండి', profileSaved:'ప్రొఫైల్ సేవ్ అయింది',
   communityCallUnavailable:'షేర్ చేసిన ఫోన్ నంబర్ అందుబాటులో లేదు.', communityCallConfirm:'{name}కు {phone} నంబర్‌కు కాల్ చేయాలా?',
-  communityCallDisclosure:'మీ ఫోన్ యాప్ తెరుచుకుంటుంది. Route Share కాల్ చేయదు లేదా రికార్డ్ చేయదు.', communityProfileLoading:'ప్రొఫైల్ లోడ్ అవుతోంది…',
+  communityCallDisclosure:'మీ ఫోన్ యాప్ తెరుచుకుంటుంది. SeatPal కాల్ చేయదు లేదా రికార్డ్ చేయదు.', communityProfileLoading:'ప్రొఫైల్ లోడ్ అవుతోంది…',
   communityNewMessage:'కొత్త సందేశం', communitySaveFailed:'ప్రొఫైల్ సేవ్ కాలేదు.', communityEmptyProfile:'ప్రొఫైల్ వివరాలు లేవు.'
 });
 Object.assign(messages.hi, {
@@ -535,7 +535,7 @@ Object.assign(messages.hi, {
   communityNotParticipantTitle:'चैट उपलब्ध नहीं', communityDisplayNameRequired:'अपना नाम दर्ज करें।',
   profileName:'नाम', profilePhone:'फ़ोन', profileSharePhone:'मेरा फ़ोन नंबर यात्रा के लोगों के साथ साझा करें', profileSave:'प्रोफ़ाइल सेव करें', profileSaved:'प्रोफ़ाइल सेव हो गई',
   communityCallUnavailable:'साझा किया हुआ फ़ोन नंबर उपलब्ध नहीं है।', communityCallConfirm:'क्या {name} को {phone} पर कॉल करें?',
-  communityCallDisclosure:'आपका फ़ोन ऐप खुलेगा। Route Share कॉल नहीं करता और न ही उसे रिकॉर्ड करता है।', communityProfileLoading:'प्रोफ़ाइल लोड हो रही है…',
+  communityCallDisclosure:'आपका फ़ोन ऐप खुलेगा। SeatPal कॉल नहीं करता और न ही उसे रिकॉर्ड करता है।', communityProfileLoading:'प्रोफ़ाइल लोड हो रही है…',
   communityNewMessage:'नया संदेश', communitySaveFailed:'प्रोफ़ाइल सेव नहीं हो सकी।', communityEmptyProfile:'अभी प्रोफ़ाइल की जानकारी नहीं है।'
 });
 
@@ -638,3 +638,596 @@ Object.assign(messages.hi, {
   trustedShareExpiry:'यात्रा समाप्त होने या निर्धारित पहुँच समय पर शेयरिंग रुक जाएगी।', trustedRevoke:'भरोसेमंद संपर्कों के साथ शेयरिंग रोकें',
   trustedRevoked:'भरोसेमंद संपर्कों के साथ शेयरिंग रोकी गई', trustedShareFailed:'भरोसेमंद संपर्कों की शेयरिंग अपडेट नहीं हुई। फिर कोशिश करें।'
 });
+
+// Explicit place selection, voice review and one-seat request confirmation.
+Object.assign(messages.en, {
+  mapRefineHint:'Zoom in and move the pin to the exact meeting point.',
+  mapResolveAddress:'Find address for this point',
+  mapAddressLoading:'Finding nearby address…',
+  mapAddressError:'Could not find an address. Your selected point is unchanged.',
+  mapAddressUnavailable:'No nearby address found. You can still use this point.',
+  pilotServiceAreaHint:'This beta supports the Hyderabad–Vijayawada corridor and the Hyderabad south corridor.',
+  voiceEntry:'Use voice',
+  voiceReviewTitle:'Review your trip',
+  voiceChoosePlace:'Choose this place',
+  voiceUnsupportedSeats:'This beta supports one personal seat. Change the seat count to 1 to continue.',
+  voiceSetOneSeat:'Use one seat',
+  voiceDraftIssues:'Review the details below before searching.',
+  voiceChooseRide:'Choose a ride from these results to review it.',
+  voiceSearchSummary:'{count} rides found. Review the results.',
+  voiceRequestSent:'Your seat request was sent. Waiting for the driver.',
+  bookingReviewTitle:'Review your seat request',
+  bookingRequestedPoint:'Your chosen point',
+  bookingMeetingPoint:'Road meeting point',
+  bookingSnapDistance:'From your chosen point',
+  bookingPickupTime:'Pickup',
+  bookingDropoffTime:'Drop-off',
+  bookingConfirmRequest:'Confirm one-seat request',
+  bookingReviewUnavailable:'This ride can no longer be reviewed. Search again.',
+  searchIncomplete:'Search could not check every route. Retry before choosing a ride.'
+});
+Object.assign(messages.te, {
+  mapRefineHint:'మ్యాప్‌ను జూమ్ చేసి, కలిసే చోట పిన్ పెట్టండి.',
+  mapResolveAddress:'ఈ పాయింట్ దగ్గరి అడ్రస్ చూడండి',
+  mapAddressLoading:'దగ్గర్లో ఉన్న అడ్రస్ వెతుకుతున్నాం…',
+  mapAddressError:'అడ్రస్ దొరకలేదు. మీరు ఎంచుకున్న పాయింట్ మారలేదు.',
+  mapAddressUnavailable:'దగ్గర్లో అడ్రస్ దొరకలేదు. ఈ పాయింట్‌నే వాడొచ్చు.',
+  pilotServiceAreaHint:'ఈ బీటాలో హైదరాబాద్–విజయవాడ రూట్, హైదరాబాద్ నుంచి దక్షిణం వైపు ఉన్న పైలట్ రూట్ మాత్రమే అందుబాటులో ఉన్నాయి.',
+  voiceEntry:'మాట్లాడి చెప్పండి',
+  voiceReviewTitle:'మీ ట్రిప్ వివరాలు చెక్ చేయండి',
+  voiceChoosePlace:'ఈ చోటు ఎంచుకోండి',
+  voiceUnsupportedSeats:'ఈ బీటాలో మీకోసం ఒక్క సీటు మాత్రమే తీసుకోవచ్చు. ముందుకు వెళ్లడానికి సీట్ల సంఖ్యను 1కి మార్చండి.',
+  voiceSetOneSeat:'ఒక్క సీటు ఎంచుకోండి',
+  voiceDraftIssues:'సెర్చ్ చేసే ముందు కింద ఉన్న వివరాలు చెక్ చేయండి.',
+  voiceChooseRide:'వివరాలు చూడటానికి ఈ రిజల్ట్స్‌లో ఒక రైడ్ ఎంచుకోండి.',
+  voiceSearchSummary:'{count} రైడ్‌లు దొరికాయి. వివరాలు చెక్ చేయండి.',
+  voiceRequestSent:'మీ సీటు రిక్వెస్ట్ పంపించాం. డ్రైవర్ సమాధానం కోసం వేచి ఉండండి.',
+  bookingReviewTitle:'మీ సీటు రిక్వెస్ట్ చెక్ చేయండి',
+  bookingRequestedPoint:'మీరు ఎంచుకున్న పాయింట్',
+  bookingMeetingPoint:'రోడ్డుపై కలిసే చోటు',
+  bookingSnapDistance:'మీరు ఎంచుకున్న పాయింట్ నుంచి దూరం',
+  bookingPickupTime:'పికప్',
+  bookingDropoffTime:'డ్రాప్',
+  bookingConfirmRequest:'ఒక్క సీటుకు రిక్వెస్ట్ పంపండి',
+  bookingReviewUnavailable:'ఈ రైడ్ వివరాలు ఇప్పుడు అందుబాటులో లేవు. మళ్లీ సెర్చ్ చేయండి.',
+  searchIncomplete:'అన్ని రూట్లను చెక్ చేయలేకపోయాం. రైడ్ ఎంచుకునే ముందు మళ్లీ సెర్చ్ చేయండి.'
+});
+Object.assign(messages.hi, {
+  mapRefineHint:'मैप ज़ूम करें और मिलने की सही जगह पर पिन रखें।',
+  mapResolveAddress:'इस पॉइंट के पास का पता ढूँढें',
+  mapAddressLoading:'पास का पता ढूँढ रहे हैं…',
+  mapAddressError:'पता नहीं मिला। आपका चुना हुआ पॉइंट नहीं बदला है।',
+  mapAddressUnavailable:'पास का पता नहीं मिला। आप फिर भी यह पॉइंट चुन सकते हैं।',
+  pilotServiceAreaHint:'यह बीटा हैदराबाद–विजयवाड़ा कॉरिडोर और हैदराबाद के दक्षिणी पायलट कॉरिडोर में उपलब्ध है।',
+  voiceEntry:'बोलकर बताएँ',
+  voiceReviewTitle:'अपनी यात्रा की जानकारी जाँचें',
+  voiceChoosePlace:'यह जगह चुनें',
+  voiceUnsupportedSeats:'इस बीटा में अपने लिए एक सीट ले सकते हैं। आगे बढ़ने के लिए सीटों की संख्या 1 करें।',
+  voiceSetOneSeat:'एक सीट चुनें',
+  voiceDraftIssues:'खोजने से पहले नीचे की जानकारी जाँचें।',
+  voiceChooseRide:'जानकारी देखने के लिए इन नतीजों में से एक राइड चुनें।',
+  voiceSearchSummary:'{count} राइड मिलीं। नतीजे जाँचें।',
+  voiceRequestSent:'आपका सीट अनुरोध भेज दिया गया है। ड्राइवर के जवाब का इंतज़ार है।',
+  bookingReviewTitle:'अपना सीट अनुरोध जाँचें',
+  bookingRequestedPoint:'आपका चुना हुआ पॉइंट',
+  bookingMeetingPoint:'सड़क पर मिलने की जगह',
+  bookingSnapDistance:'आपके चुने हुए पॉइंट से दूरी',
+  bookingPickupTime:'पिकअप',
+  bookingDropoffTime:'ड्रॉप',
+  bookingConfirmRequest:'एक सीट का अनुरोध पक्का करें',
+  bookingReviewUnavailable:'इस राइड की जानकारी अब उपलब्ध नहीं है। फिर खोजें।',
+  searchIncomplete:'सभी रूट जाँचे नहीं जा सके। राइड चुनने से पहले फिर खोजें।'
+});
+
+Object.assign(messages.en, {
+  voiceDraftReadback:'From {from} to {to}. Date: {date}. Time: {time}. Seats: {seats}. Review these details before searching.',
+  voiceMissingDetail:'Not provided',
+  voiceReplyUnavailable:'Spoken reply is unavailable. Your trip details are still shown on screen.'
+});
+Object.assign(messages.te, {
+  voiceDraftReadback:'{from} నుంచి {to}కి. తేదీ: {date}. సమయం: {time}. సీట్లు: {seats}. సెర్చ్ చేసే ముందు ఈ వివరాలు చెక్ చేయండి.',
+  voiceMissingDetail:'ఇంకా చెప్పలేదు',
+  voiceReplyUnavailable:'ఇప్పుడు వాయిస్‌లో సమాధానం ఇవ్వలేకపోతున్నాం. మీ ట్రిప్ వివరాలు స్క్రీన్‌పై ఉన్నాయి.'
+});
+Object.assign(messages.hi, {
+  voiceDraftReadback:'कहाँ से: {from}। कहाँ तक: {to}। तारीख: {date}। समय: {time}। सीटें: {seats}। खोजने से पहले यह जानकारी जाँचें।',
+  voiceMissingDetail:'नहीं बताया',
+  voiceReplyUnavailable:'बोलकर जवाब देना अभी उपलब्ध नहीं है। आपकी यात्रा की जानकारी स्क्रीन पर दिख रही है।'
+});
+
+// Shared reference-trip/journey presentation; all actions retain the existing API contracts.
+Object.assign(messages.en, {
+  tripsAlongRoute:'Trips along your route', reviewRide:'View trip', waitingForOwner:'Waiting for the owner', requestSent:'Request sent', reviewRideRequest:'Review ride request', yourSharedTrips:'Your shared trips', upcomingTrips:'Upcoming', pastTrips:'Past', seatRequestPendingHelp:'The owner has not accepted yet. Their response will appear here.',
+  liveBookingOnly:'Only for this accepted booking', liveConsentTitle:'Share your live location?', liveActiveTitle:'Location sharing is on', liveConsentChoice:'Your choice', liveConsentChoiceHelp:'Start only when you want to. You can stop at any time.', liveConsentForeground:'Keep this page open', liveConsentEnds:'Ends automatically', liveConsentEndsHelp:'Sharing stops when this trip ends, you arrive near your drop-off, or the sharing time expires.', liveNotNow:'Not now', liveOtherParticipant:'Visible only to the other person in this booking.',
+  tripNeedHelp:'Need help?', tripEmergencyTitle:'In an emergency', tripPrivateReport:'Your report goes privately to the beta administrators.', yourTrip:'Your trip', tripCompleteTitle:'Trip complete', tripLocationRemoved:'Your live location is no longer visible to the other person in this booking.', tripHowWasIt:'How was your trip?', tripRatingOptional:'Leave a rating if you’d like.', tripBackToTrips:'Back to my trips'
+});
+Object.assign(messages.te, {
+  tripsAlongRoute:'మీ రూట్‌లో ఉన్న ట్రిప్స్', reviewRide:'ట్రిప్ చూడండి', waitingForOwner:'ఓనర్ రిప్లై కోసం వెయిట్ చేస్తున్నాం', requestSent:'రిక్వెస్ట్ పంపాం', reviewRideRequest:'రైడ్ రిక్వెస్ట్ చెక్ చేయండి', yourSharedTrips:'మీ షేర్డ్ ట్రిప్స్', upcomingTrips:'రాబోయేవి', pastTrips:'గత ట్రిప్స్', seatRequestPendingHelp:'ఓనర్ ఇంకా యాక్సెప్ట్ చేయలేదు. రిప్లై ఇక్కడ కనిపిస్తుంది.',
+  liveBookingOnly:'యాక్సెప్ట్ చేసిన ఈ బుకింగ్ కోసం మాత్రమే', liveConsentTitle:'మీ లైవ్ లొకేషన్ షేర్ చేయాలా?', liveActiveTitle:'లొకేషన్ షేర్ అవుతోంది', liveConsentChoice:'మీ ఇష్టం', liveConsentChoiceHelp:'మీకు కావాలంటేనే స్టార్ట్ చేయండి. ఎప్పుడైనా ఆపొచ్చు.', liveConsentForeground:'ఈ పేజీ ఓపెన్‌లో ఉంచండి', liveConsentEnds:'ఆటోమేటిక్‌గా ఆగిపోతుంది', liveConsentEndsHelp:'ట్రిప్ పూర్తయినా, మీ డ్రాప్ దగ్గరకు చేరినా, షేరింగ్ టైమ్ అయిపోయినా ఆగిపోతుంది.', liveNotNow:'ఇప్పుడు వద్దు', liveOtherParticipant:'ఈ బుకింగ్‌లో ఉన్న మరో వ్యక్తికి మాత్రమే కనిపిస్తుంది.',
+  tripNeedHelp:'సహాయం కావాలా?', tripEmergencyTitle:'ఎమర్జెన్సీ అయితే', tripPrivateReport:'మీ రిపోర్ట్ బీటా అడ్మిన్‌లకు మాత్రమే వెళ్తుంది.', yourTrip:'మీ ట్రిప్', tripCompleteTitle:'ట్రిప్ పూర్తయింది', tripLocationRemoved:'మీ లైవ్ లొకేషన్ ఈ బుకింగ్‌లోని మరో వ్యక్తికి ఇక కనిపించదు.', tripHowWasIt:'ట్రిప్ ఎలా ఉంది?', tripRatingOptional:'మీకు నచ్చితే రేటింగ్ ఇవ్వండి.', tripBackToTrips:'నా ట్రిప్స్‌కు వెళ్లండి'
+});
+Object.assign(messages.hi, {
+  tripsAlongRoute:'आपके रास्ते की यात्राएँ', reviewRide:'यात्रा देखें', waitingForOwner:'मालिक के जवाब का इंतज़ार', requestSent:'अनुरोध भेज दिया', reviewRideRequest:'राइड अनुरोध जाँचें', yourSharedTrips:'आपकी साझा यात्राएँ', upcomingTrips:'आने वाली', pastTrips:'पिछली', seatRequestPendingHelp:'मालिक ने अभी स्वीकार नहीं किया है। उनका जवाब यहाँ दिखेगा।',
+  liveBookingOnly:'सिर्फ़ इस स्वीकार की गई बुकिंग के लिए', liveConsentTitle:'अपनी लाइव लोकेशन साझा करें?', liveActiveTitle:'लोकेशन साझा हो रही है', liveConsentChoice:'आपकी मर्ज़ी', liveConsentChoiceHelp:'जब चाहें शुरू करें। कभी भी रोक सकते हैं।', liveConsentForeground:'यह पेज खुला रखें', liveConsentEnds:'अपने आप रुक जाती है', liveConsentEndsHelp:'यात्रा खत्म होने, ड्रॉप के पास पहुँचने या शेयरिंग का समय पूरा होने पर रुक जाती है।', liveNotNow:'अभी नहीं', liveOtherParticipant:'सिर्फ़ इस बुकिंग के दूसरे व्यक्ति को दिखती है।',
+  tripNeedHelp:'मदद चाहिए?', tripEmergencyTitle:'आपातकाल में', tripPrivateReport:'आपकी रिपोर्ट निजी तौर पर बीटा व्यवस्थापकों तक जाती है।', yourTrip:'आपकी यात्रा', tripCompleteTitle:'यात्रा पूरी हुई', tripLocationRemoved:'इस बुकिंग के दूसरे व्यक्ति को आपकी लाइव लोकेशन अब नहीं दिखती।', tripHowWasIt:'आपकी यात्रा कैसी रही?', tripRatingOptional:'चाहें तो रेटिंग दें।', tripBackToTrips:'मेरी यात्राओं पर लौटें'
+});
+
+Object.assign(messages.en, { estimatedRoutePreview:'Estimated route preview' });
+Object.assign(messages.te, { estimatedRoutePreview:'రూట్ అంచనా' });
+Object.assign(messages.hi, { estimatedRoutePreview:'अनुमानित मार्ग पूर्वावलोकन' });
+
+// Real account, verification and direct expense-agreement flows.
+Object.assign(messages.en, {
+  "afPayments": "Payments",
+  "afVerification": "Driver verification",
+  "afReviews": "My reviews",
+  "afQueue": "Verification queue",
+  "afDriverProfile": "Driver profile",
+  "afContribution": "Expense contribution",
+  "afViewContribution": "View contribution",
+  "afViewDriver": "View driver and reviews",
+  "afReviewNotGuarantee": "Document review records the checks made. It does not guarantee anyone’s identity, driving or safety.",
+  "afValidUntil": "Valid until",
+  "afLegalName": "Legal name on documents",
+  "afVehicleModel": "Vehicle model",
+  "afVehiclePlate": "Vehicle registration number",
+  "afAdult": "I am at least 18 years old.",
+  "afPlannedTrip": "I share empty seats on trips I have independently planned.",
+  "afDocumentConsent": "I consent to authorized staff viewing these documents for my driver application.",
+  "afSaveApplication": "Save application",
+  "afDocuments": "Your documents",
+  "afNoExpiry": "No expiry date",
+  "afNoDocuments": "No documents uploaded yet.",
+  "afDocumentType": "Document type",
+  "afExpiry": "Expiry date",
+  "afSelectFile": "Choose document",
+  "afFileHelp": "JPG, PNG or PDF, up to 3 MiB each. Selfie must be an image. Re-select the file if an upload fails.",
+  "afUpload": "Upload document",
+  "afSubmitReview": "Submit for review",
+  "afOpenDocument": "Download protected document",
+  "afDocumentOpened": "Document downloaded",
+  "afDocumentAccessed": "Document downloaded securely. Open and inspect it before affirming the checks.",
+  "afReviewerHelp": "Inspect every current document, then confirm only checks you actually completed. Record the reason for your decision.",
+  "afDecision": "Decision",
+  "afReason": "Reason (10–1000 characters)",
+  "afSaveDecision": "Save decision",
+  "afReadOnly": "You do not have permission to make verification decisions.",
+  "afNoApplications": "No applications to review.",
+  "afReadyToReview": "Ready for your review",
+  "afNoEligibleReviews": "Reviews open after your segment and the full trip are completed. Nothing is ready yet.",
+  "afReviewsReceived": "Reviews received",
+  "afReviewsGiven": "Reviews you wrote",
+  "afNoReviews": "No completed-trip reviews yet.",
+  "afDriverReviews": "Reviews from completed trips",
+  "afNotEnoughReviews": "Average available after 3 reviews",
+  "afReviewCount": "{count} reviews",
+  "afCompletedCount": "{count} completed trips",
+  "afCommentPublic": "Comment shared on the driver profile",
+  "afCommentPrivate": "Comment visible only in participant review history",
+  "afPublishComment": "Share this comment on the driver’s profile if this review is about the driver.",
+  "afPrivateByDefault": "Unchecked by default. Stars may contribute to the rating; your comment is not public unless you choose this option.",
+  "afPaymentDisabled": "Direct payments are not enabled for this beta. No pay or payment-confirmation action is available.",
+  "afDirectPaymentHelp": "Pay the driver directly using UPI. Check the recipient name in your UPI app before paying.",
+  "afNoPayments": "No expense agreements yet. Open an eligible booking to see its contribution details.",
+  "afOwnerContributes": "Propose only the agreed passenger share of fuel and tolls. The owner also contributes. This is not a fare estimate or a whole-trip charge.",
+  "afAmount": "Passenger contribution (₹)",
+  "afFuel": "Fuel share (₹)",
+  "afToll": "Toll share (₹)",
+  "afPayeeName": "Owner’s UPI payee name",
+  "afUpiId": "Owner’s UPI ID",
+  "afNote": "Agreement note",
+  "afOpenUpi": "Open UPI app",
+  "afUpiNotPaid": "Opening UPI does not mean paid. Complete and check the transfer in your UPI app, then report it here.",
+  "afManualReceipt": "These are participant-reported confirmations, not bank-verified receipts.",
+  "afActivity": "Agreement activity",
+  "afSavedReceipt": "Saved.",
+  "afChangedRetry": "This record changed elsewhere. Latest details are loaded; review them before trying again.",
+  "afInvalidAmount": "Enter a valid rupee amount with at most two decimal places.",
+  "afExpiryRequired": "Enter the document’s expiry date.",
+  "afOpenAndCheck": "Open every current document and affirm all four checks before approval.",
+  "afApplicationStatusHelp": "Open Driver verification to see your application and document status.",
+  "afApprovalEditWarning": "Changing an approved application removes driving access until it is reviewed again.",
+  "afSubmissionHelp": "Save any changes first, then submit the complete application for staff review.",
+  "afReference": "Agreement reference",
+  "afConfirmAction": "Review and confirm",
+  "afCancelAction": "Keep current status",
+  "afConfirmManual": "Confirm only what you personally checked. SeatPal cannot verify the bank transfer.",
+  "afDoc_dl": "Driving licence",
+  "afDoc_rc": "Vehicle registration (RC)",
+  "afDoc_insurance": "Vehicle insurance",
+  "afDoc_selfie": "Current selfie",
+  "afCheck_dl": "I checked the licence, its holder and expiry.",
+  "afCheck_rc": "I checked the registration, vehicle and expiry.",
+  "afCheck_insurance": "I checked the insurance and its expiry.",
+  "afCheck_identity_match": "I checked that the person, selfie and documents match.",
+  "afAction_propose": "Propose contribution",
+  "afAction_agree": "Agree to this contribution",
+  "afAction_report_paid": "I made the transfer",
+  "afAction_confirm_received": "I received the transfer",
+  "afAction_dispute": "Report a payment disagreement",
+  "afAction_request_refund": "Request a refund",
+  "afAction_report_refund": "I sent the refund",
+  "afAction_confirm_refund": "I received the refund",
+  "afStatus_unknown": "Status unavailable",
+  "afStatus_not_started": "Not applied",
+  "afStatus_draft": "Draft",
+  "afStatus_submitted": "Awaiting staff review",
+  "afStatus_needs_changes": "Changes requested",
+  "afStatus_approved": "Documents reviewed · driving access approved",
+  "afStatus_reviewed": "Documents reviewed",
+  "afStatus_rejected": "Not approved",
+  "afStatus_revoked": "Approval withdrawn",
+  "afStatus_expired": "Expired",
+  "afStatus_development": "Development account · not verified",
+  "afStatus_not_verified": "Not verified",
+  "afStatus_not_checked": "Not checked",
+  "afStatus_pending": "Pending review",
+  "afStatus_verified": "Recorded as checked",
+  "afStatus_unquoted": "No contribution proposed",
+  "afStatus_proposed": "Awaiting passenger agreement",
+  "afStatus_agreed": "Contribution agreed",
+  "afStatus_passenger_reported": "Passenger reports transfer sent",
+  "afStatus_owner_confirmed": "Owner confirms receipt",
+  "afStatus_disputed": "Payment disagreement reported",
+  "afStatus_refund_requested": "Refund requested",
+  "afStatus_refund_reported": "Owner reports refund sent",
+  "afStatus_refunded": "Passenger confirms refund received"
+});
+Object.assign(messages.te, {
+  "afPayments": "పేమెంట్లు",
+  "afVerification": "డ్రైవర్ వెరిఫికేషన్",
+  "afReviews": "నా రివ్యూలు",
+  "afQueue": "వెరిఫికేషన్ రిక్వెస్ట్‌లు",
+  "afDriverProfile": "డ్రైవర్ ప్రొఫైల్",
+  "afContribution": "ప్రయాణ ఖర్చులో వాటా",
+  "afViewContribution": "వాటా వివరాలు చూడండి",
+  "afViewDriver": "డ్రైవర్, రివ్యూలు చూడండి",
+  "afReviewNotGuarantee": "డాక్యుమెంట్లలో ఏవి చెక్ చేశారో ఇక్కడ చూపిస్తాం. ఇది వ్యక్తి గుర్తింపు, డ్రైవింగ్ లేదా భద్రతకు గ్యారంటీ కాదు.",
+  "afValidUntil": "గడువు",
+  "afLegalName": "డాక్యుమెంట్లలో ఉన్న పూర్తి పేరు",
+  "afVehicleModel": "వాహనం మోడల్",
+  "afVehiclePlate": "వాహనం రిజిస్ట్రేషన్ నంబర్",
+  "afAdult": "నా వయసు కనీసం 18 ఏళ్లు.",
+  "afPlannedTrip": "నేను ముందే ప్లాన్ చేసుకున్న ప్రయాణంలో ఖాళీ సీట్లను షేర్ చేస్తాను.",
+  "afDocumentConsent": "నా డ్రైవర్ అప్లికేషన్ కోసం అనుమతి ఉన్న స్టాఫ్ ఈ డాక్యుమెంట్లు చూడటానికి ఒప్పుకుంటున్నాను.",
+  "afSaveApplication": "అప్లికేషన్ సేవ్ చేయండి",
+  "afDocuments": "మీ డాక్యుమెంట్లు",
+  "afNoExpiry": "గడువు తేదీ లేదు",
+  "afNoDocuments": "ఇంకా డాక్యుమెంట్లు అప్‌లోడ్ చేయలేదు.",
+  "afDocumentType": "డాక్యుమెంట్ రకం",
+  "afExpiry": "గడువు తేదీ",
+  "afSelectFile": "డాక్యుమెంట్ ఎంచుకోండి",
+  "afFileHelp": "ఒక్కో JPG, PNG లేదా PDF గరిష్ఠంగా 3 MiB. సెల్ఫీ ఫొటో మాత్రమే. అప్‌లోడ్ ఫెయిల్ అయితే ఫైల్ మళ్లీ ఎంచుకోండి.",
+  "afUpload": "డాక్యుమెంట్ అప్‌లోడ్ చేయండి",
+  "afSubmitReview": "చెక్ చేయడానికి పంపండి",
+  "afOpenDocument": "రక్షిత డాక్యుమెంట్ డౌన్‌లోడ్",
+  "afDocumentOpened": "డాక్యుమెంట్ డౌన్‌లోడ్ అయింది",
+  "afDocumentAccessed": "డాక్యుమెంట్ సురక్షితంగా డౌన్‌లోడ్ అయింది. తెరిచి చూసిన తర్వాతే చెక్ చేశానని టిక్ పెట్టండి.",
+  "afReviewerHelp": "ప్రస్తుత డాక్యుమెంట్లన్నీ తెరిచి చూడండి. నిజంగా చేసిన చెక్‌లకు మాత్రమే టిక్ పెట్టండి. నిర్ణయానికి కారణం రాయండి.",
+  "afDecision": "నిర్ణయం",
+  "afReason": "కారణం (10–1000 అక్షరాలు)",
+  "afSaveDecision": "నిర్ణయం సేవ్ చేయండి",
+  "afReadOnly": "వెరిఫికేషన్ నిర్ణయం తీసుకునే అనుమతి మీకు లేదు.",
+  "afNoApplications": "చెక్ చేయడానికి అప్లికేషన్లు లేవు.",
+  "afReadyToReview": "మీ రివ్యూ కోసం",
+  "afNoEligibleReviews": "మీ ప్రయాణ భాగం, మొత్తం ట్రిప్ పూర్తయ్యాక రివ్యూ ఇవ్వొచ్చు. ఇప్పుడు ఏవీ లేవు.",
+  "afReviewsReceived": "మీకు వచ్చిన రివ్యూలు",
+  "afReviewsGiven": "మీరు ఇచ్చిన రివ్యూలు",
+  "afNoReviews": "పూర్తయిన ట్రిప్‌ల రివ్యూలు ఇంకా లేవు.",
+  "afDriverReviews": "పూర్తయిన ట్రిప్‌ల రివ్యూలు",
+  "afNotEnoughReviews": "3 రివ్యూల తర్వాత సగటు రేటింగ్ కనిపిస్తుంది",
+  "afReviewCount": "{count} రివ్యూలు",
+  "afCompletedCount": "{count} ట్రిప్‌లు పూర్తి",
+  "afCommentPublic": "కామెంట్ డ్రైవర్ ప్రొఫైల్‌లో కనిపిస్తుంది",
+  "afCommentPrivate": "కామెంట్ ఆ ట్రిప్‌లోని ఇద్దరి రివ్యూ హిస్టరీలో మాత్రమే కనిపిస్తుంది",
+  "afPublishComment": "ఈ రివ్యూ డ్రైవర్ గురించి అయితే, కామెంట్‌ను వారి ప్రొఫైల్‌లో చూపించండి.",
+  "afPrivateByDefault": "ఇది ముందుగా టిక్ చేసి ఉండదు. స్టార్లు రేటింగ్‌లో చేరొచ్చు; మీరు ఎంచుకుంటేనే కామెంట్ బయట కనిపిస్తుంది.",
+  "afPaymentDisabled": "ఈ బీటాలో డైరెక్ట్ పేమెంట్లు ఇంకా ప్రారంభం కాలేదు. చెల్లించడం లేదా పేమెంట్ కన్ఫర్మ్ చేయడం అందుబాటులో లేదు.",
+  "afDirectPaymentHelp": "UPI ద్వారా డ్రైవర్‌కు నేరుగా చెల్లించండి. డబ్బు పంపే ముందు మీ UPI యాప్‌లో అందుకునే వ్యక్తి పేరు చెక్ చేయండి.",
+  "afNoPayments": "ఖర్చు పంచుకునే ఒప్పందాలు ఇంకా లేవు. మీ బుకింగ్‌లో వాటా వివరాలు చూడండి.",
+  "afOwnerContributes": "ఒప్పుకున్న ప్యాసింజర్ ఇంధనం, టోల్ వాటానే సూచించండి. ఓనర్ కూడా ఖర్చులో భాగం చెల్లిస్తారు. ఇది టాక్సీ ఛార్జీ లేదా మొత్తం ట్రిప్ ఖర్చు కాదు.",
+  "afAmount": "ప్యాసింజర్ వాటా (₹)",
+  "afFuel": "ఇంధనం వాటా (₹)",
+  "afToll": "టోల్ వాటా (₹)",
+  "afPayeeName": "ఓనర్ UPIలో కనిపించే పేరు",
+  "afUpiId": "ఓనర్ UPI ఐడీ",
+  "afNote": "ఒప్పందం నోట్",
+  "afOpenUpi": "UPI యాప్ తెరవండి",
+  "afUpiNotPaid": "UPI తెరిస్తే పేమెంట్ అయినట్టు కాదు. మీ UPI యాప్‌లో చెల్లించి, చెక్ చేసుకున్నాక ఇక్కడ తెలియజేయండి.",
+  "afManualReceipt": "ఇవి ఇద్దరూ తెలిపిన కన్ఫర్మేషన్లు మాత్రమే. బ్యాంక్ నిర్ధారించిన రసీదులు కావు.",
+  "afActivity": "ఒప్పందం వివరాలు",
+  "afSavedReceipt": "సేవ్ అయింది.",
+  "afChangedRetry": "ఈ రికార్డు మరోచోట మారింది. తాజా వివరాలు వచ్చాయి; చెక్ చేసి మళ్లీ ప్రయత్నించండి.",
+  "afInvalidAmount": "గరిష్ఠంగా రెండు దశాంశాలతో సరైన రూపాయల మొత్తం ఇవ్వండి.",
+  "afExpiryRequired": "డాక్యుమెంట్ గడువు తేదీ ఇవ్వండి.",
+  "afOpenAndCheck": "ఆమోదించే ముందు ప్రస్తుత డాక్యుమెంట్లన్నీ తెరిచి, నాలుగు చెక్‌లకు టిక్ పెట్టండి.",
+  "afApplicationStatusHelp": "మీ అప్లికేషన్, డాక్యుమెంట్ల స్థితి కోసం డ్రైవర్ వెరిఫికేషన్ తెరవండి.",
+  "afApprovalEditWarning": "ఆమోదించిన అప్లికేషన్ మార్చితే మళ్లీ చెక్ చేసే వరకు డ్రైవింగ్ యాక్సెస్ ఆగుతుంది.",
+  "afSubmissionHelp": "మార్పులు ముందు సేవ్ చేయండి. తర్వాత పూర్తి అప్లికేషన్‌ను స్టాఫ్ చెక్ కోసం పంపండి.",
+  "afReference": "ఒప్పందం రిఫరెన్స్",
+  "afConfirmAction": "చూసి కన్ఫర్మ్ చేయండి",
+  "afCancelAction": "ప్రస్తుత స్థితి ఉంచండి",
+  "afConfirmManual": "మీరు స్వయంగా చెక్ చేసిన విషయమే కన్ఫర్మ్ చేయండి. SeatPal బ్యాంక్ ట్రాన్స్‌ఫర్‌ను నిర్ధారించలేదు.",
+  "afDoc_dl": "డ్రైవింగ్ లైసెన్స్",
+  "afDoc_rc": "వాహనం రిజిస్ట్రేషన్ (RC)",
+  "afDoc_insurance": "వాహనం ఇన్సూరెన్స్",
+  "afDoc_selfie": "ప్రస్తుత సెల్ఫీ",
+  "afCheck_dl": "లైసెన్స్, దానిపై వ్యక్తి, గడువు చెక్ చేశాను.",
+  "afCheck_rc": "రిజిస్ట్రేషన్, వాహనం, గడువు చెక్ చేశాను.",
+  "afCheck_insurance": "ఇన్సూరెన్స్, దాని గడువు చెక్ చేశాను.",
+  "afCheck_identity_match": "వ్యక్తి, సెల్ఫీ, డాక్యుమెంట్లు సరిపోలుతున్నాయో చూశాను.",
+  "afAction_propose": "వాటా సూచించండి",
+  "afAction_agree": "ఈ వాటాకు ఒప్పుకుంటున్నాను",
+  "afAction_report_paid": "నేను డబ్బు పంపాను",
+  "afAction_confirm_received": "నాకు డబ్బు అందింది",
+  "afAction_dispute": "పేమెంట్‌పై సమస్య తెలియజేయండి",
+  "afAction_request_refund": "రిఫండ్ కోరండి",
+  "afAction_report_refund": "నేను రిఫండ్ పంపాను",
+  "afAction_confirm_refund": "నాకు రిఫండ్ అందింది",
+  "afStatus_unknown": "స్థితి అందుబాటులో లేదు",
+  "afStatus_not_started": "ఇంకా అప్లై చేయలేదు",
+  "afStatus_draft": "డ్రాఫ్ట్",
+  "afStatus_submitted": "స్టాఫ్ చెక్ కోసం వేచి ఉంది",
+  "afStatus_needs_changes": "మార్పులు కోరారు",
+  "afStatus_approved": "డాక్యుమెంట్లు చెక్ చేశారు · డ్రైవింగ్ అనుమతి ఉంది",
+  "afStatus_reviewed": "డాక్యుమెంట్లు చెక్ చేశారు",
+  "afStatus_rejected": "ఆమోదించలేదు",
+  "afStatus_revoked": "అనుమతి తీసేశారు",
+  "afStatus_expired": "గడువు ముగిసింది",
+  "afStatus_development": "టెస్ట్ అకౌంట్ · వెరిఫై చేయలేదు",
+  "afStatus_not_verified": "వెరిఫై చేయలేదు",
+  "afStatus_not_checked": "చెక్ చేయలేదు",
+  "afStatus_pending": "చెక్ చేయాల్సి ఉంది",
+  "afStatus_verified": "చెక్ చేసినట్టు నమోదైంది",
+  "afStatus_unquoted": "వాటా ఇంకా సూచించలేదు",
+  "afStatus_proposed": "ప్యాసింజర్ అంగీకారం కోసం",
+  "afStatus_agreed": "వాటా ఒప్పుకున్నారు",
+  "afStatus_passenger_reported": "డబ్బు పంపినట్టు ప్యాసింజర్ తెలిపారు",
+  "afStatus_owner_confirmed": "డబ్బు అందినట్టు ఓనర్ తెలిపారు",
+  "afStatus_disputed": "పేమెంట్ సమస్య నమోదైంది",
+  "afStatus_refund_requested": "రిఫండ్ కోరారు",
+  "afStatus_refund_reported": "రిఫండ్ పంపినట్టు ఓనర్ తెలిపారు",
+  "afStatus_refunded": "రిఫండ్ అందినట్టు ప్యాసింజర్ తెలిపారు"
+});
+
+Object.assign(messages.en, {afSelfieHelp:"Upload a JPG or PNG selfie without an expiry date.",afBreakdownMismatch:"Fuel and toll shares must add up to the proposed amount."});
+Object.assign(messages.te, {afSelfieHelp:"ఎక్స్‌పైరీ తేదీ లేకుండా JPG లేదా PNG సెల్ఫీ అప్‌లోడ్ చేయండి.",afBreakdownMismatch:"ఇంధనం, టోల్ వాటాలు కలిపితే ప్రతిపాదించిన మొత్తం రావాలి."});
+
+Object.assign(messages.en, {afWithdraw:"Withdraw application and delete uploaded documents",afWithdrawHelp:"This withdraws document consent, deletes the uploaded documents from current application storage and removes driving approval. The application record is retained. This does not claim deletion from backups. Continue only if you want to withdraw.",afWithdrawConfirm:"Withdraw and delete documents"});
+Object.assign(messages.te, {afWithdraw:"అప్లికేషన్ వెనక్కి తీసుకుని డాక్యుమెంట్లు తొలగించండి",afWithdrawHelp:"డాక్యుమెంట్ల సమ్మతి వెనక్కి తీసుకుంటారు. ప్రస్తుత అప్లికేషన్ స్టోరేజ్‌లోని అప్‌లోడ్ చేసిన డాక్యుమెంట్లు తొలగించి డ్రైవింగ్ ఆమోదం తీసేస్తారు. అప్లికేషన్ రికార్డ్ ఉంటుంది. బ్యాకప్‌ల నుంచి కూడా తొలగించామని దీని అర్థం కాదు. వెనక్కి తీసుకోవాలంటేనే కొనసాగించండి.",afWithdrawConfirm:"వెనక్కి తీసుకుని డాక్యుమెంట్లు తొలగించండి"});
+
+Object.assign(messages.en,{afCollectionUnavailable:"This payment is unavailable right now. Review the booking, driver approval and trip budget before paying."});
+Object.assign(messages.te,{afCollectionUnavailable:"ఈ పేమెంట్ ఇప్పుడు అందుబాటులో లేదు. డబ్బు పంపే ముందు బుకింగ్, డ్రైవర్ ఆమోదం, ట్రిప్ బడ్జెట్ చెక్ చేయండి."});
+
+// Phone account flow; verification is phone ownership only.
+Object.assign(messages.en, {
+  "phoneSignIn": "Sign in or create your account",
+  "phoneNumber": "Your mobile number",
+  "phoneSendCode": "Send code",
+  "phoneCode": "Six-digit code",
+  "phoneVerify": "Verify and continue",
+  "phoneResend": "Send a new code",
+  "phoneChangeNumber": "Change number",
+  "phoneExpiresIn": "Code expires in {seconds} seconds",
+  "phoneResendIn": "You can send again in {seconds} seconds",
+  "phoneConsentTitle": "Before you continue",
+  "phoneConsentTerms": "I agree to the",
+  "phoneConsentPrivacy": "I have read and accept the",
+  "phoneConsentAdult": "I confirm that I am 18 or older.",
+  "phoneTerms": "Terms of use",
+  "phonePrivacy": "Privacy notice",
+  "phoneUnavailable": "Phone sign-in is unavailable right now. Please try again later.",
+  "phoneDeliveryNotice": "Delivery can take a moment. If you request a new code, the previous code will stop working.",
+  "phoneSentTo": "Code requested for {phone}",
+  "phoneNameTitle": "What should we call you?",
+  "phoneNameHelp": "Add your name to finish setting up your account.",
+  "phoneFinishProfile": "Save and continue",
+  "phoneLegacySignIn": "Staff and test-account sign-in",
+  "phoneVerified": "Phone number confirmed",
+  "phoneProofOnly": "A code confirms access to this phone number. It does not verify identity or driving eligibility.",
+  "phoneInvalidNumber": "Enter a valid 10-digit Indian mobile number.",
+  "phoneInvalidCode": "That code was not accepted. Check the SMS and try again.",
+  "phoneExpired": "This code has expired. Request a new code to continue.",
+  "phoneBusy": "A request is already in progress. Please wait, then try again.",
+  "phoneLimited": "Too many attempts. Please wait before trying again.",
+  "phoneUnavailableAccount": "This account is unavailable. Please contact support.",
+  "phoneConsentRequired": "Please review and accept the current terms, privacy notice and age confirmation.",
+  "phoneFlowInvalid": "This sign-in attempt is no longer current. Change the number or request a new code.",
+  "phoneInvalidName": "Enter your name using 1 to 80 characters.",
+  "phoneSignOutFirst": "Sign out before signing in with another phone number.",
+  "phoneNumberChangeHelp": "To change your sign-in number, contact support. Phone sharing is still your choice.",
+  "phoneSessionRetry": "You are signed in. Retry loading your account.",
+  "phoneStaffAccount": "Staff account ID"
+});
+Object.assign(messages.te, {
+  "phoneSignIn": "సైన్ ఇన్ అవ్వండి లేదా అకౌంట్ తెరవండి",
+  "phoneNumber": "మీ మొబైల్ నంబర్",
+  "phoneSendCode": "కోడ్ పంపండి",
+  "phoneCode": "ఆరు అంకెల కోడ్",
+  "phoneVerify": "వెరిఫై చేసి కొనసాగండి",
+  "phoneResend": "కొత్త కోడ్ పంపండి",
+  "phoneChangeNumber": "నంబర్ మార్చండి",
+  "phoneExpiresIn": "కోడ్ గడువు మరో {seconds} సెకన్లు",
+  "phoneResendIn": "మరో {seconds} సెకన్ల తర్వాత మళ్లీ పంపవచ్చు",
+  "phoneConsentTitle": "కొనసాగించే ముందు",
+  "phoneConsentTerms": "నేను అంగీకరిస్తున్నాను:",
+  "phoneConsentPrivacy": "నేను చదివి అంగీకరిస్తున్నాను:",
+  "phoneConsentAdult": "నాకు 18 ఏళ్లు లేదా అంతకంటే ఎక్కువ అని నిర్ధారిస్తున్నాను.",
+  "phoneTerms": "వినియోగ నిబంధనలు",
+  "phonePrivacy": "ప్రైవసీ వివరాలు",
+  "phoneUnavailable": "ఫోన్‌తో సైన్ ఇన్ ఇప్పుడు అందుబాటులో లేదు. తర్వాత మళ్లీ ప్రయత్నించండి.",
+  "phoneDeliveryNotice": "SMS రావడానికి కొంత సమయం పట్టవచ్చు. కొత్త కోడ్ కోరితే పాత కోడ్ పని చేయదు.",
+  "phoneSentTo": "{phone} నంబర్‌కు కోడ్ కోరారు",
+  "phoneNameTitle": "మిమ్మల్ని ఏ పేరుతో పిలవాలి?",
+  "phoneNameHelp": "మీ అకౌంట్ పూర్తిచేయడానికి మీ పేరు ఇవ్వండి.",
+  "phoneFinishProfile": "సేవ్ చేసి కొనసాగండి",
+  "phoneLegacySignIn": "స్టాఫ్, టెస్ట్ అకౌంట్ల సైన్ ఇన్",
+  "phoneVerified": "ఫోన్ నంబర్ నిర్ధారించారు",
+  "phoneProofOnly": "కోడ్ ద్వారా ఈ ఫోన్ నంబర్ మీ దగ్గర ఉందని మాత్రమే తెలుస్తుంది. గుర్తింపు లేదా డ్రైవింగ్ అర్హత చెక్ చేసినట్టు కాదు.",
+  "phoneInvalidNumber": "సరైన 10 అంకెల భారతీయ మొబైల్ నంబర్ ఇవ్వండి.",
+  "phoneInvalidCode": "ఆ కోడ్ సరిపోలలేదు. SMS చెక్ చేసి మళ్లీ ప్రయత్నించండి.",
+  "phoneExpired": "ఈ కోడ్ గడువు ముగిసింది. కొనసాగడానికి కొత్త కోడ్ కోరండి.",
+  "phoneBusy": "ఒక రిక్వెస్ట్ ఇంకా జరుగుతోంది. కాసేపు ఆగి మళ్లీ ప్రయత్నించండి.",
+  "phoneLimited": "ఎక్కువ సార్లు ప్రయత్నించారు. కాసేపు ఆగి మళ్లీ ప్రయత్నించండి.",
+  "phoneUnavailableAccount": "ఈ అకౌంట్ అందుబాటులో లేదు. సపోర్ట్‌ను సంప్రదించండి.",
+  "phoneConsentRequired": "ప్రస్తుత నిబంధనలు, ప్రైవసీ వివరాలు చదివి, వయస్సు నిర్ధారణతో అంగీకరించండి.",
+  "phoneFlowInvalid": "ఈ సైన్ ఇన్ ప్రయత్నం ఇక చెల్లదు. నంబర్ మార్చండి లేదా కొత్త కోడ్ కోరండి.",
+  "phoneInvalidName": "1 నుంచి 80 అక్షరాల్లో మీ పేరు ఇవ్వండి.",
+  "phoneSignOutFirst": "మరో ఫోన్ నంబర్‌తో సైన్ ఇన్ అయ్యే ముందు సైన్ అవుట్ అవ్వండి.",
+  "phoneNumberChangeHelp": "సైన్ ఇన్ నంబర్ మార్చడానికి సపోర్ట్‌ను సంప్రదించండి. ఫోన్ నంబర్ షేర్ చేయాలా వద్దా అనేది మీ ఇష్టం.",
+  "phoneSessionRetry": "మీరు సైన్ ఇన్ అయ్యారు. అకౌంట్ లోడ్ చేయడానికి మళ్లీ ప్రయత్నించండి.",
+  "phoneStaffAccount": "స్టాఫ్ అకౌంట్ ID"
+});
+
+Object.assign(messages.en,{phoneRestart:'Start a new sign-in attempt'});
+Object.assign(messages.te,{phoneRestart:'కొత్తగా సైన్ ఇన్ ప్రయత్నం మొదలుపెట్టండి'});
+
+// Declared trip expenses and passenger contribution limits.
+Object.assign(messages.en, {
+  "afTripBudget": "Trip expense budget",
+  "afBudgetDeclared": "These are the owner’s declared costs, not verified bills. The owner pays their own share. Passenger contributions together cannot exceed the remaining cost.",
+  "afBudgetTotal": "Total declared cost",
+  "afOwnerShare": "Owner’s own share",
+  "afPassengerCap": "Maximum passenger contributions",
+  "afReserved": "Reserved by proposals and agreements",
+  "afRemaining": "Available for new contributions",
+  "afBudgetRequired": "The owner must save a trip expense budget before proposing a new contribution.",
+  "afBudgetReason": "Explain these costs or this change",
+  "afBudgetAttestation": "I am sharing the costs of a trip I already planned, and I will pay my own stated share.",
+  "afSaveBudget": "Save trip budget",
+  "afBudgetInvalid": "The owner’s share must be greater than zero and no more than fuel plus tolls.",
+  "afBudgetAtAgreement": "Budget when you agreed",
+  "afAction_void_unpaid": "Close unpaid agreement",
+  "afStatus_voided_unpaid": "Unpaid agreement closed",
+  "afVoidReason": "Why it was closed"
+});
+Object.assign(messages.te, {
+  "afTripBudget": "ట్రిప్ ఖర్చు బడ్జెట్",
+  "afBudgetDeclared": "ఇవి ఓనర్ తెలిపిన ఖర్చులు; చెక్ చేసిన బిల్లులు కావు. ఓనర్ తన వాటా చెల్లిస్తారు. ప్యాసింజర్ల వాటాల మొత్తం మిగిలిన ఖర్చును మించకూడదు.",
+  "afBudgetTotal": "తెలిపిన మొత్తం ఖర్చు",
+  "afOwnerShare": "ఓనర్ సొంత వాటా",
+  "afPassengerCap": "ప్యాసింజర్ల మొత్తం వాటా పరిమితి",
+  "afReserved": "ప్రతిపాదనలు, ఒప్పందాలకు కేటాయించిన మొత్తం",
+  "afRemaining": "కొత్త వాటాలకు మిగిలిన మొత్తం",
+  "afBudgetRequired": "కొత్త వాటా ప్రతిపాదించే ముందు ఓనర్ ట్రిప్ ఖర్చు బడ్జెట్ సేవ్ చేయాలి.",
+  "afBudgetReason": "ఈ ఖర్చులు లేదా మార్పుకు కారణం చెప్పండి",
+  "afBudgetAttestation": "నేను ముందే ప్లాన్ చేసిన ట్రిప్ ఖర్చులు పంచుకుంటున్నాను. తెలిపిన నా సొంత వాటా నేనే చెల్లిస్తాను.",
+  "afSaveBudget": "ట్రిప్ బడ్జెట్ సేవ్ చేయండి",
+  "afBudgetInvalid": "ఓనర్ వాటా సున్నా కంటే ఎక్కువగా, ఇంధనం మరియు టోల్ మొత్తం కంటే ఎక్కువ కాకుండా ఉండాలి.",
+  "afBudgetAtAgreement": "మీరు అంగీకరించినప్పటి బడ్జెట్",
+  "afAction_void_unpaid": "చెల్లించని ఒప్పందం ముగించండి",
+  "afStatus_voided_unpaid": "చెల్లించని ఒప్పందం ముగిసింది",
+  "afVoidReason": "ముగించడానికి కారణం"
+});
+
+// Account reauthentication, optional recovery, and deletion.
+Object.assign(messages.en, {
+  "lcSecurity": "Account security and deletion",
+  "lcRecoveryKey": "Optional recovery code",
+  "lcRecoveryOptional": "Save a recovery code if you want to recover your account after losing access to your phone. Normal sign-in still uses phone OTP. A recovery code does not stop someone signing in if your old number is reassigned.",
+  "lcKeyReady": "Recovery code is enabled.",
+  "lcNoKeyConfigured": "No recovery code is currently enabled.",
+  "lcShowKey": "Set or replace recovery code",
+  "lcSaveKey": "Enable this saved code",
+  "lcSavedKeyAck": "I saved this code somewhere private and can find it again.",
+  "lcKeepKeyWarning": "Save this code in a password manager or another private place now. It will not be shown again after saving. Anyone with it may recover your account to their phone. Enabling it replaces your previous recovery code.",
+  "lcRecoverySecret": "Private recovery code",
+  "lcDelete": "Delete my account",
+  "lcDeleteWarning": "Deleting your account signs you out everywhere and removes your current profile, contact details and uploaded documents. This cannot be undone.",
+  "lcRetainedNotice": "Limited trip, payment, safety and abuse-prevention records remain. Backups and SMS-provider records are handled separately.",
+  "lcDeleteAck": "I understand what is deleted and retained, and I want to delete my account.",
+  "lcConfirmDelete": "Permanently delete my account",
+  "lcDeleted": "Your account has been deleted. The stated limited records are retained.",
+  "lcSendCurrentCode": "Send code to my current phone",
+  "lcReauthHelp": "First confirm access to your current sign-in phone. After verifying the code, you will review and confirm the account change.",
+  "lcCodeExpiry": "This code expires after five minutes.",
+  "lcBlocked": "Resolve these items before deleting your account. No trip or payment will be cancelled automatically.",
+  "lcBlock_active_trip": "You have an active offered trip.",
+  "lcBlock_active_booking": "You have a pending or active booking.",
+  "lcBlock_unresolved_payment": "A payment agreement still needs to be resolved.",
+  "lcViewBlocker": "Open and review",
+  "lcNotEligible": "These controls are for personal phone accounts. Staff and test accounts cannot use them.",
+  "lcLostPhone": "Lost access to your phone?",
+  "lcNoRecoveryKey": "Recovery needs the private code you saved earlier and access to a new phone. Without the old phone or that saved code, there is no automatic recovery.",
+  "lcNewPhone": "New mobile number",
+  "lcRecover": "Recover account to this phone",
+  "lcRecoveryNewKey": "Save this replacement recovery code before continuing. Recovery invalidates the previous code, signs out old sessions and turns contact sharing off.",
+  "lcReauthExpired": "That confirmation is no longer valid. Verify your current phone again.",
+  "lcRecoveryInvalid": "The recovery details could not be verified. Check your saved code and try again.",
+  "lcKeyUnavailable": "Recovery is unavailable for these details. No account change was confirmed."
+});
+Object.assign(messages.te, {
+  "lcSecurity": "అకౌంట్ భద్రత, తొలగింపు",
+  "lcRecoveryKey": "ఐచ్ఛిక రికవరీ కోడ్",
+  "lcRecoveryOptional": "ఫోన్ యాక్సెస్ పోయినా అకౌంట్ తిరిగి పొందాలంటే రికవరీ కోడ్ సేవ్ చేసుకోండి. సాధారణ సైన్ ఇన్‌కు ఫోన్ OTP వాడతారు. మీ పాత నంబర్ మరొకరికి కేటాయిస్తే, వారు OTPతో సైన్ ఇన్ అవ్వడాన్ని రికవరీ కోడ్ ఆపదు.",
+  "lcKeyReady": "రికవరీ కోడ్ ఎనేబుల్ అయింది.",
+  "lcNoKeyConfigured": "ప్రస్తుతం రికవరీ కోడ్ ఎనేబుల్ చేయలేదు.",
+  "lcShowKey": "రికవరీ కోడ్ ఏర్పాటు చేయండి లేదా మార్చండి",
+  "lcSaveKey": "సేవ్ చేసిన ఈ కోడ్ ఎనేబుల్ చేయండి",
+  "lcSavedKeyAck": "ఈ కోడ్‌ను ప్రైవేట్‌గా సేవ్ చేసుకున్నాను. మళ్లీ అవసరమైనప్పుడు తీసుకోగలను.",
+  "lcKeepKeyWarning": "ఈ కోడ్‌ను ఇప్పుడే పాస్‌వర్డ్ మేనేజర్‌లో లేదా మరో ప్రైవేట్ చోట సేవ్ చేసుకోండి. సేవ్ చేసిన తర్వాత మళ్లీ చూపించరు. ఈ కోడ్ ఉన్నవారు మీ అకౌంట్‌ను వారి ఫోన్‌కు రికవర్ చేయవచ్చు. దీన్ని ఎనేబుల్ చేస్తే పాత రికవరీ కోడ్ పని చేయదు.",
+  "lcRecoverySecret": "ప్రైవేట్ రికవరీ కోడ్",
+  "lcDelete": "నా అకౌంట్ తొలగించండి",
+  "lcDeleteWarning": "అకౌంట్ తొలగిస్తే అన్ని చోట్ల సైన్ అవుట్ అవుతారు. ప్రస్తుత ప్రొఫైల్, కాంటాక్ట్ వివరాలు, అప్‌లోడ్ చేసిన డాక్యుమెంట్లు తొలగిస్తారు. దీన్ని వెనక్కి మార్చలేరు.",
+  "lcRetainedNotice": "పరిమిత ట్రిప్, పేమెంట్, భద్రత, దుర్వినియోగం నివారణ రికార్డులు ఉంటాయి. బ్యాకప్‌లు, SMS ప్రొవైడర్ రికార్డుల నిర్వహణ వేరుగా ఉంటుంది.",
+  "lcDeleteAck": "ఏవి తొలగిస్తారు, ఏవి ఉంచుతారో అర్థమైంది. నా అకౌంట్ తొలగించాలనుకుంటున్నాను.",
+  "lcConfirmDelete": "నా అకౌంట్ శాశ్వతంగా తొలగించండి",
+  "lcDeleted": "మీ అకౌంట్ తొలగించారు. ముందుగా తెలిపిన పరిమిత రికార్డులు ఉంటాయి.",
+  "lcSendCurrentCode": "నా ప్రస్తుత ఫోన్‌కు కోడ్ పంపండి",
+  "lcReauthHelp": "ముందుగా మీ ప్రస్తుత సైన్ ఇన్ ఫోన్ మీ దగ్గర ఉందని నిర్ధారించండి. కోడ్ వెరిఫై చేసిన తర్వాత అకౌంట్ మార్పును చూసి కన్ఫర్మ్ చేస్తారు.",
+  "lcCodeExpiry": "ఈ కోడ్ ఐదు నిమిషాల తర్వాత ముగుస్తుంది.",
+  "lcBlocked": "అకౌంట్ తొలగించే ముందు ఇవి పరిష్కరించండి. ట్రిప్ లేదా పేమెంట్ ఆటోమేటిక్‌గా రద్దు కాదు.",
+  "lcBlock_active_trip": "మీరు ఇచ్చిన ట్రిప్ ఇంకా యాక్టివ్‌గా ఉంది.",
+  "lcBlock_active_booking": "మీ బుకింగ్ పెండింగ్‌లో లేదా యాక్టివ్‌గా ఉంది.",
+  "lcBlock_unresolved_payment": "ఒక పేమెంట్ ఒప్పందం ఇంకా పరిష్కరించాలి.",
+  "lcViewBlocker": "తెరిచి చూడండి",
+  "lcNotEligible": "ఈ కంట్రోల్స్ వ్యక్తిగత ఫోన్ అకౌంట్ల కోసం. స్టాఫ్, టెస్ట్ అకౌంట్లు వాడలేవు.",
+  "lcLostPhone": "మీ ఫోన్ యాక్సెస్ పోయిందా?",
+  "lcNoRecoveryKey": "రికవరీకి మీరు ముందు సేవ్ చేసిన ప్రైవేట్ కోడ్, కొత్త ఫోన్ యాక్సెస్ అవసరం. పాత ఫోన్ లేదా ఆ కోడ్ లేకపోతే ఆటోమేటిక్ రికవరీ లేదు.",
+  "lcNewPhone": "కొత్త మొబైల్ నంబర్",
+  "lcRecover": "ఈ ఫోన్‌కు అకౌంట్ రికవర్ చేయండి",
+  "lcRecoveryNewKey": "కొనసాగించే ముందు ఈ కొత్త రికవరీ కోడ్ సేవ్ చేసుకోండి. రికవరీ చేస్తే పాత కోడ్ పని చేయదు, పాత సెషన్లు సైన్ అవుట్ అవుతాయి, కాంటాక్ట్ షేరింగ్ ఆగుతుంది.",
+  "lcReauthExpired": "ఆ నిర్ధారణ ఇక చెల్లదు. మీ ప్రస్తుత ఫోన్‌ను మళ్లీ వెరిఫై చేయండి.",
+  "lcRecoveryInvalid": "రికవరీ వివరాలు వెరిఫై కాలేదు. సేవ్ చేసిన కోడ్ చెక్ చేసి మళ్లీ ప్రయత్నించండి.",
+  "lcKeyUnavailable": "ఈ వివరాలతో రికవరీ అందుబాటులో లేదు. అకౌంట్ మార్పు నిర్ధారించలేదు."
+});
+
+// Explain collection eligibility without hiding permitted reconciliation actions.
+Object.assign(messages.en, {
+  afBudgetOwnerOnly:"Only the owner of this trip can set its expense budget.",
+  afPaymentHistoryHelp:"Review your contribution agreement and payment records here.",
+  afEligibilityAccounts:"New payments require both people to use individual accounts with verified sign-in phone numbers. Demo accounts cannot collect payments.",
+  afEligibilityDriver:"New payments are unavailable until the driver’s current documents have been reviewed and approved.",
+  afEligibilityBooking:"This booking is not eligible for a new payment. You can still review its existing records.",
+  afEligibilityVehicle:"The vehicle no longer matches this trip. Do not send a new payment for this booking.",
+  afExpenseCapExceeded:"This amount exceeds the remaining passenger contribution limit for the trip. Your entries are kept. Check the updated budget and reduce the amount before retrying.",
+  afEligibilityClosed:"This payment is closed for new collection. Existing records remain available."
+});
+Object.assign(messages.te, {
+  afBudgetOwnerOnly:"ఈ ట్రిప్ ఓనర్ మాత్రమే ఖర్చుల బడ్జెట్ సెట్ చేయగలరు.",
+  afPaymentHistoryHelp:"మీ ఖర్చు వాటా ఒప్పందం, పేమెంట్ రికార్డులు ఇక్కడ చూడండి.",
+  afEligibilityAccounts:"కొత్త పేమెంట్లకు ఇద్దరికీ వెరిఫై చేసిన సైన్ ఇన్ ఫోన్ నంబర్‌తో వ్యక్తిగత అకౌంట్లు ఉండాలి. డెమో అకౌంట్లతో డబ్బు తీసుకోలేరు.",
+  afEligibilityDriver:"డ్రైవర్ ప్రస్తుత డాక్యుమెంట్లు రివ్యూ చేసి ఆమోదించే వరకు కొత్త పేమెంట్లు అందుబాటులో ఉండవు.",
+  afEligibilityBooking:"ఈ బుకింగ్‌కు కొత్త పేమెంట్ అందుబాటులో లేదు. ఇప్పటికే ఉన్న రికార్డులు చూడవచ్చు.",
+  afEligibilityVehicle:"ప్రస్తుత వాహనం ఈ ట్రిప్ వివరాలతో సరిపోలడం లేదు. ఈ బుకింగ్‌కు కొత్తగా డబ్బు పంపవద్దు.",
+  afExpenseCapExceeded:"ఈ మొత్తం ట్రిప్‌లో ప్రయాణికుల వాటాకు మిగిలిన పరిమితి కంటే ఎక్కువగా ఉంది. మీరు ఇచ్చిన వివరాలు అలాగే ఉన్నాయి. తాజా బడ్జెట్ చూసి, మొత్తం తగ్గించి మళ్లీ ప్రయత్నించండి.",
+  afEligibilityClosed:"ఈ పేమెంట్‌కు కొత్తగా డబ్బు తీసుకోవడం ముగిసింది. ఇప్పటికే ఉన్న రికార్డులు చూడవచ్చు."
+});
+
+// Identity review is distinct from phone ownership and government validation.
+Object.assign(messages.en, {afEligibilityIdentity:"Both participants need a current ID review before a new payment. Existing payment records remain available.", afOpenIdentity:"Review my identity"});
+Object.assign(messages.te, {afEligibilityIdentity:"కొత్త పేమెంట్ చేయడానికి ఇద్దరి ఐడీల రివ్యూ చెల్లుబాటులో ఉండాలి. ఇప్పటికే ఉన్న పేమెంట్ రికార్డులు చూడవచ్చు.", afOpenIdentity:"నా ఐడీ రివ్యూ చూడండి"});
+Object.assign(messages.hi, {afEligibilityIdentity:"नया भुगतान करने से पहले दोनों लोगों की आईडी की समीक्षा वैध होनी चाहिए। पुराने भुगतान रिकॉर्ड उपलब्ध रहेंगे।", afOpenIdentity:"मेरी पहचान की समीक्षा"});
+
+// Staff document viewing is page-based, watermarked, and has no export controls.
+Object.assign(messages.en, {afReviewDocument:"Review document",afReviewOnly:"Review-only viewer. Download and print controls are disabled here; screenshots may still be possible.",afReviewEveryPage:"Render every page of each document before approval.",afPagesRead:"All pages rendered in this review session.",afPage:"Page",afOf:"of",afPreviousPage:"Previous page",afNextPage:"Next page",afZoomIn:"Zoom in",afZoomOut:"Zoom out",afReviewWatermark:"Review watermark"});
+Object.assign(messages.te, {afReviewDocument:"డాక్యుమెంట్ సమీక్షించండి",afReviewOnly:"సమీక్ష కోసం మాత్రమే. ఇక్కడ డౌన్‌లోడ్, ప్రింట్ నియంత్రణలు లేవు; స్క్రీన్‌షాట్‌లు తీయడం సాధ్యమవవచ్చు.",afReviewEveryPage:"ఆమోదానికి ముందు ప్రతి పత్రంలోని అన్ని పేజీలను తెరిచి చూడండి.",afPagesRead:"ఈ సమీక్ష సెషన్‌లో అన్ని పేజీలు చూపించబడ్డాయి.",afPage:"పేజీ",afOf:"లో",afPreviousPage:"మునుపటి పేజీ",afNextPage:"తర్వాతి పేజీ",afZoomIn:"జూమ్ పెంచు",afZoomOut:"జూమ్ తగ్గించు",afReviewWatermark:"సమీక్ష వాటర్‌మార్క్"});
+Object.assign(messages.hi, {afReviewDocument:"दस्तावेज़ देखें",afReviewOnly:"केवल समीक्षा के लिए। यहां डाउनलोड और प्रिंट नियंत्रण बंद हैं; स्क्रीनशॉट फिर भी संभव हो सकते हैं।",afReviewEveryPage:"स्वीकृति से पहले हर दस्तावेज़ के सभी पृष्ठ देखें।",afPagesRead:"इस समीक्षा सत्र में सभी पृष्ठ दिखाए गए।",afPage:"पृष्ठ",afOf:"में से",afPreviousPage:"पिछला पृष्ठ",afNextPage:"अगला पृष्ठ",afZoomIn:"ज़ूम बढ़ाएं",afZoomOut:"ज़ूम घटाएं",afReviewWatermark:"समीक्षा वॉटरमार्क"});
+Object.assign(messages.en, {afFileHelp:"JPG, PNG or PDF, up to 3 MiB each. Selfie must be an image. PDF review supports up to 12 pages and images up to 16 megapixels. Re-select the file if an upload fails."});
+Object.assign(messages.te, {afFileHelp:"ఒక్కో JPG, PNG లేదా PDF గరిష్ఠంగా 3 MiB. సెల్ఫీ ఫొటో మాత్రమే. PDF సమీక్షకు గరిష్ఠంగా 12 పేజీలు, చిత్రాలకు 16 మెగాపిక్సెల్లు. అప్‌లోడ్ ఫెయిల్ అయితే ఫైల్ మళ్లీ ఎంచుకోండి."});
+Object.assign(messages.hi, {afFileHelp:"JPG, PNG या PDF, हर फ़ाइल अधिकतम 3 MiB। सेल्फ़ी छवि होनी चाहिए। PDF समीक्षा अधिकतम 12 पृष्ठ और छवियां 16 मेगापिक्सेल तक समर्थित हैं। अपलोड विफल हो तो फ़ाइल फिर चुनें।"});
+
+
+Object.assign(messages.en, {afStepCount:'Step {step} of {total}',afStepComplete:'Saved',afProgressLoading:'Loading saved review progress…',afProgressInvalid:'The review checklist is invalid. Refresh the queue and retry.',afProgressVersionConflict:'This application changed. The latest version was loaded; review it before continuing.',afProgressRevisionConflict:'Another reviewer changed this checklist. The latest saved progress is shown; refresh it before continuing.',afProgressStepLocked:'Complete the earlier document step before continuing.',afProgressPagesUnread:'Render every page of this document before saving this step.',afProgressIncomplete:'Complete and save every document step before approving.',afProgressLocked:'This checklist is locked because the application is no longer under review.',afProgressSaveFailed:'The checklist could not be saved. Your selections are still here; retry.',afProgressReload:'Discard unsaved checks and reload saved progress',afProgressRefresh:'Progress changed elsewhere. Reload saved progress before making further edits.',afProgressComplete:'Every document step is saved. Approval is now available.',afStepReview:'Review all pages, then record each manual check below. Checks are never selected automatically.',afStepOpenPages:'Open this document and render every page before recording checks.',afStepMissing:'This review step has no attached document.',afStepSaveChanges:'Save changes to this step',afStepSaveNext:'Save and continue',afStepBack:'Previous step',afCompareReference:'Compare with driving licence',afApprovalProgressRequired:'Approval stays unavailable until every saved review step is complete.',afPrivateFile:'Private file',afReasonShort:'Enter a review reason of at least 10 characters.',afProgressUnsaved:'Checklist edits are not saved. Save them before approval is available.',afQueueDenied:'Review access changed. Private queue details were cleared; reload to check your access.'});
+Object.assign(messages.te, {afStepCount:'దశ {step} / {total}',afStepComplete:'సేవ్ అయింది',afProgressLoading:'సేవ్ చేసిన సమీక్ష ప్రగతి లోడ్ అవుతోంది…',afProgressInvalid:'సమీక్ష చెక్‌లిస్ట్ చెల్లదు. క్యూను రిఫ్రెష్ చేసి మళ్లీ ప్రయత్నించండి.',afProgressVersionConflict:'ఈ దరఖాస్తు మారింది. తాజా సంచిక లోడ్ అయింది; కొనసాగించే ముందు మళ్లీ సమీక్షించండి.',afProgressRevisionConflict:'మరో సమీక్షకుడు ఈ చెక్‌లిస్ట్ మార్చారు. తాజా ప్రగతి చూపబడింది; కొనసాగించే ముందు రిఫ్రెష్ చేయండి.',afProgressStepLocked:'కొనసాగించే ముందు ముందు పత్ర దశను పూర్తి చేయండి.',afProgressPagesUnread:'ఈ దశ సేవ్ చేసే ముందు పత్రంలోని ప్రతి పేజీని తెరవండి.',afProgressIncomplete:'ఆమోదానికి ముందు ప్రతి పత్ర దశను పూర్తి చేసి సేవ్ చేయండి.',afProgressLocked:'దరఖాస్తు సమీక్షలో లేకపోవడంతో ఈ చెక్‌లిస్ట్ లాక్ చేయబడింది.',afProgressSaveFailed:'చెక్‌లిస్ట్ సేవ్ కాలేదు. మీ ఎంపికలు అలాగే ఉన్నాయి; మళ్లీ ప్రయత్నించండి.',afProgressReload:'సేవ్ కాని తనిఖీలను తీసివేసి సేవ్ చేసిన ప్రగతిని లోడ్ చేయండి',afProgressRefresh:'ప్రగతి మరెక్కడో మారింది. మరిన్ని మార్పులు చేసే ముందు సేవ్ చేసిన ప్రగతిని రిఫ్రెష్ చేయండి.',afProgressComplete:'ప్రతి పత్ర దశ సేవ్ అయింది. ఇప్పుడు ఆమోదం అందుబాటులో ఉంది.',afStepReview:'అన్ని పేజీలను సమీక్షించి, ప్రతి మాన్యువల్ తనిఖీని నమోదు చేయండి. తనిఖీలు స్వయంగా ఎంపిక కావు.',afStepOpenPages:'తనిఖీలు నమోదు చేసే ముందు ఈ పత్రంలోని ప్రతి పేజీని తెరవండి.',afStepMissing:'ఈ సమీక్ష దశకు పత్రం జత చేయబడలేదు.',afStepSaveChanges:'ఈ దశ మార్పులను సేవ్ చేయండి',afStepSaveNext:'సేవ్ చేసి కొనసాగండి',afStepBack:'మునుపటి దశ',afCompareReference:'డ్రైవింగ్ లైసెన్స్‌తో పోల్చండి',afApprovalProgressRequired:'ప్రతి సమీక్ష దశను పూర్తి చేసి సేవ్ చేసిన తర్వాతే ఆమోదం అందుబాటులో ఉంటుంది.',afPrivateFile:'ప్రైవేట్ ఫైల్',afReasonShort:'కనీసం 10 అక్షరాల సమీక్ష కారణం నమోదు చేయండి.',afProgressUnsaved:'చెక్‌లిస్ట్ మార్పులు సేవ్ కాలేదు. ఆమోదానికి ముందు వాటిని సేవ్ చేయండి.',afQueueDenied:'సమీక్ష అనుమతి మారింది. ప్రైవేట్ క్యూను క్లియర్ చేశాం; అనుమతిని మళ్లీ తనిఖీ చేయండి.'});
+Object.assign(messages.hi, {afStepCount:'चरण {step} / {total}',afStepComplete:'सहेजा गया',afProgressLoading:'सहेजी गई समीक्षा प्रगति लोड हो रही है…',afProgressInvalid:'समीक्षा चेकलिस्ट अमान्य है। कतार रीफ़्रेश करके फिर कोशिश करें।',afProgressVersionConflict:'यह आवेदन बदल गया है। नवीनतम संस्करण लोड हुआ; आगे बढ़ने से पहले समीक्षा करें।',afProgressRevisionConflict:'दूसरे समीक्षक ने यह चेकलिस्ट बदली। नवीनतम प्रगति दिख रही है; आगे बढ़ने से पहले रीफ़्रेश करें।',afProgressStepLocked:'आगे बढ़ने से पहले पिछला दस्तावेज़ चरण पूरा करें।',afProgressPagesUnread:'इस चरण को सहेजने से पहले दस्तावेज़ के हर पृष्ठ को खोलें।',afProgressIncomplete:'स्वीकृति से पहले हर दस्तावेज़ चरण पूरा करके सहेजें।',afProgressLocked:'आवेदन समीक्षा में नहीं है, इसलिए यह चेकलिस्ट लॉक है।',afProgressSaveFailed:'चेकलिस्ट सहेजी नहीं जा सकी। आपकी पसंद मौजूद है; फिर कोशिश करें।',afProgressReload:'बिना सहेजी जांच हटाकर सहेजी प्रगति लोड करें',afProgressRefresh:'प्रगति कहीं और बदली गई। आगे संपादन से पहले सहेजी प्रगति रीफ़्रेश करें।',afProgressComplete:'हर दस्तावेज़ चरण सहेजा गया। अब स्वीकृति उपलब्ध है।',afStepReview:'हर पृष्ठ देखें, फिर नीचे हर मैन्युअल जांच दर्ज करें। जांच अपने आप नहीं चुनी जातीं।',afStepOpenPages:'जांच दर्ज करने से पहले इस दस्तावेज़ का हर पृष्ठ खोलें।',afStepMissing:'इस समीक्षा चरण में कोई दस्तावेज़ संलग्न नहीं है।',afStepSaveChanges:'इस चरण के बदलाव सहेजें',afStepSaveNext:'सहेजें और आगे बढ़ें',afStepBack:'पिछला चरण',afCompareReference:'ड्राइविंग लाइसेंस से तुलना करें',afApprovalProgressRequired:'हर समीक्षा चरण पूरा करके सहेजने के बाद ही स्वीकृति उपलब्ध होगी।',afPrivateFile:'निजी फ़ाइल',afReasonShort:'कम से कम 10 अक्षरों का समीक्षा कारण लिखें।',afProgressUnsaved:'चेकलिस्ट के बदलाव सहेजे नहीं गए हैं। स्वीकृति से पहले उन्हें सहेजें।',afQueueDenied:'समीक्षा पहुंच बदल गई। निजी कतार जानकारी हटाई गई; पहुंच फिर जांचें।'});

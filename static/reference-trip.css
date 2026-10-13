@@ -96,3 +96,130 @@
   .trip-emergency-icon { width:34px; height:34px; }
   .trip-rating-panel .rating-star { border-radius:14px; }
 }
+
+/* Approved Higgsfield trip references: one map, one sheet, explicit privacy state. */
+.trip-live-page,.trip-safety-page,.trip-completed-page,.trip-rating-page { width:min(100%,760px); margin-inline:auto; color:var(--forest); }
+.trip-page-title { display:flex; align-items:flex-start; gap:12px; margin:4px 0 22px; }
+.trip-page-title .back-icon { flex:none; margin:0; width:40px; height:40px; border:0; background:transparent; }
+.trip-page-title h1 { margin:0 0 5px; font-size:clamp(25px,3vw,34px); line-height:1.22; letter-spacing:-.04em; }
+.trip-page-title p { margin:0; color:#69776f; font-size:14px; line-height:1.5; }
+.trip-route-labels { display:flex; align-items:center; flex-wrap:wrap; gap:8px; font-size:18px; font-weight:750; line-height:1.5; }
+.trip-route-labels > span { min-width:0; overflow-wrap:anywhere; }
+.trip-safety-panel { display:grid; gap:18px; }
+.trip-safety-context { display:grid; grid-template-columns:minmax(0,1fr) 38%; align-items:center; gap:14px; padding:14px; background:white; border:1px solid #e0e5de; border-radius:20px; overflow:hidden; }
+.trip-safety-context .trip-view-kicker { font-size:11px; letter-spacing:.06em; }
+.trip-safety-context .trip-route-labels { display:grid; gap:3px; font-size:16px; margin-top:6px; }
+.trip-safety-context .trip-route-labels > span:nth-child(2) { display:none; }
+.trip-safety-context .trip-safety-map { height:112px; border-radius:12px; }
+.trip-safety-context .leaflet-control-container { display:none; }
+.trip-safety-sheet { display:grid; gap:12px; margin:0; padding:22px; border:1px solid #e0e5de; border-radius:22px; box-shadow:none; }
+.trip-view-heading h2 { margin:0; font-size:24px; letter-spacing:-.03em; }
+.trip-safety-sheet .trip-view-heading p { font-size:14px; }
+.trip-safety-form { padding:8px 0 18px; gap:18px; }
+.trip-safety-form .safety-category-grid { display:grid; grid-template-columns:1fr; gap:8px; }
+.trip-safety-form .safety-category-option { min-height:56px; border-radius:13px; padding:12px 14px; font-size:15px; }
+.trip-safety-form .safety-category-option:has(input:checked) { background:#f1f7e4; border-color:#809854; box-shadow:none; }
+.trip-safety-form .safety-category-option:has(input:focus-visible) { outline:3px solid #769455; outline-offset:2px; }
+.trip-emergency { display:grid; grid-template-columns:38px minmax(0,1fr); gap:10px; padding:18px; border:1px solid #ebd9d2; border-radius:18px; background:#fcf6f3; }
+.trip-emergency-icon { background:#f5e6df; color:#8a4032; }
+.trip-emergency h2 { font-size:18px; }
+.trip-emergency p { font-size:13px; line-height:1.5; }
+.trip-emergency .emergency-link { grid-column:2; justify-self:start; margin:0; padding:0; gap:9px; border:0; min-height:36px; color:#823c30; }
+.trip-block-section { padding:18px 0 0; }
+.trip-block-heading h2 { font-size:18px; }
+.trip-block-heading p { font-size:13px; }
+.trip-receipt { padding:18px; border-radius:16px; }
+.trip-completion-heading { display:flex; gap:16px; align-items:center; padding:6px 0 10px; }
+.trip-complete-mark { width:58px; height:58px; background:#d9ec9e; }
+.trip-completion-heading h1 { margin:0 0 6px; font-size:clamp(28px,3.4vw,40px); }
+.trip-completion-heading .trip-route-labels { color:#68766e; font-size:16px; font-weight:600; }
+.completed-trip-panel { gap:18px; }
+.trip-completed-map { height:300px; border-radius:22px; }
+.trip-complete-privacy { display:flex; align-items:flex-start; gap:13px; padding:20px; border:1px solid #dce7ce; border-radius:18px; background:#f2f6e9; }
+.trip-complete-privacy h2 { margin:0 0 6px; font-size:18px; line-height:1.4; }
+.trip-complete-privacy p { font-size:14px; line-height:1.55; color:#65736a; }
+.trip-completion-review { border:1px solid #e0e5de; background:#fff; border-radius:18px; overflow:hidden; }
+.trip-review-link,.trip-report-link { display:flex; align-items:center; gap:14px; padding:20px; color:var(--forest); text-decoration:none; min-height:64px; }
+.trip-review-link > span:nth-child(2),.trip-report-link > span { flex:1; min-width:0; }
+.trip-review-link strong { display:block; font-size:20px; line-height:1.35; }
+.trip-review-link small { display:block; margin-top:5px; font-size:13px; color:#68766e; }
+.trip-review-icon { color:#7a9254; }
+.trip-report-link { border-top:1px solid #e7eae4; font-size:15px; font-weight:700; }
+.trip-completed-return { min-height:56px; border-radius:15px; }
+.trip-live-page .live-location { min-height:0; margin:0; overflow:hidden; border-radius:24px; }
+.trip-live-page .live-location-map { flex:none; height:340px; min-height:0; border-radius:24px 24px 0 0; }
+.trip-live-page .live-location-sheet { display:flex; flex-direction:column; gap:15px; margin:-20px 0 0; padding:24px; border:1px solid #e4e8df; border-radius:28px 28px 20px 20px; box-shadow:0 -4px 16px #173d3408; }
+.trip-live-page .live-location-sheet:before { content:''; width:42px; height:4px; border-radius:5px; background:#d9dfd7; align-self:center; margin:-12px 0 5px; }
+.trip-live-page .live-journey-summary { padding:14px 0; margin:0; border-top:1px solid #e7ebe2; border-bottom:1px solid #e7ebe2; }
+.trip-live-page .live-journey-labels { display:grid; grid-template-columns:1fr; gap:5px; font-size:16px; }
+.trip-live-page .live-journey-arrow { display:none; }
+.trip-live-page .live-journey-icon { background:#f0f4e8; border-radius:50%; width:40px; height:40px; }
+.trip-live-page .live-location-status { margin:0; font-size:14px; line-height:1.5; }
+.trip-live-page .live-location-details { margin:0; font-size:12px; color:#6a786f; flex-wrap:wrap; }
+.trip-live-page .live-location-details:has(span:empty):not(:has(span:not(:empty))) { display:none; }
+.trip-live-page .live-privacy-banner { margin:0; padding:15px; border:1px solid #e0e9d0; border-radius:15px; background:#f1f6e7; gap:12px; }
+.trip-live-page .live-privacy-banner p { font-size:13px; line-height:1.6; }
+.trip-live-page .live-location-own-status:empty,.trip-live-page .live-location-notice:empty { display:none; }
+.trip-live-page .live-location-notice { margin:0; padding:12px; border-radius:12px; background:#f5f4e6; font-size:14px; }
+.trip-live-page .live-location-controls { margin:0; gap:9px; }
+.trip-live-page .live-location-controls .primary { min-height:54px; border-radius:15px; font-size:16px; }
+.trip-live-page .live-location-controls [hidden] { display:none; }
+.trip-live-heading { display:flex; align-items:flex-start; gap:13px; }
+.trip-live-heading > span { display:grid; place-items:center; width:48px; height:48px; flex:none; border-radius:50%; background:#edf5d7; }
+.trip-live-heading h2 { margin:0 0 6px; font-size:25px; line-height:1.24; letter-spacing:-.03em; }
+.trip-live-heading p { margin:0; font-size:13px; line-height:1.5; color:#657269; }
+.trip-live-consent { margin:0; padding:0; list-style:none; display:grid; gap:0; }
+.trip-live-consent li { display:flex; gap:12px; align-items:flex-start; padding:13px 0; border-bottom:1px solid #e7ebe2; }
+.trip-live-consent li > .ui-icon { flex:none; margin-top:2px; color:#6d806b; }
+.trip-live-consent strong { display:block; font-size:14px; }
+.trip-live-consent p { margin:4px 0 0; font-size:13px; line-height:1.5; color:#6a786f; }
+.trip-live-secondary { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+.trip-live-secondary a { padding:12px; min-height:44px; font-size:14px; border-radius:13px; }
+@media(max-width:600px) {
+ .trip-page-title { margin:0 0 16px; gap:8px; }
+ .trip-page-title h1 { font-size:25px; }
+ .trip-safety-sheet { padding:18px; }
+ .trip-safety-context { padding:12px; gap:10px; }
+ .trip-completed-map { height:230px; }
+ .trip-completion-heading { gap:12px; }
+ .trip-completion-heading h1 { font-size:28px; }
+ .trip-complete-mark { width:48px; height:48px; }
+ .trip-complete-privacy { padding:16px; }
+ .trip-complete-privacy h2 { font-size:17px; }
+ .trip-live-page .live-location { margin:0; border-radius:20px; }
+ .trip-live-page .live-location-map { height:280px; min-height:0; border-radius:20px 20px 0 0; }
+ .trip-live-page .live-location-sheet { margin:-20px 0 0; padding:22px 18px 18px; }
+ .trip-live-heading h2 { font-size:24px; }
+ .trip-live-heading > span { width:42px; height:42px; }
+}
+.trip-live-page [hidden] { display:none !important; }
+.trip-live-page .trip-live-not-now { min-height:48px; border-radius:14px; }
+.trip-live-page .live-location:not(.is-ended):has(.trip-live-consent:not([hidden])) .live-journey-summary { display:none; }
+.trip-live-page .live-location:not(.is-ended):has(.trip-live-consent:not([hidden])) .live-privacy-banner .hint { display:none; }
+/* Leaflet panes must stay inside the map, below the rounded consent sheet. */
+.trip-live-page .trip-live-mount .live-location-map { isolation:isolate; z-index:0; }
+.trip-live-page .trip-live-mount .live-location { margin-inline:0; }
+.trip-live-page .live-location-controls .primary,.trip-live-secondary .secondary,.trip-completed-return { display:flex; justify-content:center; align-items:center; gap:8px; }
+/* Keep the stop control nearer the map once consent has been granted. */
+.trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-location-sheet { gap:10px; }
+.trip-live-page .live-location:has(.live-location-stop:not([hidden])) .trip-live-heading h2 { font-size:22px; }
+.trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-journey-summary { padding-block:9px; }
+.trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-location-own-status { display:none; }
+@media(max-width:600px) {
+ .trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-location-map { height:220px; }
+ .trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-privacy-banner { padding:12px; }
+}
+@media(max-width:600px) {
+ .trip-live-page .trip-live-mount .live-location-map { height:220px; }
+}
+/* The privacy stop action stays reachable above mobile navigation at all scroll positions. */
+@media(max-width:600px) {
+ .trip-live-page .live-location-controls:has(.live-location-stop:not([hidden])) {
+   position:fixed; left:16px; right:16px; bottom:calc(82px + env(safe-area-inset-bottom));
+   z-index:450; padding:8px; border:1px solid #dfe5dc; border-radius:20px;
+   background:#fff; box-shadow:0 3px 18px #173d341a;
+ }
+ .trip-live-page .live-location:has(.live-location-stop:not([hidden])) .live-location-sheet {
+   padding-bottom:100px;
+ }
+}

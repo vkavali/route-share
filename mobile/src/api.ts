@@ -1,3 +1,4 @@
+import {createVoiceOperation} from './voice/transport';
 const rawBase = process.env.EXPO_PUBLIC_API_URL || '';
 
 function validateBase(raw: string) {
@@ -18,7 +19,17 @@ function validateBase(raw: string) {
 }
 
 export const API_BASE = rawBase ? validateBase(rawBase) : '';
-export type Point = {label: string; lat: number; lon: number};
+export type Point = {
+  label: string;
+  lat: number;
+  lon: number;
+  id?: string;
+  name?: string;
+  address?: string;
+  kind?: string;
+  /** Nominatim order: [south, north, west, east], not GeoJSON order. */
+  bbox?: [number, number, number, number] | null;
+};
 export type Match = Record<string, any>;
 export type Booking = Record<string, any>;
 export type AppState = {
@@ -43,7 +54,8 @@ export class Api {
   async request(path: string, body?: unknown, method?: string): Promise<any> {
     if (!API_BASE) throw new Error('Configure EXPO_PUBLIC_API_URL before using the app.');
     const headers: Record<string, string> = {Accept: 'application/json'};
-    if (body !== undefined) headers['Content-Type'] = 'application/json';
+    const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
+    if (body !== undefined && !multipart) headers['Content-Type'] = 'application/json';
     if (this.token) headers.Authorization = `Bearer ${this.token}`;
 
     const controller = new AbortController();
@@ -54,7 +66,7 @@ export class Api {
         response = await fetch(`${API_BASE}${path}`, {
           method: method || (body === undefined ? 'GET' : 'POST'),
           headers,
-          body: body === undefined ? undefined : JSON.stringify(body),
+          body: body === undefined ? undefined : multipart ? body as FormData : JSON.stringify(body),
           signal: controller.signal,
         });
       } catch (cause: any) {
@@ -90,9 +102,45 @@ export class Api {
     }
   }
 
+  voiceOperation(requestId: string, language: 'en' | 'te') {
+    return createVoiceOperation(API_BASE, this.token, requestId, language);
+  }
+
   login(account: string, password: string) {
     return this.request('/api/mobile/login', {account, password});
   }
+
+  phoneCapabilities() { return this.request('/api/phone/capabilities'); }
+  phoneStart(payload: Record<string, unknown>) { return this.request('/api/mobile/phone/start', payload); }
+  phoneResend(payload: Record<string, unknown>) { return this.request('/api/mobile/phone/resend', payload); }
+  phoneVerify(payload: Record<string, unknown>) { return this.request('/api/mobile/phone/verify', payload); }
+  phoneProfile(name: string) { return this.request('/api/phone/profile', {name}); }
+  identityApplication() { return this.request('/api/identity_application'); }
+  saveIdentityApplication(body: Record<string, unknown>) { return this.request('/api/identity_application', body); }
+  identityVerificationQueue() { return this.request('/api/identity_verification_queue'); }
+  identityReviewProgress(applicationId: string) {
+    return this.request(`/api/identity_review_progress?application_id=${encodeURIComponent(applicationId)}`);
+  }
+  saveIdentityReviewProgress(body: Record<string, unknown>) { return this.request('/api/identity_review_progress', body); }
+  driverReviewProgress(applicationId: string) {
+    return this.request(`/api/driver_review_progress?application_id=${encodeURIComponent(applicationId)}`);
+  }
+  saveDriverReviewProgress(body: Record<string, unknown>) { return this.request('/api/driver_review_progress', body); }
+  documentPreview(kind: 'identity'|'driver', documentId: string, page: number) {
+    const path = kind === 'identity' ? '/api/identity_document_preview' : '/api/driver_document_preview';
+    return this.request(`${path}?document_id=${encodeURIComponent(documentId)}&page=${encodeURIComponent(String(page))}`);
+  }
+  uploadIdentityDocument(body: FormData) { return this.request('/api/identity_documents', body); }
+  submitIdentityApplication(body: Record<string, unknown>) { return this.action('submit_identity_application', body); }
+  withdrawIdentityApplication(body: Record<string, unknown>) { return this.action('withdraw_identity_application', body); }
+  reviewIdentityApplication(body: Record<string, unknown>) { return this.action('review_identity_application', body); }
+  accountLifecycle() { return this.request('/api/account/lifecycle'); }
+  accountReauthStart(body: Record<string, unknown>) { return this.request('/api/account/reauth/start', body); }
+  accountReauthVerify(body: Record<string, unknown>) { return this.request('/api/account/reauth/verify', body); }
+  saveRecoveryKey(body: Record<string, unknown>) { return this.request('/api/account/recovery-key', body); }
+  deleteAccount(body: Record<string, unknown>) { return this.request('/api/account/delete', body); }
+  recoverAccountStart(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/start', body); }
+  recoverAccountVerify(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/verify', body); }
 
   logout() { return this.request('/api/mobile/logout', {}); }
   state(): Promise<AppState> { return this.request('/api/state'); }

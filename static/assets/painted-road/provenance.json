@@ -1,0 +1,35 @@
+{
+  "mode": "built-in image_gen",
+  "source": {
+    "width": 1774,
+    "height": 887,
+    "hasAlpha": true
+  },
+  "prompt": "Use case: photorealistic-natural. Asset type: transparent raster road illustration for a ride-sharing landing page, to blend into an ivory background. Primary request: a material-rich, photoreal matte painting of a genuine rural Deccan/Telangana asphalt road with convincing spatial depth. Wide landscape composition approximately 2:1, a flowing asymmetric S-curve traversing the lower half from left to right and then bending into depth. Camera oblique aerial, fairly low enough to see perspective: the close foreground road is BROAD and substantial, with two believable traffic lanes, and gradually narrows into the distance. Dark granular imperfect asphalt, worn white dashed centre paint and continuous worn white edge paint, ochre gravel shoulders, sparse olive roadside grasses and a few irregular acacias, a few natural weathered granite boulders. Real soft directional daylight and grounded shadows, realistic muted earth materials; sophisticated painted photographic realism, not glossy CGI. Organic irregular patches of natural terrain surround the road and softly fade to true alpha transparency at the outer edges; no isolated oval platform. Entire vignette visible with room around edges. Road surface remains visibly wide even at website display size, never a thin ribbon. No cars or any vehicles, no people, no buildings, no text, lettering, labels, maps, pins, signs or logos. No rectangular landscape, horizon or sky; transparent background. Avoid toy, miniature diorama, scale model, rounded racetrack, plastic shine, perfect symmetric loops, decorative line-art, cartoon foliage, clean cut oval base. Keep terrain sparse and asymmetric; the richly textured actual road is the main subject.",
+  "description": "AI-generated Deccan-inspired road matte painting; decorative, not an actual route map or documented location.",
+  "transform": "Aspect ratio preserved; resized to1600px and720px widths using Lanczos3; WebP quality90 with alphaQuality100. No content editing or retouching.",
+  "visual_qa": "Isolated Chrome render on #F8F7F2 inspected at1040px and390px widths. No visible red fringe, rectangular backdrop, cars, text or labels. Broad asphalt and perspective remain legible.",
+  "shipping_bytes": 708346,
+  "assets": [
+    {
+      "path": "/static/assets/painted-road/deccan-road-1600.webp",
+      "width": 1600,
+      "height": 800,
+      "bytes": 585776,
+      "alphaMismatch": 0,
+      "transparent_pixels": 402597,
+      "semi_transparent_pixels": 877374,
+      "sha256": "5510dd9f168546bf8142c222d7f943e8e15a49fb8071a087911419d711f0c57d"
+    },
+    {
+      "path": "/static/assets/painted-road/deccan-road-720.webp",
+      "width": 720,
+      "height": 360,
+      "bytes": 122570,
+      "alphaMismatch": 0,
+      "transparent_pixels": 81805,
+      "semi_transparent_pixels": 177313,
+      "sha256": "f029c15f19a0f6867b9dd65a948c3aad86f98aee00e2e65a18399389b4a139b6"
+    }
+  ]
+}

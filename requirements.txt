@@ -1,2 +1,7 @@
 Flask>=3.0,<4.0
 gunicorn==26.2.0
+
+cryptography>=43,<47
+
+Pillow==12.3.0
+pypdfium2==5.14.0

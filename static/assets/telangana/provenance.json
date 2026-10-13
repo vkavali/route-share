@@ -1,0 +1,135 @@
+{
+  "checked_on": "2026-10-09",
+  "scope": "Regional Telangana imagery; not a claim of ride coverage. Pilot remains Hyderabad–Mahabubnagar.",
+  "total_image_bytes": 1699038,
+  "assets": [
+    {
+      "name": "Bogatha Waterfall",
+      "author": "Manikanta1973",
+      "file_page": "https://commons.wikimedia.org/wiki/File:Bogatha_Waterfall_top_view.jpg",
+      "original_url": "https://upload.wikimedia.org/wikipedia/commons/c/c3/Bogatha_Waterfall_top_view.jpg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "official_url": "https://mulugu.telangana.gov.in/tourist-place/bogatha-waterfall/",
+      "date": "2017-06-14",
+      "original_dimensions": [
+        4160,
+        2340
+      ],
+      "original_sha256": "24d5297c7ff05c530c539c0f3a45a5476baf1c11f97cdcfd41868a9eb5fdecf4",
+      "visual_inspected": true,
+      "display_cropping_note": "Hero. Broad cascades fill frame; object-position:center center. Keep the waterfall as the visual subject; any CSS cover cropping is display-only.",
+      "changes": "Source-provided Wikimedia Commons resized JPEG only. No local retouching, recolouring, AI generation or pixel crop. CSS cover display may crop visible edges.",
+      "variants": [
+        {
+          "file": "bogatha-waterfall.jpg",
+          "width": 1280,
+          "height": 720,
+          "bytes": 372464,
+          "sha256": "45b0f8ca9412fd130cb600459206a18d988265c83a1913119e68996d48ba3b06",
+          "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Bogatha_Waterfall_top_view.jpg/1280px-Bogatha_Waterfall_top_view.jpg"
+        },
+        {
+          "file": "bogatha-waterfall-1920.jpg",
+          "width": 1920,
+          "height": 1080,
+          "bytes": 819153,
+          "sha256": "9b6ad26e7c370f8cef260f6c06e8c4c9700bda4cb8c522677aaffd38176f3870",
+          "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/Bogatha_Waterfall_top_view.jpg/1920px-Bogatha_Waterfall_top_view.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Kuntala Waterfalls",
+      "author": "రహ్మానుద్దీన్",
+      "file_page": "https://commons.wikimedia.org/wiki/File:Kuntala_waterfalla%2C_both_streams.jpg",
+      "original_url": "https://upload.wikimedia.org/wikipedia/commons/a/a5/Kuntala_waterfalla%2C_both_streams.jpg",
+      "license": "CC BY-SA 3.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/3.0/",
+      "official_url": "https://adilabad.telangana.gov.in/tourist-place/kuntala-water-falls/",
+      "date": "2011-08-06",
+      "original_dimensions": [
+        4320,
+        3240
+      ],
+      "original_sha256": "453eef3a9d17f1b834cafef38cdefa1741dff7d39bae327c7a1a2a07c20a807f",
+      "visual_inspected": true,
+      "display_cropping_note": "Small supporting waterfall. Softer older image; tree left, twin streams right. Prefer object-position:60% 65% to reduce empty sky while retaining both cascades.",
+      "changes": "Source-provided Wikimedia Commons resized JPEG only. No local retouching, recolouring, AI generation or pixel crop. CSS cover display may crop visible edges.",
+      "variants": [
+        {
+          "file": "kuntala-waterfalls.jpg",
+          "width": 960,
+          "height": 720,
+          "bytes": 169187,
+          "sha256": "7a1ad8df9c95231157e582546f17343aa98318689d43fa700f6cc8ef0382b317",
+          "download_url": "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/Kuntala_waterfalla%2C_both_streams.jpg/960px-Kuntala_waterfalla%2C_both_streams.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Bhongir Fort and monolith",
+      "author": "Abdulrahman4055",
+      "file_page": "https://commons.wikimedia.org/wiki/File:Bhongir.jpg",
+      "original_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Bhongir.jpg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "official_url": "https://yadadri.telangana.gov.in/tourist-place/bhuvanagiri-fort/",
+      "date": "2017-06-04",
+      "original_dimensions": [
+        1024,
+        583
+      ],
+      "original_sha256": "5b1fe6a230f3281ea67e0333515d982057326b39082c4a79cbffdf32b0a57f9e",
+      "visual_inspected": true,
+      "display_cropping_note": "Preferred rock landscape. Entire monolith and green foreground; bright sky. Keep full rock silhouette, with slight top-edge CSS crop if needed; centre50%60%.",
+      "changes": "Original JPEG unchanged. No local resize, retouching, recolouring, AI generation or pixel crop. CSS cover display may crop visible edges.",
+      "variants": [
+        {
+          "file": "bhongir-monolith.jpg",
+          "width": 1024,
+          "height": 583,
+          "bytes": 121826,
+          "sha256": "5b1fe6a230f3281ea67e0333515d982057326b39082c4a79cbffdf32b0a57f9e",
+          "download_url": "https://upload.wikimedia.org/wikipedia/commons/4/49/Bhongir.jpg"
+        }
+      ]
+    },
+    {
+      "name": "Ananthagiri Hills",
+      "author": "Deepak R Koppula",
+      "file_page": "https://commons.wikimedia.org/wiki/File:Ananthagiri_Hills_Monsoon_days.jpg",
+      "original_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Ananthagiri_Hills_Monsoon_days.jpg",
+      "license": "CC BY-SA 4.0",
+      "license_url": "https://creativecommons.org/licenses/by-sa/4.0/",
+      "official_url": "https://vikarabad.telangana.gov.in/gallery/ananthagiri-hills/",
+      "date": "2015-09-15",
+      "original_dimensions": [
+        986,
+        653
+      ],
+      "original_sha256": "d342c9b899329fa78ca688cc7abed531f1fe6893af48d0b86ae1da8925217259",
+      "visual_inspected": true,
+      "display_cropping_note": "Preferred greenery alternative to lake. Rolling green slopes and mist, solitary tree to right; no visible people. Native986px sufficient for supportingcard, not widehero. CSS centre50%60%.",
+      "changes": "Original JPEG unchanged. No local resize, retouching, recolouring, AI generation or pixel crop. CSS cover display may crop visible edges.",
+      "variants": [
+        {
+          "file": "ananthagiri-hills.jpg",
+          "width": 986,
+          "height": 653,
+          "bytes": 216408,
+          "sha256": "d342c9b899329fa78ca688cc7abed531f1fe6893af48d0b86ae1da8925217259",
+          "download_url": "https://upload.wikimedia.org/wikipedia/commons/a/a6/Ananthagiri_Hills_Monsoon_days.jpg"
+        }
+      ]
+    }
+  ],
+  "recommended_files": [
+    "bogatha-waterfall.jpg",
+    "bogatha-waterfall-1920.jpg",
+    "kuntala-waterfalls.jpg",
+    "ananthagiri-hills.jpg",
+    "bhongir-monolith.jpg"
+  ],
+  "recommended_image_bytes": 1699038
+}

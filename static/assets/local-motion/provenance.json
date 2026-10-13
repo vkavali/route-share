@@ -1,0 +1,100 @@
+{
+  "generation_mode": "built-in image_gen",
+  "transparent_background": true,
+  "type": "AI-generated regional architectural/nature illustrations, not photographs or exact geographic representations",
+  "transform": "Downscaled from archived original PNG to maximum480px long edge using Lanczos3 resampling; encoded lossless WebP. Composition unchanged; no cropping, recoloring, retouching, background removal or content changes. Alpha preserved exactly relative to resized pixels.",
+  "visual_qa": "Resized shipping WebPs rendered in isolated Chrome on #F8F7F2 and #123D34 at180CSSpx and inspected. Clean silhouettes and transparent margins; no opaque backdrop. Evidence output/local-motion-art/ivory-green-preview.png.",
+  "assets": [
+    {
+      "name": "charminar",
+      "path": "/static/assets/local-motion/charminar-miniature.webp",
+      "png_archive": "output/local-motion-art/charminar-miniature.png",
+      "prompt": "Use case: stylized-concept. Asset type: a compact transparent PNG illustration for an actual ride-sharing website, a small local-brand accent, NOT a UI mockup or tourism hero. Style: sophisticated premium editorial 3D miniature, carefully modelled realistic forms, soft physically plausible stone/ceramic materials, clean antialiased edges, subtle texture, not a childish cartoon. Cohesive forest green, sage, warm ivory stone, restrained pale lime accents. Soft studio daylight from upper left. Three-quarter elevated view, single isolated centred vignette, entire object visible with generous transparent margin, subtle tight contact shadow fading to transparency. True alpha transparent background, no opaque backdrop or floor rectangle. No lettering, logos, labels, maps, frames, people, cards, extra unrelated objects, or fantasy scenery. Intended display 120–200 CSS pixels; clear silhouette and restrained detail. Subject: recognisable Hyderabad Charminar, precisely FOUR slender minarets at the four corners of its square central building, grand pointed arches, delicate balanced dome caps. Warm ivory sandstone with forest-green inset arch shadows; very small simple sage ground footing, no sprawling city. Architectural elegance and credible proportions. Four towers, not a generic mosque.",
+      "width": 480,
+      "height": 480,
+      "channels": 4,
+      "alphaMismatch": 0,
+      "visibleMismatch": 0,
+      "png_bytes": 1490470,
+      "webp_bytes": 164128,
+      "sha256": "deec339142b3f0461e4cdeae2867a02f0abbfd0131f32c14d2c5e9954771d04e",
+      "source_dimensions": {
+        "width": 1254,
+        "height": 1254
+      },
+      "full_resolution_webp_archive": "output/local-motion-art/charminar-miniature-full.webp",
+      "source_alpha_counts": {
+        "clear": 956035,
+        "semi": 616205,
+        "opaque": 276
+      },
+      "source_corner_alpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "name": "waterfall",
+      "path": "/static/assets/local-motion/waterfall-miniature.webp",
+      "png_archive": "output/local-motion-art/waterfall-miniature.png",
+      "prompt": "Use case: stylized-concept. Asset type: a compact transparent PNG illustration for an actual ride-sharing website, a small local-brand accent, NOT a UI mockup or tourism hero. Style: sophisticated premium editorial 3D miniature, carefully modelled realistic forms, soft physically plausible stone/ceramic materials, clean antialiased edges, subtle texture, not a childish cartoon. Cohesive forest green, sage, warm ivory stone, restrained pale lime accents. Soft studio daylight from upper left. Three-quarter elevated view, single isolated centred vignette, entire object visible with generous transparent margin, subtle tight contact shadow fading to transparency. True alpha transparent background, no opaque backdrop or floor rectangle. No lettering, logos, labels, maps, frames, people, cards, extra unrelated objects, or fantasy scenery. Intended display 120–200 CSS pixels; clear silhouette and restrained detail. Subject: a Telangana-inspired low broad stepped dark stone waterfall, water spilling over three irregular horizontal rock ledges into a small shallow pool, two or three restrained miniature leafy trees behind and to one side. Sage/forest greenery, ivory aerated water and a quiet desaturated blue-green pool. Compact asymmetrical natural vignette, credible rock strata, no giant mountains or tropical fantasy. Water readable as fine sculptural streams at small scale.",
+      "width": 480,
+      "height": 320,
+      "channels": 4,
+      "alphaMismatch": 0,
+      "visibleMismatch": 0,
+      "png_bytes": 2926432,
+      "webp_bytes": 161774,
+      "sha256": "8f39d4c5cdda41fde37f80fea1ea0e5dc2098781dd9ba875b0d6543ef763c62f",
+      "source_dimensions": {
+        "width": 1536,
+        "height": 1024
+      },
+      "full_resolution_webp_archive": "output/local-motion-art/waterfall-miniature-full.webp",
+      "source_alpha_counts": {
+        "clear": 714053,
+        "semi": 858811,
+        "opaque": 0
+      },
+      "source_corner_alpha": [
+        0,
+        0,
+        1,
+        0
+      ]
+    },
+    {
+      "name": "bhongir",
+      "path": "/static/assets/local-motion/bhongir-miniature.webp",
+      "png_archive": "output/local-motion-art/bhongir-miniature.png",
+      "prompt": "Use case: stylized-concept. Asset type: a compact transparent PNG illustration for an actual ride-sharing website, a small local-brand accent, NOT a UI mockup or tourism hero. Style: sophisticated premium editorial 3D miniature, carefully modelled realistic forms, soft physically plausible stone/ceramic materials, clean antialiased edges, subtle texture, not a childish cartoon. Cohesive forest green, sage, warm ivory stone, restrained pale lime accents. Soft studio daylight from upper left. Three-quarter elevated view, single isolated centred vignette, entire object visible with generous transparent margin, subtle tight contact shadow fading to transparency. True alpha transparent background, no opaque backdrop or floor rectangle. No lettering, logos, labels, maps, frames, people, cards, extra unrelated objects, or fantasy scenery. Intended display 120–200 CSS pixels; clear silhouette and restrained detail. Subject: a Bhongir-inspired smooth rounded monolithic granite rock hill, a small historic stone fort on the summit and a subtle winding fortified wall descending one shoulder; a few low sage grass clumps at the base. Recognisable huge gently domed exposed rock mass with miniature summit structure, not a medieval European castle, no pointed fantasy towers. Warm ivory and muted grey-green granite; quiet forest-green accents.",
+      "width": 480,
+      "height": 400,
+      "channels": 4,
+      "alphaMismatch": 0,
+      "visibleMismatch": 0,
+      "png_bytes": 1908023,
+      "webp_bytes": 156494,
+      "sha256": "f1ea1fff5eb4868ebb8f172fb95835682657b94db6bf8569caf769376cf94b60",
+      "source_dimensions": {
+        "width": 1374,
+        "height": 1145
+      },
+      "full_resolution_webp_archive": "output/local-motion-art/bhongir-miniature-full.webp",
+      "source_alpha_counts": {
+        "clear": 892281,
+        "semi": 680827,
+        "opaque": 122
+      },
+      "source_corner_alpha": [
+        0,
+        0,
+        0,
+        0
+      ]
+    }
+  ],
+  "shipping_bytes": 482396
+}

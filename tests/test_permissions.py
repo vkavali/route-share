@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 
 import pytest
 
+from app import create_app
 from app.domain import DomainError, now
 from app.permissions import access_summary, can_drive
 from test_lifecycle import KONDAPUR, VIJAYAWADA, act, future_departure, make_service, publish, search
@@ -22,7 +23,8 @@ def _seed_match(store, index, *, passenger_id="passenger", status="published"):
     destination = {"label": "B", "lat": 17.3, "lon": 78.3}
     with store.transaction() as tx:
         tx.put("trips", trip_id, {"id": trip_id, "driver_id": "driver", "driver_name": "Fixture Driver",
-                                   "status": status, "departure": departure})
+                                   "status": status, "departure": departure,
+                                   "driver_vehicle": tx.get("users", "driver").get("vehicle", {})})
         tx.put("requests", request_id, {"id": request_id, "passenger_id": passenger_id,
                                          "passenger_name": "Fixture Passenger", "origin": origin,
                                          "destination": destination, "seats": 1,
@@ -37,8 +39,11 @@ def test_access_summary_requires_current_approval_and_verified_reviewed_document
     driver = users["driver"]
     assert access_summary(driver)["can_drive"] is True
 
-    reviewed = {**driver, "driver_approval": {"kind": "reviewed", "expires_at": _valid_approval()["expires_at"]},
-                "verification": {"dl": "verified", "rc": "verified"}}
+    reviewed = {**driver, "development": False, "auth_method": "phone", "auth_phone": "+919876543210", "phone_verified": True,
+                "identity_approval": {"kind": "human_document_review", "source": "identity_application", "application_id": "fixture-id-review",
+                    "reviewed_at": datetime.now(timezone.utc).isoformat(), "expires_at": _valid_approval()["expires_at"]}, "driver_approval": {"kind": "reviewed", "expires_at": _valid_approval()["expires_at"],
+                "document_expiries": {kind: _valid_approval()["expires_at"] for kind in ("dl", "rc", "insurance")}},
+                "verification": {kind: "verified" for kind in ("dl", "rc", "insurance", "selfie", "identity")}}
     assert can_drive(reviewed)
     reviewed["verification"] = {"dl": "verified", "rc": "not_checked"}
     assert not can_drive(reviewed)
@@ -81,7 +86,7 @@ def test_staff_capabilities_are_explicit_and_staff_cannot_take_travel_actions(tm
         record["driver_approval"] = _valid_approval()
         tx.put("users", "admin", record)
     state = act(service, "state", staff)
-    assert state["access"] == {"is_staff": True, "can_drive": False,
+    assert state["access"] == {"is_staff": True, "can_drive": False, "can_request": False,
                                "staff_capabilities": ["ops.read", "safety.act", "staff.manage", "verify.review"]}
     assert act(service, "operations", staff)["metrics"]["development_data_only"] is True
     with pytest.raises(DomainError) as denied:
@@ -107,13 +112,85 @@ def test_admin_role_alone_does_not_grant_staff_capabilities(tmp_path):
     with store.transaction() as tx:
         tx.put("users", legacy_admin["id"], legacy_admin)
         tx.put("safety_reports", "report", {"id": "report", "status": "open"})
-    assert access_summary(legacy_admin) == {"is_staff": False, "can_drive": False, "staff_capabilities": []}
+    assert access_summary(legacy_admin) == {"is_staff": False, "can_drive": False, "can_request": False, "staff_capabilities": []}
     with pytest.raises(DomainError) as denied:
         act(service, "operations", legacy_admin)
     assert denied.value.status == 403
     with pytest.raises(DomainError) as denied:
         act(service, "resolve_report", legacy_admin, report_id="report", resolution="Reviewed and closed safely.")
     assert denied.value.status == 403
+
+
+@pytest.mark.parametrize("capabilities", [
+    ["ops.read"],
+    ["ops.read", "verify.review", "staff.manage"],
+    ["ops.read", "safety.act"],
+])
+def test_operations_api_separates_safety_cases_and_audit_events(tmp_path, capabilities):
+    application = create_app({
+        "TESTING": True, "HOSTED_MODE": False, "VOICE_ENABLED": False,
+        "SECRET_KEY": "permission-test-only", "BETA_PASSWORD": "permission-fixture-password",
+        "DATABASE_PATH": str(tmp_path / "permissions.sqlite3"),
+    })
+    client = application.test_client()
+    store = application.extensions["beta_store"]
+    report = {"id": "private-case-123", "reporter_id": "private-case-reporter",
+              "subject_id": "private-case-subject", "booking_id": "private-case-booking",
+              "details": "Private safety account of the incident.", "category": "harassment",
+              "status": "open", "created_at": now().isoformat()}
+    with store.transaction() as tx:
+        staff = tx.get("users", "admin")
+        staff["staff_capabilities"] = capabilities
+        tx.put("users", "admin", staff)
+        tx.put("safety_reports", report["id"], report)
+        tx.put("events", "private-case-event", {
+            "id": "private-case-event", "kind": "safety_report_created",
+            "object_id": report["id"], "actor_id": report["reporter_id"],
+            "details": {"category": report["category"]}, "at": report["created_at"],
+        })
+        tx.put("events", "ordinary-event", {"id": "ordinary-event", "kind": "trip_published",
+                                              "object_id": "ordinary-trip", "actor_id": "driver"})
+    assert client.get("/api/operations").status_code == 401
+    login = client.post("/api/mobile/login", json={"account": "admin", "password": "permission-fixture-password"})
+    assert login.status_code == 200
+    headers = {"Authorization": "Bearer " + login.json["token"]}
+
+    def assert_case_hidden(response):
+        assert response.status_code == 200
+        assert response.json["safety_reports"] == []
+        assert [row["id"] for row in response.json["events"]] == ["ordinary-event"]
+        serialized = response.get_data(as_text=True)
+        for private_value in (report["id"], report["reporter_id"], report["subject_id"],
+                              report["booking_id"], report["details"], report["category"],
+                              "safety_report_created", "safety_report_resolved"):
+            assert private_value not in serialized
+        assert response.json["metrics"]["searches"] == 0
+
+    overview = client.get("/api/operations", headers=headers)
+    resolution = "Reviewed the safety case and recorded an outcome."
+    resolved = client.post("/api/resolve_report", headers=headers,
+                           json={"report_id": report["id"], "resolution": resolution})
+    if "safety.act" not in capabilities:
+        assert_case_hidden(overview)
+        assert resolved.status_code == 403
+        with store.read() as tx:
+            assert tx.get("safety_reports", report["id"]) == report
+    else:
+        assert overview.status_code == 200
+        assert overview.json["safety_reports"] == [report]
+        assert any(row["object_id"] == report["id"] for row in overview.json["events"])
+        assert resolved.status_code == 200
+        refreshed = client.get("/api/operations", headers=headers)
+        assert refreshed.json["safety_reports"][0]["resolution"] == resolution
+        assert any(row["kind"] == "safety_report_resolved" for row in refreshed.json["events"])
+        # Existing sessions must lose case visibility immediately after revocation.
+        with store.transaction() as tx:
+            staff = tx.get("users", "admin")
+            staff["staff_capabilities"] = ["ops.read"]
+            tx.put("users", "admin", staff)
+        assert_case_hidden(client.get("/api/operations", headers=headers))
+        assert client.post("/api/resolve_report", headers=headers,
+                           json={"report_id": report["id"], "resolution": resolution}).status_code == 403
 
 
 def test_driver_approval_expiry_blocks_new_trip_start_but_allows_safe_cancellation(tmp_path):

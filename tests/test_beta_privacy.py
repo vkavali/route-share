@@ -45,25 +45,37 @@ def community(tmp_path):
 
 def test_public_rating_average_waits_for_three_persisted_ratings_and_allowlists_fields(community):
     store, service, _booking, _trip = community
+    def completed_participant(tx, index):
+        passenger_id = f"passenger-{index}"
+        trip_id, booking_id = f"rating-trip-{index}", f"rating-booking-{index}"
+        tx.put("users", passenger_id, {"id": passenger_id, "name": f"Fixture passenger {index}", "role": "member"})
+        tx.put("trips", trip_id, {**_trip, "id": trip_id, "status": "completed"})
+        tx.put("bookings", booking_id, {**_booking, "id": booking_id, "trip_id": trip_id,
+                                       "passenger_id": passenger_id, "status": "segment_completed"})
+        return booking_id
+
     with store.transaction() as tx:
         for index, stars in enumerate((5, 3, True), start=1):
+            booking_id = completed_participant(tx, index)
             tx.put("ratings", f"rating-{index}", {
                 "id": f"rating-{index}", "subject_id": "driver", "author_id": f"passenger-{index}",
-                "stars": stars,
+                "stars": stars, "booking_id": booking_id,
             })
 
     summary = service.public_summary("driver")
     assert summary["rating_count"] == 2
     assert summary["rating_average"] is None
     assert set(summary) == {
-        "id", "name", "development", "verification", "rating_average", "rating_count", "completed_trip_count",
+        "id", "name", "development", "verification", "identity_review", "rating_average", "rating_count", "completed_trip_count",
     }
+    assert summary["identity_review"] == {"status": "development", "method": None, "expires_at": None}
     assert not {"phone", "share_phone", "identity_document", "approval_status", "sensitive_review_notes"} & set(summary)
     assert "+919876543210" not in str(summary)
 
     with store.transaction() as tx:
+        booking_id = completed_participant(tx, 4)
         tx.put("ratings", "rating-4", {
-            "id": "rating-4", "subject_id": "driver", "author_id": "passenger-4", "stars": 4,
+            "id": "rating-4", "subject_id": "driver", "author_id": "passenger-4", "stars": 4, "booking_id": booking_id,
         })
     summary = service.public_summary("driver")
     assert summary["rating_count"] == 3

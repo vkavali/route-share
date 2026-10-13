@@ -11,6 +11,9 @@ from datetime import datetime, timedelta, timezone
 
 from werkzeug.security import check_password_hash
 
+from .auth import is_active_account, auth_epoch
+from .user_projection import account_user
+
 
 MOBILE_SESSION_SECONDS = 8 * 60 * 60
 LOGIN_ATTEMPTS_PER_MINUTE = 10
@@ -26,8 +29,9 @@ class MobileAuthError(Exception):
 class MobileAuthenticator:
     """Stores only token hashes; bearer requests are serialized per token stripe."""
 
-    def __init__(self, store, *, clock=None):
+    def __init__(self, store, *, clock=None, demo_password_enabled=True):
         self.store = store
+        self.demo_password_enabled = demo_password_enabled
         self.clock = clock or time.time
         self._lock = threading.Lock()
         self._attempts: dict[tuple[str, str], deque[float]] = defaultdict(deque)
@@ -63,31 +67,40 @@ class MobileAuthenticator:
         self._rate_limit(ip or "unknown")
         with self.store.read() as tx:
             user = tx.get("users", account)
-        valid = user is not None and check_password_hash(user["password_hash"], password)
+        valid = (is_active_account(user) and isinstance(user.get("password_hash"), str)
+                 and (self.demo_password_enabled or user.get("development") is not True or user.get("role") == "staff")
+                 and check_password_hash(user["password_hash"], password))
         return user if valid else None
 
     def login(self, account: str, password: str, ip: str) -> dict:
         user = self.verify_credentials(account, password, ip)
         if not user:
             raise MobileAuthError("Invalid account or password.", 401, "invalid_credentials")
-        token = secrets.token_urlsafe(32)
-        expiry = self._utcnow() + timedelta(seconds=MOBILE_SESSION_SECONDS)
-        expires_at = expiry.isoformat()
-        digest = self.token_hash(token)
         with self.store.transaction() as tx:
-            for session in tx.list("mobile_sessions"):
-                try:
-                    expired = datetime.fromisoformat(session["expires_at"]) <= self._utcnow()
-                except (KeyError, TypeError, ValueError):
-                    expired = True
-                if expired:
-                    tx.delete("mobile_sessions", session["id"])
-            tx.put("mobile_sessions", digest, {
-                "id": digest, "user_id": user["id"], "account": account,
-                "created_at": self._utcnow().isoformat(), "expires_at": expires_at,
-            })
-        safe_user = {key: value for key, value in user.items() if key not in {"password", "password_hash"}}
-        return {"token": token, "user": safe_user, "expires_at": expires_at}
+            current = tx.get("users", user["id"])
+            if not is_active_account(current):
+                raise MobileAuthError("Invalid account or password.", 401, "invalid_credentials")
+            return self.issue_in(tx, current)
+
+    def issue_in(self, tx, user):
+        """Issue inside the caller's transaction, including OTP consumption."""
+        if not is_active_account(user):
+            raise MobileAuthError("Account unavailable.", 403, "account_unavailable")
+        token = secrets.token_urlsafe(32)
+        expires_at = (self._utcnow() + timedelta(seconds=MOBILE_SESSION_SECONDS)).isoformat()
+        digest = self.token_hash(token)
+        for existing in tx.list("mobile_sessions"):
+            try:
+                expired = datetime.fromisoformat(existing["expires_at"]) <= self._utcnow()
+            except (KeyError, TypeError, ValueError):
+                expired = True
+            if expired:
+                tx.delete("mobile_sessions", existing["id"])
+        tx.put("mobile_sessions", digest, {
+            "id": digest, "user_id": user["id"], "account": user["id"],
+            "created_at": self._utcnow().isoformat(), "expires_at": expires_at, "auth_epoch": auth_epoch(user),
+        })
+        return {"token": token, "user": account_user(user), "expires_at": expires_at}
 
     def authenticate(self, token: str):
         if not isinstance(token, str) or not 32 <= len(token) <= 256:
@@ -104,7 +117,7 @@ class MobileAuthenticator:
             with self.store.read() as tx:
                 session = tx.get("mobile_sessions", digest)
                 user = tx.get("users", session.get("user_id")) if session else None
-            if not session or not user:
+            if not session or not is_active_account(user) or auth_epoch(session) != auth_epoch(user):
                 return None
             try:
                 expiry = datetime.fromisoformat(session["expires_at"])
@@ -114,7 +127,7 @@ class MobileAuthenticator:
                 with self.store.transaction() as tx:
                     tx.delete("mobile_sessions", digest)
                 return None
-            safe_user = {key: value for key, value in user.items() if key not in {"password", "password_hash"}}
+            safe_user = account_user(user)
             keep_lock = True
             return {"token_hash": digest, "user": safe_user, "lock": lock}
         finally:

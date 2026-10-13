@@ -28,7 +28,11 @@ const EN = {
   mapSearchRequired: 'Enter a place name to search.',
   mapSearchResult: 'Search results',
   mapSelectedPoint: 'Selected location',
-  mapAccuracy: 'Approximate location accuracy'
+  mapAccuracy: 'Approximate location accuracy',
+  mapResolveAddress: 'Find address for this point',
+  mapAddressLoading: 'Finding nearby address…',
+  mapAddressUnavailable: 'No nearby address found. You can still use this point.',
+  mapAddressError: 'Could not find an address. Your selected point is unchanged.'
 };
 
 let nextPickerId = 1;
@@ -106,6 +110,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
         <footer class="map-picker-footer">
           <p class="map-provider-notice"></p>
           <div class="map-picker-selected" aria-live="polite"></div>
+          <button class="secondary" type="button" data-map-address disabled></button>
           <div class="map-picker-actions">
             <button class="secondary" type="button" data-map-cancel></button>
             <button class="primary" type="button" data-map-confirm disabled></button>
@@ -121,6 +126,8 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     const searchButton = backdrop.querySelector('[data-map-search]');
     const confirmButton = backdrop.querySelector('[data-map-confirm]');
     const selectedText = backdrop.querySelector('.map-picker-selected');
+    const addressButton = backdrop.querySelector('[data-map-address]');
+    addressButton.textContent = translation(t, 'mapResolveAddress');
     const mapError = backdrop.querySelector('.map-picker-map-error');
     const searchRow = backdrop.querySelector('.map-picker-search-row');
     searchRow.append(gpsButton);
@@ -131,6 +138,8 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     let finished = false;
     let busy = false;
     let searchSequence = 0;
+    let selectionSequence = 0;
+    let gpsSequence = 0;
     let tileFailed = false;
 
     dialog.querySelector('h2').textContent = title || translation(t, 'mapPickTitle');
@@ -166,6 +175,13 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     };
     const updateSelection = (point, source = 'map') => {
       if (!validPoint(point)) return;
+      selectionSequence += 1;
+      searchSequence += 1;
+      gpsSequence += 1;
+      setBusy(false);
+      results.replaceChildren();
+      results.hidden = true;
+      addressButton.disabled = false;
       selected = {
         lat: Number(point.lat),
         lon: Number(point.lon),
@@ -191,7 +207,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
         } else marker.setLatLng([selected.lat, selected.lon]);
       }
       confirmButton.disabled = false;
-      selectedText.textContent = `${translation(t, 'mapSelectedPoint')}: ${selected.label}`;
+      selectedText.textContent = `${translation(t, 'mapSelectedPoint')}: ${point.address || selected.label}`;
       if (source !== 'gps' && accuracyCircle && map) {
         map.removeLayer(accuracyCircle);
         accuracyCircle = null;
@@ -271,10 +287,23 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
         const button = document.createElement('button');
         button.type = 'button';
         button.className = 'map-picker-result';
-        button.textContent = label;
+        const name = document.createElement('strong');
+        name.textContent = entry.name || label;
+        button.append(name);
+        if (entry.address && entry.address !== (entry.name || label)) {
+          const address = document.createElement('small');
+          address.textContent = String(entry.address);
+          button.append(document.createElement('br'), address);
+        }
         button.addEventListener('click', () => {
-          updateSelection({ lat, lon, label }, 'search');
-          map?.setView([lat, lon], Math.max(map.getZoom(), 15));
+          updateSelection({ lat, lon, label, address: entry.address }, 'search');
+          query.value = entry.name || label;
+          const box = entry.bbox; // [south, north, west, east], Nominatim order.
+          if (Array.isArray(box) && box.length === 4 && box.every(Number.isFinite) &&
+              -90 <= box[0] && box[0] <= box[1] && box[1] <= 90 &&
+              -180 <= box[2] && box[2] <= box[3] && box[3] <= 180) {
+            map?.fitBounds([[box[0], box[2]], [box[1], box[3]]], { padding: [24, 24], maxZoom: 16 });
+          } else map?.setView([lat, lon], 15);
           showStatus('');
           fitMobileMap();
         });
@@ -289,7 +318,8 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     };
     const runSearch = async () => {
       const term = query.value.trim();
-      if (!term) {
+      if (busy) return;
+      if (term.length < 3 || term.length > 160) {
         showStatus(translation(t, 'mapSearchRequired'), 'error');
         query.focus();
         return;
@@ -330,10 +360,13 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
         showStatus(translation(t, 'mapLocationUnavailable'), 'error');
         return;
       }
+      const sequence = ++gpsSequence;
       setBusy(true);
+      results.hidden = true;
+      results.replaceChildren();
       showStatus(translation(t, 'mapLocationBusy'));
       navigator.geolocation.getCurrentPosition(position => {
-        if (finished) return;
+        if (finished || sequence !== gpsSequence) return;
         const { latitude: lat, longitude: lon, accuracy } = position.coords;
         if (!validPoint({ lat, lon })) {
           setBusy(false);
@@ -356,7 +389,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
         setBusy(false);
         showStatus('');
       }, error => {
-        if (finished) return;
+        if (finished || sequence !== gpsSequence) return;
         setBusy(false);
         gpsError(error);
       }, { enableHighAccuracy: true, timeout: 12000, maximumAge: 0 });
@@ -368,6 +401,47 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     dialog.querySelector('[data-map-close]').addEventListener('click', () => finish(null));
     dialog.querySelector('[data-map-cancel]').addEventListener('click', () => finish(null));
     confirmButton.addEventListener('click', () => selected && finish(selected));
+    addressButton.addEventListener('click', async () => {
+      if (!selected || addressButton.disabled || typeof api !== 'function') return;
+      const point = { ...selected };
+      const sequence = selectionSequence;
+      addressButton.disabled = true;
+      showStatus(translation(t, 'mapAddressLoading'));
+      try {
+        const response = await api(`/api/places/reverse?lat=${encodeURIComponent(point.lat)}&lon=${encodeURIComponent(point.lon)}&lang=${encodeURIComponent(lang || 'en')}`);
+        if (finished || sequence !== selectionSequence) return;
+        if (!response?.place?.address) {
+          showStatus(translation(t, 'mapAddressUnavailable'));
+          return;
+        }
+        // Reverse describes a nearby object. It must never snap the user's pin.
+        selected = { ...point, label: pointLabel(response.place, response.place.address).slice(0, 120) };
+        selectedText.textContent = `${translation(t, 'mapSelectedPoint')}: ${response.place.address}`;
+        showStatus('');
+      } catch {
+        if (!finished && sequence === selectionSequence) showStatus(translation(t, 'mapAddressError'), 'error');
+      } finally {
+        if (!finished && sequence === selectionSequence) addressButton.disabled = false;
+      }
+    });
+    query.addEventListener('input', () => {
+      // Editing invalidates the prior selection and every outstanding response.
+      searchSequence += 1;
+      selectionSequence += 1;
+      gpsSequence += 1;
+      setBusy(false);
+      selected = null;
+      confirmButton.disabled = true;
+      addressButton.disabled = true;
+      selectedText.textContent = '';
+      results.replaceChildren();
+      results.hidden = true;
+      showStatus('');
+      if (marker && map) map.removeLayer(marker);
+      if (accuracyCircle && map) map.removeLayer(accuracyCircle);
+      marker = null;
+      accuracyCircle = null;
+    });
     searchButton.addEventListener('click', runSearch);
     query.addEventListener('keydown', event => {
       if (event.key === 'Enter') {

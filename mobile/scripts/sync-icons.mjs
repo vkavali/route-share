@@ -13,7 +13,7 @@ const entries = [...block.matchAll(/^\s+(\w+): ("(?:\\.|[^"\\])*")(?:,)?$/gm)];
 const wanted = new Set([
   'home','car','steeringWheel','user','users','mapPin','mapTrifold','magnifyingGlass',
   'arrowRight','arrowLeft','arrowsDownUp','plus','minus','eye','eyeSlash','lockKey',
-  'star','crosshair','phone','prohibit','warning','chatCircleDots','dotsThree',
+  'star','crosshair','microphone','phone','prohibit','warning','chatCircleDots','dotsThree',
   'checkCircle','signOut','list','calendarBlank','path','navigationArrow','stack'
 ]);
 const icons = Object.fromEntries(entries.map(([,name,quoted]) => [name, JSON.parse(quoted)]).filter(([name]) => wanted.has(name)));

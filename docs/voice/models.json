@@ -1,0 +1,90 @@
+{
+  "schema_version": 1,
+  "runtime": {
+    "device": "cpu",
+    "compute_type": "int8",
+    "network": "offline"
+  },
+  "en": {
+    "model": "Systran/faster-whisper-small",
+    "revision": "536b0662742c02347bc0e980a01041f333bce120",
+    "license": "MIT",
+    "files": [
+      {
+        "url": "https://huggingface.co/Systran/faster-whisper-small/resolve/536b0662742c02347bc0e980a01041f333bce120/config.json",
+        "bytes": 2370,
+        "sha256": "b55496ac7940a7ae47d2c01eab40edfd8701feec1229d9cce3b40014383fb828",
+        "name": "config.json"
+      },
+      {
+        "url": "https://huggingface.co/Systran/faster-whisper-small/resolve/536b0662742c02347bc0e980a01041f333bce120/model.bin",
+        "bytes": 483546902,
+        "sha256": "3e305921506d8872816023e4c273e75d2419fb89b24da97b4fe7bce14170d671",
+        "name": "model.bin"
+      },
+      {
+        "url": "https://huggingface.co/Systran/faster-whisper-small/resolve/536b0662742c02347bc0e980a01041f333bce120/tokenizer.json",
+        "bytes": 2203239,
+        "sha256": "fb7b63191e9bb045082c79fd742a3106a12c99513ab30df4a0d47fa6cb6fd0ab",
+        "name": "tokenizer.json"
+      },
+      {
+        "url": "https://huggingface.co/Systran/faster-whisper-small/resolve/536b0662742c02347bc0e980a01041f333bce120/vocabulary.txt",
+        "bytes": 459861,
+        "sha256": "34ce3fe1c5041027b3f8d42912270993f986dbc4bb34cf27f951e34a1e453913",
+        "name": "vocabulary.txt"
+      }
+    ]
+  },
+  "te": {
+    "model": "AI4Bharat IndicWhisper Telugu / Whisper medium",
+    "documentation_revision": "21dce3406fddf0e18984165e735d23db38760dd3",
+    "license": "MIT",
+    "archive": {
+      "name": "indicwhisper-telugu.zip",
+      "url": "https://indicwhisper.objectstore.e2enetworks.net/telugu_models.zip",
+      "bytes": 1411425348,
+      "sha256": "477ba7cfc98590271cf868aa027df68edf7cf5276ff4b1876e438a527ee19af4"
+    },
+    "archive_prefix": "telugu_models/whisper-medium-te_alldata_multigpu/",
+    "extract_files": [
+      "config.json",
+      "generation_config.json",
+      "tokenizer_config.json",
+      "merges.txt",
+      "vocab.json",
+      "added_tokens.json",
+      "preprocessor_config.json",
+      "special_tokens_map.json",
+      "pytorch_model.bin",
+      "normalizer.json"
+    ],
+    "files": [
+      {
+        "name": "config.json",
+        "bytes": 7237,
+        "sha256": "bead7bcbbc0920505ac21cb46b5eff43bf181827d0b57001b2d52a29afac83d5"
+      },
+      {
+        "name": "model.bin",
+        "bytes": 769156493,
+        "sha256": "0481d0f5bcd3794d1d515236216b2ca820566262a330d8a4682031cd9c34759d"
+      },
+      {
+        "name": "preprocessor_config.json",
+        "bytes": 184990,
+        "sha256": "9b5cd03a36fbb8a627c64d98a5b5b126ead95a77720723944487311f0110b666"
+      },
+      {
+        "name": "tokenizer.json",
+        "bytes": 3653265,
+        "sha256": "ae37c87cbea325dc553e623a9b19935b874160c3c96750053a2a9103a6753b0d"
+      },
+      {
+        "name": "vocabulary.json",
+        "bytes": 1068103,
+        "sha256": "5ad28279db5e546349708b9a74736e2c018737ac5a600f1048f1f26c99b85b47"
+      }
+    ]
+  }
+}

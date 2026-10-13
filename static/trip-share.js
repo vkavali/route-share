@@ -1,6 +1,6 @@
 const copy = {
   en: {
-    brand: 'Route Share', languageLabel: 'Language', loadingTitle: 'Opening shared journey',
+    brand: 'SeatPal', languageLabel: 'Language', loadingTitle: 'Opening shared journey',
     loadingBody: 'Checking whether this journey link is still available…',
     title: 'Journey shared with you', dateLabel: 'Journey date', statusLabel: 'Status',
     pickupLabel: 'Pickup', dropoffLabel: 'Drop-off', driverLabel: 'Driver', vehicleLabel: 'Vehicle',
@@ -14,7 +14,7 @@ const copy = {
     notProvided: 'Not provided',
   },
   te: {
-    brand: 'రూట్ షేర్', languageLabel: 'భాష', loadingTitle: 'షేర్ చేసిన ప్రయాణాన్ని తెరుస్తున్నాం',
+    brand: 'SeatPal', languageLabel: 'భాష', loadingTitle: 'షేర్ చేసిన ప్రయాణాన్ని తెరుస్తున్నాం',
     loadingBody: 'ఈ ప్రయాణ లింక్ ఇంకా అందుబాటులో ఉందో చూస్తున్నాం…',
     title: 'మీతో ప్రయాణ వివరాలు షేర్ చేశారు', dateLabel: 'ప్రయాణ తేదీ', statusLabel: 'స్థితి',
     pickupLabel: 'పికప్', dropoffLabel: 'డ్రాప్-ఆఫ్', driverLabel: 'డ్రైవర్', vehicleLabel: 'వాహనం',
@@ -53,6 +53,7 @@ const text = (key) => copy[lang][key] || copy.en[key] || key;
 
 function applyLanguage() {
   document.documentElement.lang = lang;
+  document.title = `${text('brand')} · ${text('title')}`;
   languageSelect.value = lang;
   document.querySelectorAll('[data-copy]').forEach((node) => {
     const value = text(node.dataset.copy);

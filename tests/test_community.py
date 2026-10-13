@@ -73,8 +73,10 @@ def test_profile_update_normalizes_phone_and_preserves_identity_verification(app
     assert response.status_code == 200
     assert response.json["profile"] == {
         "id": "driver", "name": "Meera Rao", "phone": "+919876543210", "share_phone": True,
+        "phone_verified": False,
+        "identity_review": {"status": "development", "method": None, "expires_at": None},
         "verification": {"phone": "not_checked", "identity": "not_checked", "dl": "not_checked",
-                          "rc": "not_checked", "selfie": "not_checked"},
+                          "rc": "not_checked", "insurance": "not_checked", "selfie": "not_checked"},
     }
     assert response.json["user"]["name"] == "Meera Rao"
     assert post(client, "update_profile", name="Meera Rao", phone="12345", share_phone=True).status_code == 400
@@ -106,8 +108,9 @@ def test_public_summary_is_allowlisted_and_ops_redacts_phones(app):
     state = passenger.get("/api/state").json
     booking = next(row for row in state["bookings"] if row["id"] == "booking-community")
     summary = booking["counterpart_summary"]
-    assert set(summary) == {"id", "name", "development", "verification", "rating_average", "rating_count", "completed_trip_count"}
-    assert summary["rating_average"] is None and summary["rating_count"] == 1 and summary["completed_trip_count"] == 1
+    assert set(summary) == {"id", "name", "development", "verification", "identity_review", "rating_average", "rating_count", "completed_trip_count"}
+    assert summary["identity_review"] == {"status": "development", "method": None, "expires_at": None}
+    assert summary["rating_average"] is None and summary["rating_count"] == 0 and summary["completed_trip_count"] == 1
     assert "phone" not in summary and "+919876543210" not in str(state)
 
     admin = app.test_client()
@@ -305,3 +308,44 @@ def test_chat_rate_limited_per_account_and_lifecycle_notifications_are_transacti
     login(notifications, "driver")
     result = notifications.get("/api/notifications").json["notifications"]
     assert sum(row["type"] == "ride_request" for row in result) == 1
+
+
+def test_summary_verification_expires_and_ratings_require_completed_pairs(app):
+    service=app.extensions['beta_service']
+    store=app.extensions['beta_store']
+    with store.transaction() as tx:
+        driver=tx.get('users','driver')
+        driver.update(verification={'dl':'verified','rc':'verified','insurance':'verified'},
+                      driver_approval={'kind':'reviewed','expires_at':(datetime.now(timezone.utc)-timedelta(seconds=1)).isoformat()})
+        tx.put('users','driver',driver)
+        for key,star in [('invalid-bool',True),('invalid-range',9),('orphan',5)]:
+            tx.put('ratings',key,{'id':key,'subject_id':'driver','author_id':'passenger','stars':star,'booking_id':'missing'})
+    before=service.community.public_summary('driver')
+    assert before['rating_count']==0 and before['rating_average'] is None
+    assert all(before['verification'][key]=='expired' for key in ('dl','rc','insurance'))
+    with store.transaction() as tx:
+        trip=tx.get('trips','trip-community');trip['status']='completed';tx.put('trips',trip['id'],trip)
+        booking=tx.get('bookings','booking-community');booking['status']='segment_completed';tx.put('bookings',booking['id'],booking)
+        tx.put('ratings','valid-pair',{'id':'valid-pair','booking_id':booking['id'],'author_id':'passenger','subject_id':'driver','stars':4})
+    after=service.community.public_summary('driver')
+    assert after['rating_count']==1 and after['rating_average'] is None and after['completed_trip_count']==1
+    assert after['verification']==service.community.profile_for(driver)['verification']
+
+
+def test_operations_never_projects_legacy_or_consented_review_text(app):
+    import json
+    store=app.extensions['beta_store']
+    with store.transaction() as tx:
+        for key,consent in [('legacy',None),('new',True)]:
+            row={'id':key,'booking_id':'booking-community','author_id':'passenger','subject_id':'driver',
+                 'stars':4,'created_at':'2026-01-01T00:00:00+00:00','comment':'PRIVATE-REVIEW-'+key,
+                 'internal_note':'PRIVATE-FREE-FIELD','unexpected':{'private':'PRIVATE-NESTED'}}
+            if consent is not None:row['publish_comment']=consent
+            tx.put('ratings',key,row)
+        staff=tx.get('users','admin');staff['staff_capabilities']=['ops.read'];tx.put('users','admin',staff)
+    client=app.test_client();login(client,'admin')
+    response=client.get('/api/operations')
+    assert response.status_code==200
+    assert len(response.json['ratings'])==2
+    assert 'PRIVATE-' not in json.dumps(response.json)
+    assert all(set(row)=={'id','booking_id','author_id','subject_id','stars','created_at'} for row in response.json['ratings'])

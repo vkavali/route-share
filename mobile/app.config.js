@@ -15,8 +15,8 @@ module.exports = ({ config }) => {
   const api = getApiBase();
   return {
     ...config,
-    name: 'Route Share',
-    icon: './assets/route-share-mark.png',
+    name: 'SeatPal',
+    icon: './assets/seatpal/icon-ios.png',
     slug: 'route-share-mobile',
     version: '0.1.0',
     orientation: 'portrait',
@@ -28,12 +28,13 @@ module.exports = ({ config }) => {
       ...(config.ios || {}),
       bundleIdentifier: 'com.vkavali.routeshare',
       appleTeamId: '722J78K2H6',
-      buildNumber: '1',
+      buildNumber: '2',
       supportsTablet: true,
       infoPlist: {
         ...((config.ios && config.ios.infoPlist) || {}),
+        CFBundleDisplayName: 'SeatPal',
         ITSAppUsesNonExemptEncryption: false,
-        NSLocationWhenInUseUsageDescription: 'Share your location with the other participant during this accepted booking. Sharing stops when you stop it or arrive.',
+        NSLocationWhenInUseUsageDescription: 'Use your location to choose a pickup or destination, or share it with the other participant during an accepted booking. Sharing stops when you stop it or arrive.',
         NSAppTransportSecurity: api?.loopback && api.url.protocol === 'http:'
           ? {NSAllowsArbitraryLoads: false, NSAllowsLocalNetworking: true}
           : {NSAllowsArbitraryLoads: false},
@@ -42,14 +43,16 @@ module.exports = ({ config }) => {
     android: {
       ...(config.android || {}),
       package: 'com.routeshare.beta',
-      versionCode: 1,
+      versionCode: 2,
+      adaptiveIcon: {foregroundImage: './assets/seatpal/adaptive-foreground.png', monochromeImage: './assets/seatpal/adaptive-monochrome.png', backgroundColor: '#F6F5F0'},
       permissions: ['ACCESS_COARSE_LOCATION', 'ACCESS_FINE_LOCATION'],
       blockedPermissions: ['ACCESS_BACKGROUND_LOCATION'],
     },
     plugins: [
       ...(config.plugins || []),
+      ['expo-splash-screen', {image: './assets/seatpal/splash.png', imageWidth: 120, resizeMode: 'contain', backgroundColor: '#F6F5F0'}],
       ['expo-location', {
-        locationWhenInUsePermission: 'Share your location with the other participant during this accepted booking. Sharing stops when you stop it or arrive.',
+        locationWhenInUsePermission: 'Use your location to choose a pickup or destination, or share it with the other participant during an accepted booking. Sharing stops when you stop it or arrive.',
         locationAlwaysAndWhenInUsePermission: false,
         locationAlwaysPermission: false,
         isIosBackgroundLocationEnabled: false,
@@ -57,6 +60,10 @@ module.exports = ({ config }) => {
         isAndroidForegroundServiceEnabled: false,
       }],
       ['./plugins/withLoopbackCleartext', {enabled: Boolean(api?.loopback && api.url.protocol === 'http:')}],
+      ['expo-audio', {
+        microphonePermission: 'Record your trip only when you tap the microphone. Audio is temporarily transcribed on the SeatPal server and deleted after processing or cancellation.',
+        recordAudioAndroid: true, enableBackgroundRecording: false,
+      }],
       'expo-font',
       'expo-secure-store',
     ],

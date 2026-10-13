@@ -1,7 +1,9 @@
 import React, {createContext, useContext, useState} from 'react';
-import {ActivityIndicator, Pressable, StyleSheet, Text as NativeText, View} from 'react-native';
+import {Pressable, StyleSheet, Text as NativeText, View} from 'react-native';
 import {useFonts} from 'expo-font';
 import {T} from './translation';
+import {SeatPalLoader} from './SeatPalLoader';
+import {revealNativeFrame} from './startupSplash';
 
 const fontAssets = {
   Manrope400: require('../assets/fonts/Manrope-400.ttf'),
@@ -16,25 +18,25 @@ const fontAssets = {
 
 const LanguageContext = createContext('en');
 
-export function NativeTypographyProvider({lang, children}: {lang: string; children: React.ReactNode}) {
+export function NativeTypographyProvider({lang, children, startupPending=false}: {lang: string; children: React.ReactNode; startupPending?: boolean}) {
   const [attempt, setAttempt] = useState(0);
-  return <FontLoader key={attempt} lang={lang} onRetry={() => setAttempt(value => value + 1)}>{children}</FontLoader>;
+  return <FontLoader key={attempt} lang={lang} startupPending={startupPending} onRetry={() => setAttempt(value => value + 1)}>{children}</FontLoader>;
 }
 
-function FontLoader({lang, children, onRetry}: {lang: string; children: React.ReactNode; onRetry: () => void}) {
+function FontLoader({lang, children, onRetry, startupPending}: {lang: string; children: React.ReactNode; onRetry: () => void; startupPending: boolean}) {
   const [loaded, error] = useFonts(fontAssets);
   if (error) {
-    return <View style={styles.failure}>
+    return <View onLayout={revealNativeFrame} style={styles.failure}>
       <NativeText style={styles.failureText}>{T(lang, 'fontLoadError')}</NativeText>
       <Pressable accessibilityRole="button" onPress={onRetry} style={styles.retry}>
         <NativeText style={styles.retryText}>{T(lang, 'retry')}</NativeText>
       </Pressable>
     </View>;
   }
-  if (!loaded) {
-    return <View style={styles.loading}><ActivityIndicator color="#153C32" size="large" /></View>;
+  if (!loaded || startupPending) {
+    return <View onLayout={revealNativeFrame} style={styles.loading}><SeatPalLoader variant="startup" label={T(lang,'loading')}/></View>;
   }
-  return <LanguageContext.Provider value={lang}>{children}</LanguageContext.Provider>;
+  return <LanguageContext.Provider value={lang}><View onLayout={revealNativeFrame} style={{flex:1}}>{children}</View></LanguageContext.Provider>;
 }
 
 export function AppText({style, lang: scriptLang, ...props}: React.ComponentProps<typeof NativeText> & {lang?: string}) {
@@ -46,16 +48,16 @@ export function AppText({style, lang: scriptLang, ...props}: React.ComponentProp
     ? requested
     : requested === 'bold' || requested === '800' || requested === '900' ? '700' : '400';
   const family = textStyle.fontFamily || `${lang === 'te' ? 'AnekTelugu' : 'Manrope'}${weight}`;
-  const teluguLineHeight = lang === 'te' && !textStyle.lineHeight
-    ? Math.round(Number(textStyle.fontSize || 16) * 1.48)
+  const teluguLineHeight = lang === 'te'
+    ? Math.max(Number(textStyle.lineHeight || 0), Math.ceil(Number(textStyle.fontSize || 16) * 1.5))
     : undefined;
 
-  return <NativeText {...props} style={[style, {fontFamily: family, fontWeight: 'normal', lineHeight: textStyle.lineHeight || teluguLineHeight, letterSpacing: lang === 'te' ? 0 : textStyle.letterSpacing}]} />;
+  return <NativeText {...props} style={[style, {fontFamily: family, fontWeight: 'normal', lineHeight: teluguLineHeight || textStyle.lineHeight, letterSpacing: lang === 'te' ? 0 : textStyle.letterSpacing}]} />;
 }
 
 const styles = StyleSheet.create({
-  loading: {flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F5F4EC'},
-  failure: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, backgroundColor: '#F5F4EC'},
+  loading: {flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F6F5F0'},
+  failure: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, backgroundColor: '#F6F5F0'},
   failureText: {maxWidth: 330, textAlign: 'center', color: '#153C32', fontSize: 16, lineHeight: 25},
   retry: {minHeight: 46, justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, backgroundColor: '#153C32'},
   retryText: {color: '#fff', fontSize: 15, fontWeight: '700'},

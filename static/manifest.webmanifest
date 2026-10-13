@@ -1,6 +1,7 @@
 {
-  "name": "Route share · Local beta",
-  "short_name": "Route share",
+  "name": "SeatPal · Local beta",
+  "short_name": "SeatPal",
+  "description": "Share a planned journey.",
   "start_url": "/",
   "display": "standalone",
   "background_color": "#f8f5ee",

@@ -1,24 +1,149 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {FlatList, Linking, Pressable, StyleSheet,  TextInput, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Keyboard, Linking, Pressable, ScrollView, StyleSheet, TextInput, View} from 'react-native';
 import {WebView, WebViewMessageEvent} from 'react-native-webview';
 import * as Location from 'expo-location';
-import {Point} from './api';
-import {Api} from './api';
+import {Api, Point} from './api';
 import {LEAFLET_CSS, LEAFLET_JS} from './generated/leaflet';
 import {T} from './translation';
 import {AppText} from './NativeTypography';
-type Candidate={lat:number;lon:number;label:string};
-const inBounds=(lat:number,lon:number)=>Number.isFinite(lat)&&Number.isFinite(lon)&&lat>=-90&&lat<=90&&lon>=-180&&lon<=180;
-export function MapPicker({lang,api,initialPoint,onChoose,onCancel,onFailure}:{lang:string;api:Api;initialPoint?:Point|null;onChoose:(p:Point)=>void;onCancel:()=>void;onFailure:(error:unknown)=>void}) {
- const web=useRef<WebView>(null);const [query,setQuery]=useState(''),[results,setResults]=useState<Candidate[]>([]),[candidate,setCandidate]=useState<Candidate|null>(initialPoint||null),[error,setError]=useState(''),[busy,setBusy]=useState(false);
+import {normalizePlace, PlaceCandidate, SelectionIntent, samePlace} from './placeSelection';
+
+type Props = {lang:string; api:Api; initialPoint?:Point|null; initialQuery?:string; title?:string;
+ onChoose:(p:Point)=>void; onCancel:()=>void; onFailure:(error:unknown)=>void};
+
+export function MapPicker({lang,api,initialPoint,initialQuery='',title,onChoose,onCancel,onFailure}:Props) {
+ const initial=initialQuery.trim()?null:normalizePlace(initialPoint);
+ const web=useRef<WebView>(null), ready=useRef(false), intent=useRef(new SelectionIntent());
+ const mounted=useRef(true), pointRef=useRef<PlaceCandidate|null>(initial);
+ const queryRef=useRef(initialQuery), operation=useRef<'search'|'gps'|'reverse'|null>(null);
+ const [query,setQuery]=useState(initialQuery), [results,setResults]=useState<PlaceCandidate[]>([]);
+ const [candidate,setCandidate]=useState<PlaceCandidate|null>(initial), [error,setError]=useState('');
+ const [busy,setBusy]=useState<'search'|'gps'|'reverse'|null>(null), [searched,setSearched]=useState(false);
+ const [tilesError,setTilesError]=useState(false);
  const t=(key:string)=>T(lang,key);
- const html=useMemo(()=>`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; connect-src https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{height:100%;margin:0}.route-share-pin{background:transparent;border:0}.route-share-pin span{display:block;width:20px;height:20px;border:3px solid white;border-radius:50%;background:#153C32;box-shadow:0 1px 5px #315849}${LEAFLET_CSS}</style></head><body><div id="map"></div><script>${LEAFLET_JS}</script><script>const map=L.map('map').setView([17.2,79.3],8);L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);let marker=null;function notify(ll){window.ReactNativeWebView.postMessage(JSON.stringify({type:'candidate',lat:ll.lat,lon:ll.lng}));}function pin(ll,send){if(marker){marker.setLatLng(ll);}else{marker=L.marker(ll,{draggable:true,icon:L.divIcon({className:'route-share-pin',html:'<span></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);marker.on('dragend',e=>notify(e.target.getLatLng()));}if(send)notify(ll);}map.on('click',e=>pin(e.latlng,true));window.setCandidate=(lat,lon)=>{const ll=L.latLng(lat,lon);map.setView(ll,14);pin(ll,false);};</script></body></html>`,[]);
- const setPin=(item:Candidate,center=false)=>{if(!inBounds(item.lat,item.lon))return;setCandidate(item);setError('');if(center)web.current?.injectJavaScript(`window.setCandidate(${item.lat},${item.lon});true;`);};
- const onMessage=(e:WebViewMessageEvent)=>{try{const raw=e.nativeEvent.data;if(typeof raw!=='string'||raw.length>512)return;const d=JSON.parse(raw);if(!d||typeof d!=='object'||d.type!=='candidate'||!inBounds(d.lat,d.lon))return;setPin({lat:d.lat,lon:d.lon,label:t('mapSelectedPoint')});}catch{}};
- const useCurrent=async()=>{setBusy(true);setError('');try{const permission=await Location.requestForegroundPermissionsAsync();if(!permission.granted){setError(t('mapLocationDenied'));return;}const location=await Location.getCurrentPositionAsync({accuracy:Location.Accuracy.Balanced});const {latitude,longitude}=location.coords;if(!inBounds(latitude,longitude)){setError(t('mapLocationError'));return;}setPin({lat:latitude,lon:longitude,label:t('mapCurrentLocation')},true);}catch{setError(t('mapLocationError'));}finally{setBusy(false);}};
- const search=async()=>{const term=query.trim();if(term.length<3||term.length>160){setError(t('mapSearchRequired'));return;}setBusy(true);setError('');try{const result=await api.request(`/api/places?q=${encodeURIComponent(term)}&lang=${encodeURIComponent(lang)}`);const rows=Array.isArray(result.places)?result.places:[];const next=rows.map((p:any)=>({label:String(p.label||'').slice(0,180),lat:Number(p.lat),lon:Number(p.lon)})).filter((p:Candidate)=>p.label&&inBounds(p.lat,p.lon)).slice(0,6);setResults(next);if(next.length===0)setError(t('mapSearchEmpty'));}catch(e){onFailure(e);setError(t('mapSearchError'));setResults([]);}finally{setBusy(false);}};
- const chooseResult=(p:Candidate)=>{if(!inBounds(p.lat,p.lon))return;setPin(p,true);};
- const nav=({url,isTopFrame}:{url:string;isTopFrame?:boolean})=>{if(isTopFrame===false)return true;if(url==='about:blank'||url==='https://localhost'||url==='https://localhost/')return true;try{const target=new URL(url);if(target.origin==='https://www.openstreetmap.org'&&target.pathname==='/copyright'&&!target.search&&!target.hash)void Linking.openURL('https://www.openstreetmap.org/copyright');}catch{/* block malformed navigation */}return false;};
- return <View style={styles.wrap}><View style={styles.head}><AppText style={styles.title}>{t('mapPickTitle')}</AppText><AppText style={styles.help}>{t('mapSearchHelp')}</AppText><AppText style={styles.help}>{t('mapProviderNotice')}</AppText><Pressable accessibilityRole="link" onPress={()=>void Linking.openURL('https://operations.osmfoundation.org/policies/nominatim/')}><AppText style={styles.policy}>{t('mapProviderPolicy')}</AppText></Pressable><View style={styles.searchRow}><TextInput accessibilityLabel={t('mapSearchLabel')} value={query} onChangeText={setQuery} onSubmitEditing={()=>void search()} placeholder={t('mapSearchLabel')} style={[styles.input,{fontFamily:lang==='te'?'AnekTelugu400':'Manrope400',lineHeight:lang==='te'?24:undefined}]}/><Pressable accessibilityRole="button" disabled={busy} onPress={()=>void search()} style={styles.search}><AppText style={styles.searchText}>{t('mapSearch')}</AppText></Pressable></View><View style={styles.tools}><Pressable disabled={busy} onPress={()=>void useCurrent()} style={styles.gps}><AppText style={styles.gpsText}>{busy?t('mapLocationBusy'):t('mapMyLocation')}</AppText></Pressable>{error?<AppText style={styles.error}>{error}</AppText>:null}</View><FlatList horizontal data={results} keyExtractor={(p,i)=>`${p.label}-${i}`} contentContainerStyle={styles.results} renderItem={({item})=><Pressable onPress={()=>chooseResult(item)} style={styles.result}><AppText numberOfLines={2} style={styles.resultText}>{item.label}</AppText></Pressable>}/></View><WebView ref={web} source={{html,baseUrl:'https://localhost'}} originWhitelist={['about:blank','https://localhost']} javaScriptEnabled onLoadEnd={()=>{if(initialPoint&&inBounds(initialPoint.lat,initialPoint.lon))web.current?.injectJavaScript(`window.setCandidate(${initialPoint.lat},${initialPoint.lon});true;`);}} onMessage={onMessage} onShouldStartLoadWithRequest={nav} applicationNameForUserAgent="RouteShareLocalBeta/0.1" style={styles.map}/><View style={styles.footer}>{candidate?<AppText numberOfLines={1} style={styles.selected}>{t('mapSelectedPoint')}: {candidate.label}</AppText>:<AppText style={styles.selected}>{t('locationNotChosen')}</AppText>}<View style={styles.buttons}><Pressable accessibilityRole="button" onPress={onCancel} style={styles.cancel}><AppText style={styles.cancelText}>{t('mapCancel')}</AppText></Pressable><Pressable accessibilityRole="button" disabled={!candidate} onPress={()=>candidate&&onChoose({label:candidate.label,lat:candidate.lat,lon:candidate.lon})} style={[styles.confirm,!candidate&&styles.disabled]}><AppText style={styles.confirmText}>{t('mapUsePoint')}</AppText></Pressable></View></View></View>;
+ useEffect(()=>{mounted.current=true;return()=>{mounted.current=false;intent.current.next();};},[]);
+ const current=(token:number)=>mounted.current&&intent.current.isCurrent(token);
+ const replayPoint=()=>{if(!ready.current)return;const p=pointRef.current;
+  web.current?.injectJavaScript(p?`window.setCandidate(${p.lat},${p.lon});true;`:'window.setCandidate(null,null);true;');};
+ const setPoint=(p:PlaceCandidate|null,center=true)=>{pointRef.current=p;setCandidate(p);if(center)replayPoint();};
+ const invalidate=()=>{intent.current.next();operation.current=null;setBusy(null);};
+ const editQuery=(value:string)=>{invalidate();queryRef.current=value;setQuery(value);setResults([]);setSearched(false);setError('');setPoint(null);};
+ const selectPoint=(p:PlaceCandidate,center=true)=>{invalidate();setError('');setPoint(p,center);Keyboard.dismiss();};
+ const html=useMemo(()=>`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; connect-src https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{height:100%;margin:0}.route-share-pin{background:transparent;border:0}.route-share-pin span{display:block;width:20px;height:20px;border:3px solid white;border-radius:50%;background:#153C32;box-shadow:0 1px 5px #315849}${LEAFLET_CSS}</style></head><body><div id="map"></div><script>${LEAFLET_JS}</script><script>const map=L.map('map').setView([17.2,79.3],8);const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);let marker=null;function notify(ll){window.ReactNativeWebView.postMessage(JSON.stringify({type:'candidate',lat:ll.lat,lon:ll.lng}));}function pin(ll,send){if(marker){marker.setLatLng(ll);}else{marker=L.marker(ll,{draggable:true,icon:L.divIcon({className:'route-share-pin',html:'<span></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);marker.on('dragend',e=>notify(e.target.getLatLng()));}if(send)notify(ll);}map.on('click',e=>pin(e.latlng,true));window.setCandidate=(lat,lon)=>{if(lat===null||lon===null){if(marker){map.removeLayer(marker);marker=null;}return;}const ll=L.latLng(lat,lon);map.setView(ll,14);pin(ll,false);};tiles.on('tileerror',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-error'})));tiles.on('load',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-loaded'})));window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));</script></body></html>`,[]);
+ const onMessage=(event:WebViewMessageEvent)=>{try{
+  const raw=event.nativeEvent.data;if(typeof raw!=='string'||raw.length>512)return;
+  const data=JSON.parse(raw);if(!data||typeof data!=='object')return;
+  if(data.type==='ready'){ready.current=true;replayPoint();return;}
+  if(data.type==='tiles-error'){setTilesError(true);return;}
+  if(data.type==='tiles-loaded'){return;}
+  if(data.type!=='candidate')return;
+  const point=normalizePlace({lat:data.lat,lon:data.lon,label:t('mapSelectedPoint')});
+  if(point){selectPoint(point,false);setResults([]);setSearched(false);}
+ }catch{/* Ignore malformed messages from the embedded map. */}};
+ const search=async()=>{
+  if(operation.current==='search')return;
+  const term=queryRef.current.trim();
+  if(term.length<3||term.length>160){invalidate();setPoint(null);setResults([]);setError(t('mapSearchRequired'));return;}
+  const token=intent.current.next();operation.current='search';setBusy('search');setError('');
+  setPoint(null);setResults([]);setSearched(false);Keyboard.dismiss();
+  try{const response=await api.request(`/api/places?q=${encodeURIComponent(term)}&lang=${encodeURIComponent(lang)}`);
+   if(!current(token))return;
+   const rows=Array.isArray(response.places)?response.places:[];
+   setResults(rows.map(normalizePlace).filter((p:PlaceCandidate|null):p is PlaceCandidate=>p!==null).slice(0,6));setSearched(true);
+  }catch(e){if(current(token)){setError(t('mapSearchError'));onFailure(e);}}
+  finally{if(current(token)){operation.current=null;setBusy(null);}}
+ };
+ const useCurrent=async()=>{
+  if(operation.current==='gps')return;
+  const token=intent.current.next();operation.current='gps';setBusy('gps');setError('');
+  setPoint(null);setResults([]);setSearched(false);Keyboard.dismiss();
+  let timer:ReturnType<typeof setTimeout>|undefined;
+  try{const permission=await Location.requestForegroundPermissionsAsync();if(!current(token))return;
+   if(!permission.granted){setError(t('mapLocationDenied'));return;}
+   const location=await Promise.race([Location.getCurrentPositionAsync({accuracy:Location.Accuracy.High}),
+    new Promise<never>((_,reject)=>{timer=setTimeout(()=>reject(new Error('location-timeout')),15000);})]);
+   if(!current(token))return;
+   const point=normalizePlace({lat:location.coords.latitude,lon:location.coords.longitude,label:t('mapCurrentLocation')});
+   if(!point){setError(t('mapLocationError'));return;}setPoint(point);
+  }catch(e){if(current(token))setError(t(e instanceof Error&&e.message==='location-timeout'?'mapLocationTimeout':'mapLocationError'));}
+  finally{if(timer)clearTimeout(timer);if(current(token)){operation.current=null;setBusy(null);}}
+ };
+ const lookupAddress=async()=>{
+  const point=pointRef.current;if(!point||operation.current==='reverse')return;
+  const token=intent.current.next();operation.current='reverse';setBusy('reverse');setError('');
+  try{const response=await api.request(`/api/places/reverse?lat=${point.lat}&lon=${point.lon}&lang=${encodeURIComponent(lang)}`);
+   if(!current(token))return;
+   const named=normalizePlace(response.place);
+   if(named)setPoint({...named,lat:point.lat,lon:point.lon},false);
+   else setError(t('mapAddressUnavailable'));
+  }catch(e){if(current(token)){setError(t('mapAddressError'));onFailure(e);}}
+  finally{if(current(token)){operation.current=null;setBusy(null);}}
+ };
+ const chooseResult=(point:PlaceCandidate)=>selectPoint(point);
+ const cancel=()=>{invalidate();onCancel();};
+ const confirm=()=>{const point=pointRef.current;if(point&&!operation.current){invalidate();onChoose({...point});}};
+ const nav=({url,isTopFrame}:{url:string;isTopFrame?:boolean})=>{if(isTopFrame===false)return true;
+  if(url==='about:blank'||url==='https://localhost'||url==='https://localhost/')return true;
+  try{const target=new URL(url);if(target.origin==='https://www.openstreetmap.org'&&target.pathname==='/copyright'&&!target.search&&!target.hash)void Linking.openURL('https://www.openstreetmap.org/copyright');}catch{}
+  return false;};
+ return <View style={styles.wrap}>
+  <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" keyboardDismissMode="on-drag">
+   <AppText style={styles.title}>{title||t('mapPickTitle')}</AppText>
+   <AppText style={styles.help}>{t('mapSearchHelp')}</AppText>
+   <View style={styles.searchRow}>
+    <TextInput accessibilityLabel={t('mapSearchLabel')} value={query} onChangeText={editQuery}
+     onSubmitEditing={()=>void search()} returnKeyType="search" maxLength={160} autoCorrect={false}
+     placeholder={t('mapSearchLabel')} placeholderTextColor="#67786E"
+     style={[styles.input,{fontFamily:lang==='te'?'AnekTelugu500':'Manrope500',lineHeight:lang==='te'?25:22}]}/>
+    <Pressable accessibilityRole="button" disabled={busy==='search'} onPress={()=>void search()}
+     accessibilityLabel={t('mapSearch')} style={[styles.search,busy==='search'&&styles.disabled]}>
+     <AppText style={styles.searchText}>{t('mapSearch')}</AppText></Pressable>
+   </View>
+   <Pressable accessibilityRole="button" disabled={busy==='gps'} onPress={()=>void useCurrent()} style={styles.gps}>
+    <AppText style={styles.gpsText}>{t('mapMyLocation')}</AppText></Pressable>
+   {busy?<View accessibilityLiveRegion="polite" style={styles.status}><ActivityIndicator color="#153C32"/><AppText style={styles.help}>{t(busy==='gps'?'mapLocationBusy':busy==='reverse'?'mapAddressLoading':'mapSearchLoading')}</AppText></View>:null}
+   {error?<AppText accessibilityRole="alert" style={styles.error}>{error}</AppText>:null}
+   {searched&&!results.length&&!busy?<AppText accessibilityLiveRegion="polite" style={styles.help}>{t('mapSearchEmpty')}</AppText>:null}
+   {results.length?<View style={styles.results}><AppText style={styles.resultsTitle}>{t('mapSearchResult')}</AppText>
+    {results.map((point,index)=><Pressable key={point.id||`${point.lat}:${point.lon}:${index}`}
+     accessibilityRole="button" accessibilityState={{selected:samePlace(candidate,point)}}
+     onPress={()=>chooseResult(point)} style={[styles.result,samePlace(candidate,point)&&styles.resultSelected]}>
+     <AppText style={styles.resultText}>{point.name||point.label}</AppText>
+     {point.address&&point.address!==(point.name||point.label)?<AppText style={styles.address}>{point.address}</AppText>:null}
+     {samePlace(candidate,point)?<AppText style={styles.selectionTag}>{t('mapSelectedPoint')}</AppText>:null}
+    </Pressable>)}
+   </View>:null}
+   <AppText style={styles.help}>{t('mapRefineHint')}</AppText>
+   <View style={styles.mapFrame}><WebView ref={web} source={{html,baseUrl:'https://localhost'}}
+    originWhitelist={['about:blank','https://localhost']} javaScriptEnabled
+    onLoadStart={()=>{ready.current=false;setTilesError(false);}}
+    onLoadEnd={()=>{if(ready.current)replayPoint();}}
+    onError={()=>setTilesError(true)} onMessage={onMessage} onShouldStartLoadWithRequest={nav}
+    applicationNameForUserAgent="RouteShareLocalBeta/0.1" style={styles.map}/></View>
+   {candidate&&!candidate.address?<Pressable accessibilityRole="button" disabled={busy==='reverse'} onPress={()=>void lookupAddress()} style={styles.gps}><AppText style={styles.gpsText}>{t('mapResolveAddress')}</AppText></Pressable>:null}
+   {tilesError?<AppText accessibilityRole="alert" style={styles.error}>{t('mapTilesError')}</AppText>:null}
+   <View style={styles.provider}><AppText style={styles.providerText}>{t('mapProviderNotice')}</AppText>
+    <Pressable accessibilityRole="link" onPress={()=>void Linking.openURL('https://operations.osmfoundation.org/policies/nominatim/')}><AppText style={styles.policy}>{t('mapProviderPolicy')}</AppText></Pressable></View>
+  </ScrollView>
+  <View style={styles.footer}>
+   <AppText numberOfLines={2} style={styles.selected}>{candidate?candidate.label:t('locationNotChosen')}</AppText>
+   {candidate?.address&&candidate.address!==candidate.label?<AppText numberOfLines={2} style={styles.address}>{candidate.address}</AppText>:null}
+   <View style={styles.buttons}>
+    <Pressable accessibilityRole="button" onPress={cancel} style={styles.cancel}><AppText style={styles.cancelText}>{t('mapCancel')}</AppText></Pressable>
+    <Pressable accessibilityRole="button" disabled={!candidate||Boolean(busy)} onPress={confirm}
+     style={[styles.confirm,(!candidate||Boolean(busy))&&styles.disabled]}><AppText style={styles.confirmText}>{t('mapUsePoint')}</AppText></Pressable>
+   </View>
+  </View>
+ </View>;
 }
-const styles=StyleSheet.create({wrap:{flex:1,backgroundColor:'#F5F4EC'},head:{padding:12,gap:7},title:{fontSize:21,fontWeight:'800',color:'#153C32'},help:{color:'#71857B',fontSize:13},policy:{color:'#153C32',fontSize:12,fontWeight:'700',textDecorationLine:'underline'},searchRow:{flexDirection:'row',gap:7},input:{flex:1,minHeight:42,borderWidth:1,borderColor:'#DCE4D8',borderRadius:12,paddingHorizontal:12,color:'#315849'},search:{borderRadius:12,backgroundColor:'#153C32',justifyContent:'center',paddingHorizontal:13},searchText:{color:'#F5F4EC',fontWeight:'800'},tools:{flexDirection:'row',alignItems:'center',gap:10},gps:{alignSelf:'flex-start',paddingVertical:7,paddingHorizontal:10,borderRadius:12,backgroundColor:'#E9EEE6'},gpsText:{color:'#153C32',fontWeight:'700'},error:{color:'#8A3C2A'},results:{gap:8},result:{maxWidth:210,padding:9,borderRadius:12,backgroundColor:'#E7EDE2'},resultText:{color:'#315849',fontSize:12},empty:{color:'#71857B'},map:{flex:1},footer:{padding:13,borderTopWidth:1,borderColor:'#DCE4D8',gap:8},selected:{color:'#315849',fontWeight:'700'},buttons:{flexDirection:'row',gap:9},cancel:{flex:1,padding:13,borderRadius:13,backgroundColor:'#E9EEE6',alignItems:'center'},confirm:{flex:1,padding:13,borderRadius:13,backgroundColor:'#153C32',alignItems:'center'},cancelText:{color:'#153C32',fontWeight:'800'},confirmText:{color:'#FFFFFF',fontWeight:'800'},disabled:{opacity:.4}});
+const styles=StyleSheet.create({
+ wrap:{flex:1,backgroundColor:'#F5F4EC'},content:{padding:16,gap:12,paddingBottom:20},
+ title:{fontSize:23,fontWeight:'700',color:'#153C32'},help:{color:'#62736A',fontSize:14,lineHeight:22},
+ searchRow:{flexDirection:'row',gap:8,alignItems:'stretch'},input:{flex:1,minWidth:0,minHeight:50,borderWidth:1,borderColor:'#C9D5C7',borderRadius:12,paddingHorizontal:12,paddingVertical:10,color:'#153C32',backgroundColor:'#FFFFFF',fontSize:16},
+ search:{minHeight:50,minWidth:76,borderRadius:12,backgroundColor:'#153C32',justifyContent:'center',alignItems:'center',paddingHorizontal:12},searchText:{color:'#FFFFFF',fontWeight:'700',fontSize:15},
+ gps:{minHeight:48,justifyContent:'center',alignItems:'center',padding:10,borderRadius:12,backgroundColor:'#E7EDDF'},gpsText:{color:'#153C32',fontWeight:'600',fontSize:15},
+ status:{flexDirection:'row',alignItems:'center',gap:8},error:{color:'#8A3C2A',fontSize:14,lineHeight:22},
+ results:{gap:8},resultsTitle:{fontSize:14,fontWeight:'600',color:'#526A5D'},result:{minHeight:62,padding:13,gap:5,borderRadius:13,borderWidth:1,borderColor:'#DCE4D8',backgroundColor:'#FFFFFF'},resultSelected:{borderColor:'#52754C',backgroundColor:'#EEF3DE'},resultText:{fontSize:16,fontWeight:'600',color:'#153C32'},address:{fontSize:13,lineHeight:20,color:'#5F7166'},selectionTag:{fontSize:12,fontWeight:'600',color:'#315849'},
+ mapFrame:{height:260,overflow:'hidden',borderRadius:16,backgroundColor:'#E6EBDD'},map:{flex:1},provider:{gap:5},providerText:{fontSize:12,color:'#62736A'},policy:{fontSize:12,color:'#315849',textDecorationLine:'underline',paddingVertical:5},
+ footer:{paddingHorizontal:16,paddingVertical:12,borderTopWidth:1,borderColor:'#DCE4D8',gap:8,backgroundColor:'#F5F4EC'},selected:{color:'#153C32',fontWeight:'600',fontSize:15},buttons:{flexDirection:'row',gap:10},cancel:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:'#E7EDDF',alignItems:'center',justifyContent:'center'},confirm:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:'#153C32',alignItems:'center',justifyContent:'center'},cancelText:{color:'#153C32',fontWeight:'700',fontSize:15},confirmText:{color:'#FFFFFF',fontWeight:'700',fontSize:15},disabled:{opacity:.45},
+});

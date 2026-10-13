@@ -15,7 +15,9 @@ mobile/
 tests/
 outputs/
 work/
-scripts/
+scripts/*
+!scripts/build_voice_models.py
+!scripts/backup_store.py
 build/
 /dist/
 target/

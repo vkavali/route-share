@@ -3,31 +3,43 @@
 from __future__ import annotations
 
 import hmac
+import io
 import json
 import math
 import os
 import re
 import secrets
+import weakref
 from datetime import datetime, timezone, timedelta
 from pathlib import Path
 from typing import Any
 from urllib.parse import urlsplit
 
-from flask import Flask, g, jsonify, request, session
+from flask import Flask, g, jsonify, request, session, send_file, render_template
 from flask.json.provider import DefaultJSONProvider
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.exceptions import HTTPException
 from werkzeug.security import generate_password_hash
 
 from .community import CommunityError
+from .auth import (is_active_account, auth_epoch, current_actor_matches, web_session_hash,
+                   issue_web_session_in, revoke_web_session_in, session_binding_matches_in)
+from .phone_auth import PhoneAuthError, PhoneAuthService
+from .account_lifecycle import AccountLifecycleError, AccountLifecycleService
+from .driver_verification import DriverVerificationError, DriverVerificationService, MAX_DOCUMENT_BYTES
+from .identity_verification import IdentityVerificationError, IdentityVerificationService
+from .payments import PaymentError, PaymentService
+from .reviews import ReviewsError, ReviewsService
 from .geocoding import GeocodingError, NominatimGeocoder
 from .live_location import LiveLocationError, LiveLocationStore, distance_m
 from .mobile_auth import MobileAuthError, MobileAuthenticator
 from .providers import public_flags
 from .permissions import access_summary
+from .user_projection import account_user
 from .location_policy import sharing_window
 from .trusted_contacts import TrustedContactService, TrustedContactError
 from .store import Store
+from .voice import VoiceError, VoiceService, MAX_MULTIPART_BYTES, bounded_upload, parse_upload, request_id as voice_request_id
 
 MAX_JSON_BYTES = 16 * 1024
 ACCOUNT_NAMES = {
@@ -103,7 +115,7 @@ class StrictJSONProvider(DefaultJSONProvider):
 
 
 def _safe_user(record: dict[str, Any]) -> dict[str, Any]:
-    return {**_safe({key: value for key, value in record.items() if key != "password_hash"}), "access": access_summary(record)}
+    return account_user(record)
 
 
 def _seed_users(store: Store, password: str, *, passwords: dict[str, str] | None = None, development: bool = True) -> None:
@@ -185,11 +197,28 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         PUBLIC_ORIGIN=os.environ.get("PUBLIC_ORIGIN"),
         BETA_ACCOUNT_PASSWORDS=os.environ.get("BETA_ACCOUNT_PASSWORDS"),
         MAX_CONTENT_LENGTH=MAX_JSON_BYTES,
+        VOICE_ENABLED=_hosted_enabled(os.environ.get("VOICE_ENABLED", "0")),
+        VOICE_MODEL_PATH_EN=os.environ.get("VOICE_MODEL_PATH_EN"),
+        VOICE_MODEL_PATH_TE=os.environ.get("VOICE_MODEL_PATH_TE"),
+        VOICE_DAILY_LIMIT=os.environ.get("VOICE_DAILY_LIMIT", "100"),
         SESSION_COOKIE_HTTPONLY=True,
         SESSION_COOKIE_SAMESITE="Strict",
         SESSION_COOKIE_SECURE=False,
         DEVELOPMENT_MODE=True,
         TESTING=False,
+        DIRECT_UPI_ENABLED=_hosted_enabled(os.environ.get("DIRECT_UPI_ENABLED", "0")),
+        PHONE_AUTH_ENABLED=_hosted_enabled(os.environ.get("PHONE_AUTH_ENABLED", "0")),
+        PHONE_AUTH_HMAC_KEY=os.environ.get("PHONE_AUTH_HMAC_KEY"),
+        PHONE_AUTH_DAILY_LIMIT=os.environ.get("PHONE_AUTH_DAILY_LIMIT"),
+        IDENTITY_EVIDENCE_KEY=os.environ.get("IDENTITY_EVIDENCE_KEY"),
+        DEMO_PASSWORD_ENABLED=_hosted_enabled(os.environ.get("DEMO_PASSWORD_ENABLED", "1")),
+        MSG91_WIDGET_ID=os.environ.get("MSG91_WIDGET_ID"),
+        MSG91_TOKEN_AUTH=os.environ.get("MSG91_TOKEN_AUTH"),
+        MSG91_AUTH_KEY=os.environ.get("MSG91_AUTH_KEY"),
+        MSG91_CONTRACT_VERIFIED=_hosted_enabled(os.environ.get("MSG91_CONTRACT_VERIFIED", "0")),
+        APP_DISPLAY_NAME=os.environ.get("APP_DISPLAY_NAME", "SeatPal"),
+        PUBLIC_OPERATOR_NAME=os.environ.get("PUBLIC_OPERATOR_NAME", ""),
+        PUBLIC_SUPPORT_EMAIL=os.environ.get("PUBLIC_SUPPORT_EMAIL", ""),
         NOMINATIM_BASE_URL=os.environ.get("NOMINATIM_BASE_URL", "https://nominatim.openstreetmap.org/search"),
     )
     if config:
@@ -218,10 +247,41 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     app.extensions["live_location_store"] = live_locations
     trusted_contacts = TrustedContactService(store, app.config["SECRET_KEY"])
     app.extensions["trusted_contact_service"] = trusted_contacts
-    mobile_auth = MobileAuthenticator(store)
+    mobile_auth = MobileAuthenticator(store, demo_password_enabled=_hosted_enabled(app.config["DEMO_PASSWORD_ENABLED"]))
     app.extensions["mobile_auth"] = mobile_auth
+    operator_name = str(app.config["PUBLIC_OPERATOR_NAME"]).strip()
+    support_email = str(app.config["PUBLIC_SUPPORT_EMAIL"]).strip()
+    operator_configured = bool(1 <= len(operator_name) <= 160 and
+                               re.fullmatch(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}", support_email))
+    phone_provider = None
+    if _hosted_enabled(app.config["PHONE_AUTH_ENABLED"]) and operator_configured:
+        # An injected provider is only permitted in an explicitly isolated test app.
+        if app.testing and app.config.get("PHONE_AUTH_PROVIDER") is not None:
+            phone_provider = app.config["PHONE_AUTH_PROVIDER"]
+        else:
+            from .sms_provider import MSG91Provider
+            phone_provider = MSG91Provider(
+                widget_id=app.config["MSG91_WIDGET_ID"], token_auth=app.config["MSG91_TOKEN_AUTH"],
+                auth_key=app.config["MSG91_AUTH_KEY"], handle_secret=app.config["PHONE_AUTH_HMAC_KEY"],
+                contract_verified=_hosted_enabled(app.config["MSG91_CONTRACT_VERIFIED"]),
+            )
+    daily_limit = app.config["PHONE_AUTH_DAILY_LIMIT"]
+    if isinstance(daily_limit, str) and re.fullmatch(r"[0-9]{1,6}", daily_limit):
+        daily_limit = int(daily_limit)
+    phone_auth = PhoneAuthService(store, provider=phone_provider,
+        hmac_key=app.config["PHONE_AUTH_HMAC_KEY"], global_daily_limit=daily_limit,
+        mobile_auth=mobile_auth)
+    app.extensions["phone_auth"] = phone_auth
+    lifecycle = AccountLifecycleService(store, phone_auth, mobile_auth=mobile_auth)
+    app.extensions["account_lifecycle"] = lifecycle
     geocoder = NominatimGeocoder(app.config["NOMINATIM_BASE_URL"])
     app.extensions["geocoder"] = geocoder
+    voice_service = VoiceService(store=store, daily_limit=app.config["VOICE_DAILY_LIMIT"], model_paths={
+        language: app.config.get("VOICE_MODEL_PATH_" + language.upper())
+        for language in ("en", "te")
+    } if _hosted_enabled(app.config["VOICE_ENABLED"]) else {})
+    app.extensions["voice_service"] = voice_service
+    weakref.finalize(app, voice_service.close)
 
     # Imports are delayed until app construction so the API can be imported while
     # the domain module is being assembled by the rest of the beta implementation.
@@ -229,21 +289,67 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     from .routing import OSRMProvider
 
     service = Service(store, OSRMProvider(store=store))
+    service.community.maintenance()
     app.extensions["beta_service"] = service
+    verification_service = DriverVerificationService(store)
+    identity_service = IdentityVerificationService(store, encryption_key=app.config.get("IDENTITY_EVIDENCE_KEY"))
+    reviews_service = ReviewsService(store)
+    payment_service = PaymentService(store, enabled=_hosted_enabled(app.config["DIRECT_UPI_ENABLED"]))
+    app.extensions["driver_verification_service"] = verification_service
+    app.extensions["identity_verification_service"] = identity_service
+    app.extensions["reviews_service"] = reviews_service
+    app.extensions["payment_service"] = payment_service
+
+    def feature_flags():
+        return {**public_flags(), "direct_upi_enabled": payment_service.enabled,
+                "paid_rides_enabled": payment_service.enabled,
+                "payment_provider_mode": "direct_upi_manual" if payment_service.enabled else "disabled",
+                "driver_document_review_enabled": True,
+                "public_registration_enabled": phone_auth.enabled,
+                "demo_password_enabled": mobile_auth.demo_password_enabled}
+
+    def phone_capabilities_payload():
+        return {**phone_auth.capabilities(), "terms_url": "/terms", "privacy_url": "/privacy",
+                "operator_configured": operator_configured}
 
     def error(message: str, status: int):
         return jsonify({"error": message}), status
 
     def authenticated_user() -> dict[str, Any] | None:
         bearer_user = getattr(g, "mobile_user", None)
-        if bearer_user is not None:
-            return _safe_user(bearer_user)
-        account = session.get("account")
+        account = bearer_user.get("id") if bearer_user is not None else session.get("account")
         if not account:
             return None
         with store.read() as tx:
             record = tx.get("users", account)
-        return _safe_user(record) if record else None
+            snapshot = bearer_user if bearer_user is not None else {"id": account, "auth_epoch": session.get("auth_epoch")}
+            if not current_actor_matches(record, snapshot) or not session_binding_matches_in(tx, record, account_session_binding()):
+                return None
+        result = _safe_user(record)
+        result["onboarding_required"] = phone_auth.requires_onboarding(record)
+        return result
+
+    def account_session_binding():
+        token_hash = getattr(g, "mobile_token_hash", None)
+        if token_hash:
+            return "native:" + token_hash
+        digest = web_session_hash(session.get("auth_session_id"))
+        return "web:" + digest if digest else ""
+
+    def establish_web_session(user, *, rotate_csrf=True):
+        session_id = secrets.token_urlsafe(32)
+        previous_csrf = session.get("csrf_token")
+        with store.transaction() as tx:
+            current = tx.get("users", user["id"])
+            if not current_actor_matches(current, user):
+                raise PhoneAuthError("Account changed. Sign in again.", 401, "account_changed")
+            revoke_web_session_in(tx, session.get("auth_session_id"))
+            issue_web_session_in(tx, current, session_id)
+        session.clear()
+        session.update(account=user["id"], auth_epoch=auth_epoch(user), auth_session_id=session_id,
+                       csrf_token=secrets.token_urlsafe(32) if rotate_csrf or not previous_csrf else previous_csrf)
+        session.permanent = True
+        return session["csrf_token"]
 
     @app.before_request
     def enforce_request_limits_and_csrf():
@@ -260,7 +366,17 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             host = urlsplit("//" + request.host).hostname
             if host not in {"localhost", "127.0.0.1", "::1"}:
                 return error("This development server only accepts loopback hosts", 400)
-        if request.content_length is not None and request.content_length > MAX_JSON_BYTES:
+        voice_upload = request.path == "/api/voice/transcribe" and request.method == "POST"
+        document_upload = request.path in {"/api/driver_documents", "/api/identity_documents"} and request.method == "POST"
+        if document_upload:
+            # Raise only this authenticated multipart endpoint's parser bound.
+            request.max_content_length = MAX_DOCUMENT_BYTES + 64 * 1024
+            # Werkzeug buffers a multipart chunk before it separates fields/files.
+            # Keep that parser buffer bounded, then separately bound text fields.
+            request.max_form_memory_size = 128 * 1024
+            request.max_form_parts = 8
+        limit = MAX_DOCUMENT_BYTES + 64 * 1024 if document_upload else MAX_JSON_BYTES
+        if not voice_upload and request.content_length is not None and request.content_length > limit:
             return error("Request body is too large", 413)
         authorization = request.headers.get("Authorization")
         if authorization is not None:
@@ -273,6 +389,14 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             g.mobile_user = auth["user"]
             g.mobile_token_hash = auth["token_hash"]
             g.mobile_auth_lock = auth["lock"]
+        if request.path in {"/api/voice/capabilities", "/api/voice/transcribe", "/api/voice/cancel"}:
+            user = authenticated_user()
+            if not user:
+                return error("Authentication required", 401)
+            if user.get("role") != "member":
+                return error("Voice trip entry is available to members only", 403)
+            if voice_upload and request.content_length is not None and request.content_length > MAX_MULTIPART_BYTES:
+                raise VoiceError("VOICE_INVALID_AUDIO", 413)
         if request.path not in {"/api/login", "/api/mobile/login", "/api/bootstrap"}:
             expected_user_id = request.headers.get("X-Expected-User-ID")
             if expected_user_id is not None:
@@ -281,7 +405,23 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
                         or len(expected_user_id) > 128 or not active_user
                         or active_user.get("id") != expected_user_id):
                     return jsonify({"error": "Account changed. Refresh and try again.", "code": "account_changed"}), 409
-        if request.path == "/api/mobile/login" and request.method == "POST":
+        # A half-created phone account cannot call member APIs before onboarding.
+        active_user = authenticated_user()
+        onboarding_routes = {"/api/bootstrap", "/api/phone/capabilities", "/api/phone/profile",
+                             "/api/logout", "/api/mobile/logout", "/api/health",
+                             "/api/account/lifecycle", "/api/account/reauth/start", "/api/account/reauth/verify",
+                             "/api/account/recovery-key", "/api/account/delete"}
+        if (request.path.startswith("/api/") and active_user and active_user.get("onboarding_required")
+                and request.path not in onboarding_routes):
+            return jsonify({"error": "Complete your account details first.", "code": "onboarding_required"}), 403
+        mobile_signin_routes = {"/api/mobile/login", "/api/mobile/phone/start",
+                                "/api/mobile/phone/resend", "/api/mobile/phone/verify",
+                                "/api/mobile/account/recovery/start", "/api/mobile/account/recovery/verify"}
+        if request.path in mobile_signin_routes and request.method == "POST":
+            # Native unauthenticated requests carry no browser session. Refuse
+            # cookie/Origin-bearing requests here so this cannot bypass web CSRF.
+            if request.path != "/api/mobile/login" and (request.headers.get("Origin") or request.headers.get("Cookie")):
+                return error("Use the browser sign-in endpoint", 403)
             return None
         if request.method != "POST":
             return None
@@ -309,6 +449,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def release_mobile_auth_lock(_exc):
         lock = getattr(g, "mobile_auth_lock", None)
         if lock is not None:
+            g.mobile_auth_lock = None
             lock.release()
 
     def json_body() -> dict[str, Any] | tuple[Any, int]:
@@ -366,6 +507,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def handle_live_location_error(exc):
         return jsonify({"error": str(exc), "code": exc.code}), exc.status
 
+    @app.errorhandler(VoiceError)
+    def handle_voice_error(exc):
+        return jsonify({"error": str(exc), "code": exc.code, **(exc.quota or {})}), exc.status
+
     @app.errorhandler(GeocodingError)
     def handle_geocoding_error(exc):
         return error(str(exc), 503)
@@ -374,8 +519,40 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def handle_mobile_auth_error(exc):
         return jsonify({"error": str(exc), "code": exc.code}), exc.status
 
+    @app.errorhandler(PhoneAuthError)
+    def handle_phone_auth_error(exc):
+        payload = {"error": str(exc), "code": exc.code}
+        if exc.retry_after is not None:
+            payload["retry_after"] = exc.retry_after
+        response = jsonify(payload)
+        if exc.retry_after is not None:
+            response.headers["Retry-After"] = str(exc.retry_after)
+        return response, exc.status
+
+    @app.errorhandler(IdentityVerificationError)
+    def handle_identity_verification_error(exc):
+        return jsonify({"error": str(exc), "code": exc.code}), exc.status
+
+    @app.errorhandler(AccountLifecycleError)
+    def handle_lifecycle_error(exc):
+        payload = {"error": str(exc), "code": exc.code}
+        if getattr(exc, "blockers", None) is not None:
+            payload["blockers"] = exc.blockers
+        response = jsonify(payload)
+        if getattr(exc, "retry_after", None) is not None:
+            payload["retry_after"] = exc.retry_after
+            response = jsonify(payload)
+            response.headers["Retry-After"] = str(exc.retry_after)
+        return response, exc.status
+
     @app.errorhandler(CommunityError)
     def handle_community_error(exc):
+        return jsonify({"error": str(exc), "code": exc.code}), exc.status
+
+    @app.errorhandler(DriverVerificationError)
+    @app.errorhandler(ReviewsError)
+    @app.errorhandler(PaymentError)
+    def handle_account_flow_error(exc):
         return jsonify({"error": str(exc), "code": exc.code}), exc.status
 
     @app.errorhandler(DomainError)
@@ -384,6 +561,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     @app.errorhandler(413)
     def too_large(_exc):
+        if request.path == "/api/voice/transcribe":
+            return handle_voice_error(VoiceError("VOICE_INVALID_AUDIO", 413))
         return error("Request body is too large", 413)
 
     @app.errorhandler(HTTPException)
@@ -399,6 +578,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     @app.after_request
     def harden_response(response):
+        if request.path == "/api/voice/transcribe":
+            response.headers["Connection"] = "close"
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
@@ -413,6 +594,27 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def index():
         return app.send_static_file("index.html")
 
+    @app.get("/welcome")
+    @app.get("/faq")
+    def public_site():
+        from .public_site import public_site_context
+        return render_template("public-site.html", **public_site_context(
+            page="faq" if request.path == "/faq" else "landing",
+            language=request.args.get("lang", "en"), app_name=app.config["APP_DISPLAY_NAME"],
+            registration_enabled=phone_auth.enabled, payments_enabled=payment_service.enabled,
+            support_email=support_email, operator_configured=operator_configured))
+
+    @app.get("/terms")
+    @app.get("/privacy")
+    def public_policy():
+        from .public_site import normalize_public_language
+        return render_template("public-policy.html", privacy=request.path == "/privacy",
+            app_name=str(app.config["APP_DISPLAY_NAME"])[:80], operator_name=operator_name,
+            support_email=support_email, operator_configured=operator_configured,
+            registration_enabled=phone_auth.enabled,
+            version=phone_auth.privacy_version if request.path == "/privacy" else phone_auth.terms_version,
+            public_lang=normalize_public_language(request.args.get("lang", "en")))
+
     @app.get("/api/health")
     def health():
         # Touch SQLite so the platform probe checks availability without
@@ -425,9 +627,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     def bootstrap():
         mobile_user = getattr(g, "mobile_user", None)
         token = None if mobile_user is not None else session.setdefault("csrf_token", secrets.token_urlsafe(32))
-        user = _safe_user(mobile_user) if mobile_user is not None else authenticated_user()
+        user = authenticated_user()
         payload: dict[str, Any] = {
-            "user": user, "csrf_token": token, "flags": public_flags(),
+            "user": user, "csrf_token": token, "flags": feature_flags(),
+            "phone_auth": phone_capabilities_payload(),
             "mode": "hosted_beta" if hosted_mode else "local_development",
         }
         try:
@@ -436,11 +639,108 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
                 payload.update(_safe(extra))
                 payload["user"] = user
                 payload["csrf_token"] = token
-                payload["flags"] = public_flags()
+                payload["flags"] = feature_flags()
                 payload["mode"] = "hosted_beta" if hosted_mode else "local_development"
         except DomainError:
             pass
         return jsonify(_safe(payload))
+
+    @app.get("/api/phone/capabilities")
+    def phone_capabilities():
+        return jsonify(phone_capabilities_payload())
+
+    @app.post("/api/phone/start")
+    @app.post("/api/phone/resend")
+    @app.post("/api/phone/verify")
+    @app.post("/api/mobile/phone/start")
+    @app.post("/api/mobile/phone/resend")
+    @app.post("/api/mobile/phone/verify")
+    def phone_signin():
+        if authenticated_user():
+            return jsonify({"error": "Sign out before signing in to another account.", "code": "sign_out_required"}), 409
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        action = request.path.rsplit("/", 1)[-1]
+        native = request.path.startswith("/api/mobile/")
+        # Never use an arbitrary X-Forwarded-For value. In hosted mode only the
+        # final proxy hop is trusted by the configured ProxyFix middleware.
+        ip = request.remote_addr or "unknown"
+        if action == "verify":
+            result = phone_auth.verify(body, ip, native=native)
+            if not native:
+                result["csrf_token"] = establish_web_session(result["user"])
+        else:
+            result = getattr(phone_auth, action)(body, ip)
+        return jsonify(result)
+
+    @app.post("/api/phone/profile")
+    def phone_profile():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        return jsonify(phone_auth.profile(user["id"], body, actor=user))
+
+    @app.get("/api/account/lifecycle")
+    def account_lifecycle():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        return jsonify(lifecycle.status(user, account_session_binding()))
+
+    @app.post("/api/account/reauth/start")
+    @app.post("/api/account/reauth/verify")
+    @app.post("/api/account/recovery-key")
+    @app.post("/api/account/delete")
+    def account_lifecycle_action():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        binding = account_session_binding()
+        if request.path.endswith("/start"):
+            release_mobile_auth_lock(None)
+            result = lifecycle.reauth_start(user, body, binding, request.remote_addr or "unknown")
+        elif request.path.endswith("/verify"):
+            release_mobile_auth_lock(None)
+            result = lifecycle.reauth_verify(user, body, binding, request.remote_addr or "unknown")
+        elif request.path.endswith("/recovery-key"):
+            result = lifecycle.set_recovery_key(user, body, binding)
+        else:
+            result = lifecycle.delete(user, body, binding)
+            # The transaction has committed before releasing active device streams.
+            live_locations.stop_actor(user["id"])
+            voice_service.cancel_owner(user["id"])
+            if getattr(g, "mobile_user", None) is None:
+                session.clear()
+        return jsonify(result)
+
+    @app.post("/api/account/recovery/start")
+    @app.post("/api/account/recovery/verify")
+    @app.post("/api/mobile/account/recovery/start")
+    @app.post("/api/mobile/account/recovery/verify")
+    def account_recovery():
+        if authenticated_user():
+            return jsonify({"error": "Sign out before recovering an account.", "code": "sign_out_required"}), 409
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        ip = request.remote_addr or "unknown"
+        native = request.path.startswith("/api/mobile/")
+        if request.path.endswith("/start"):
+            result = lifecycle.recovery_start(body, ip)
+        else:
+            result = lifecycle.recovery_verify(body, ip, native=native)
+            live_locations.stop_actor(result["user"]["id"])
+            voice_service.cancel_owner(result["user"]["id"])
+            if not native:
+                result["csrf_token"] = establish_web_session(result["user"])
+        return jsonify(result)
 
     @app.post("/api/mobile/login")
     def mobile_login():
@@ -448,7 +748,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not isinstance(body, dict):
             return body
         result = mobile_auth.login(body.get("account"), body.get("password"), request.remote_addr or "unknown")
-        result["user"] = _safe_user(result["user"])
+        # The authenticator already projects the persisted record. Projecting its
+        # public DTO again loses the private evidence used to calculate access.
         return jsonify(result)
 
     @app.post("/api/mobile/logout")
@@ -461,8 +762,51 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not isinstance(body, dict):
             return body
         mobile_auth.revoke(token_hash)
+        voice_service.cancel_owner(user["id"])
         live_locations.stop_actor(user["id"])
         return jsonify({"ok": True})
+
+    @app.get("/api/voice/capabilities")
+    def voice_capabilities():
+        return jsonify(voice_service.capabilities())
+
+    @app.post("/api/voice/cancel")
+    def voice_cancel():
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        if set(body) != {"request_id"}:
+            raise VoiceError("VOICE_INVALID_AUDIO")
+        return jsonify(voice_service.cancel(authenticated_user()["id"], body["request_id"]))
+
+    @app.post("/api/voice/transcribe")
+    def voice_transcribe():
+        user = authenticated_user()
+        identity = voice_request_id(request.headers.get("X-Voice-Request-ID"))
+        if request.mimetype != "multipart/form-data":
+            raise VoiceError("VOICE_INVALID_AUDIO")
+        # Reserve under the bearer lock, then release it before any body read or
+        # inference. Logout/cancel with this same token must remain responsive.
+        bearer = request.headers.get("Authorization")
+        with voice_service.reserve(user["id"], identity, on_admitted=lambda: release_mobile_auth_lock(None)) as job:
+            with bounded_upload(request.environ, job) as environ:
+                parsed_id, language, audio = parse_upload(environ)
+            if parsed_id != identity:
+                raise VoiceError("VOICE_INVALID_AUDIO")
+            result = voice_service.transcribe(job, identity, language, audio)
+            del audio
+            if bearer is not None:
+                auth = mobile_auth.authenticate(bearer.partition(" ")[2].strip())
+                if not auth:
+                    return jsonify({"error": "Mobile session expired or revoked. Sign in again.", "code": "invalid_token"}), 401
+                g.mobile_user, g.mobile_token_hash, g.mobile_auth_lock = auth["user"], auth["token_hash"], auth["lock"]
+            current = authenticated_user()
+            if not current or current.get("id") != user["id"] or current.get("role") != "member":
+                return error("Authentication required", 401)
+            # Logout can cancel an in-flight browser request even though its
+            # signed cookie was already loaded. Never return its late transcript.
+            voice_service.ensure_current(job)
+            return jsonify(result)
 
     @app.get("/api/places")
     def places():
@@ -478,6 +822,22 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if language not in {"en", "te", "hi"}:
             return error("Language must be en, te, or hi.", 400)
         return jsonify({"places": app.extensions["geocoder"].search(query, language)})
+
+    @app.get("/api/places/reverse")
+    def reverse_place():
+        if not authenticated_user():
+            return error("Authentication required", 401)
+        language = request.args.get("lang", "en")
+        if language not in {"en", "te", "hi"}:
+            return error("Language must be en, te, or hi.", 400)
+        try:
+            lat, lon = float(request.args.get("lat", "")), float(request.args.get("lon", ""))
+        except (TypeError, ValueError, OverflowError):
+            return error("Choose a valid point on the map.", 400)
+        if not (math.isfinite(lat) and math.isfinite(lon) and -90 <= lat <= 90 and -180 <= lon <= 180):
+            return error("Choose a valid point on the map.", 400)
+        # Explicit user lookup only; returned object coordinates are not a snap.
+        return jsonify({"place": app.extensions["geocoder"].reverse(lat, lon, language)})
 
     def live_request_body():
         user = authenticated_user()
@@ -563,6 +923,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not booking_id or len(booking_id) > 128:
             return error("A valid booking_id is required.", 400)
         with store.transaction() as tx:
+            if not current_actor_matches(tx.get("users", user["id"]), user) or not session_binding_matches_in(tx, user, account_session_binding()):
+                raise PhoneAuthError("Account session changed. Sign in again.", 401, "account_changed")
             booking = tx.get("bookings", booking_id)
             if not booking or user["id"] not in {booking.get("driver_id"), booking.get("passenger_id")}:
                 raise LiveLocationError("Location sharing is only available to booking participants.", 403, "not_participant")
@@ -595,6 +957,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return failure
         user, _body, booking_id = parsed
         with store.transaction() as tx:
+            if not current_actor_matches(tx.get("users", user["id"]), user) or not session_binding_matches_in(tx, user, account_session_binding()):
+                raise PhoneAuthError("Account session changed. Sign in again.", 401, "account_changed")
             booking = tx.get("bookings", booking_id)
             if not booking or user["id"] not in {booking.get("driver_id"), booking.get("passenger_id")}:
                 raise LiveLocationError("Location sharing is only available to booking participants.", 403, "not_participant")
@@ -622,6 +986,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return error("Location must include valid finite coordinates and accuracy.", 400)
         lat, lon, accuracy = location
         with store.transaction() as tx:
+            if not current_actor_matches(tx.get("users", user["id"]), user) or not session_binding_matches_in(tx, user, account_session_binding()):
+                raise PhoneAuthError("Account session changed. Sign in again.", 401, "account_changed")
             booking = tx.get("bookings", booking_id)
             if not booking or user["id"] not in {booking.get("driver_id"), booking.get("passenger_id")}:
                 raise LiveLocationError("Location sharing is only available to booking participants.", 403, "not_participant")
@@ -661,6 +1027,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not isinstance(sharing_id, str) or not sharing_id or len(sharing_id) > 256:
             raise LiveLocationError("Sharing session expired or stopped. Start sharing again to continue.", code="sharing_expired")
         with store.transaction() as tx:
+            if not current_actor_matches(tx.get("users", user["id"]), user) or not session_binding_matches_in(tx, user, account_session_binding()):
+                raise PhoneAuthError("Account session changed. Sign in again.", 401, "account_changed")
             booking = tx.get("bookings", booking_id)
             if not booking or user["id"] not in {booking.get("driver_id"), booking.get("passenger_id")}:
                 raise LiveLocationError("Location sharing is only available to booking participants.", 403, "not_participant")
@@ -683,21 +1051,20 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return error("Account and password are required", 400)
         if not record:
             return error("Invalid account or password", 401)
-        csrf_token = session.get("csrf_token")
-        session.clear()
-        if csrf_token:
-            session["csrf_token"] = csrf_token
-        session["account"] = account
-        if hosted_mode:
-            session.permanent = True
+        establish_web_session(record, rotate_csrf=False)
         return jsonify({"user": _safe_user(record)})
 
     @app.post("/api/logout")
     def logout():
         account = session.get("account")
+        with store.transaction() as tx:
+            revoke_web_session_in(tx, session.get("auth_session_id"))
         if account:
+            voice_service.cancel_owner(account)
             live_locations.stop_actor(account)
         session.pop("account", None)
+        session.pop("auth_session_id", None)
+        session.pop("auth_epoch", None)
         return jsonify({"ok": True})
 
     @app.get("/api/state")
@@ -732,6 +1099,171 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if "ops.read" not in access_summary(user)["staff_capabilities"]:
             return error("Operations access required", 403)
         return jsonify(_safe(service.dispatch("operations", user, {})))
+
+    # These services keep document evidence, payee details and review publication
+    # consent in private collections with explicit response projections.
+    @app.get("/api/payments/trip-budget/<trip_id>")
+    def trip_payment_budget(trip_id):
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        return jsonify(payment_service.dispatch("trip_budget", user, {"trip_id": trip_id}))
+
+    @app.post("/api/payments/trip-budget/action")
+    def change_trip_payment_budget():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        return jsonify(payment_service.dispatch("trip_budget_action", user, body))
+
+    account_reads = {
+        "driver_application": lambda user, body: verification_service.get_application(user),
+        "verification_queue": lambda user, body: verification_service.verification_queue(user),
+        "identity_application": lambda user, body: identity_service.get_application(user),
+        "identity_verification_queue": lambda user, body: identity_service.verification_queue(user),
+        "reviews": lambda user, body: reviews_service.dispatch("reviews", user, body),
+        "driver_profile": lambda user, body: reviews_service.dispatch("driver_profile", user, body),
+        "payments": lambda user, body: payment_service.dispatch("payments", user, body),
+        "payment": lambda user, body: payment_service.dispatch("payment", user, body),
+        "payout_account": lambda user, body: payment_service.dispatch("payout_account", user, body),
+    }
+    account_writes = {
+        "driver_application": verification_service.save_application,
+        "submit_driver_application": verification_service.submit_application,
+        "review_driver_application": verification_service.review_application,
+        "driver_review_progress": verification_service.save_review_progress,
+        "identity_review_progress": identity_service.save_review_progress,
+        "identity_application": identity_service.save_application,
+        "submit_identity_application": identity_service.submit_application,
+        "withdraw_identity_application": identity_service.withdraw_application,
+        "review_identity_application": identity_service.review_application,
+        "payment_action": lambda user, body: payment_service.dispatch("payment_action", user, body),
+    }
+    for name, method in account_reads.items():
+        def get_account_flow(handler=method):
+            user = authenticated_user()
+            if not user:
+                return error("Authentication required", 401)
+            return jsonify(handler(user, request.args.to_dict(flat=True)))
+        app.add_url_rule(f"/api/{name}", endpoint=f"account_get_{name}", view_func=get_account_flow, methods=["GET"])
+    for name, method in account_writes.items():
+        def post_account_flow(handler=method):
+            user = authenticated_user()
+            if not user:
+                return error("Authentication required", 401)
+            body = json_body()
+            if not isinstance(body, dict):
+                return body
+            return jsonify(handler(user, body))
+        app.add_url_rule(f"/api/{name}", endpoint=f"account_post_{name}", view_func=post_account_flow, methods=["POST"])
+
+    def review_progress_response(service):
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        if set(request.args) != {"application_id"} or len(request.args.getlist("application_id")) != 1:
+            return jsonify({"error": "Supply one application identifier", "code": "review_progress_invalid"}), 400
+        return jsonify(service.get_review_progress(user, request.args["application_id"]))
+
+    @app.get("/api/identity_review_progress")
+    def identity_review_progress():
+        return review_progress_response(identity_service)
+
+    @app.get("/api/driver_review_progress")
+    def driver_review_progress():
+        return review_progress_response(verification_service)
+
+    @app.post("/api/driver_documents")
+    def upload_driver_document():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        if user.get("role") != "member":
+            return error("Driver applications are for member accounts", 403)
+        if request.mimetype != "multipart/form-data":
+            return error("Upload documents as multipart/form-data", 415)
+        if set(request.files) != {"file"} or len(request.files.getlist("file")) != 1:
+            return error("Choose exactly one document", 400)
+        if set(request.form) - {"kind", "expires_on", "expected_version"} or any(len(request.form.getlist(k)) != 1 for k in request.form):
+            return error("Invalid document fields", 400)
+        if sum(len(value.encode("utf-8")) for value in request.form.values()) > MAX_JSON_BYTES:
+            return error("Document fields are too large", 413)
+        raw_version = request.form.get("expected_version", "")
+        if not re.fullmatch(r"[0-9]{1,10}", raw_version):
+            return error("A valid expected_version is required", 400)
+        file = request.files["file"]
+        return jsonify(verification_service.upload_document(
+            user, kind=request.form.get("kind"), expires_on=request.form.get("expires_on"),
+            filename=file.filename or "document", content=file.stream, expected_version=int(raw_version),
+        ))
+
+    @app.get("/api/driver_document")
+    def download_driver_document():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        document_id = request.args.get("document_id", "")
+        if not document_id or len(document_id) > 128:
+            return error("A document identifier is required", 400)
+        document = verification_service.get_document(user, document_id)
+        return send_file(io.BytesIO(document["content"]), mimetype=document["content_type"],
+                         as_attachment=True, download_name=document["filename"], max_age=0)
+
+    def document_preview_response(service):
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        if (set(request.args) - {"document_id", "page"}
+                or any(len(request.args.getlist(key)) != 1 for key in request.args)):
+            return error("Invalid document preview parameters", 400)
+        return jsonify(service.get_document_preview(user, request.args.get("document_id", ""), request.args.get("page", "1")))
+
+    @app.get("/api/driver_document_preview")
+    def preview_driver_document():
+        return document_preview_response(verification_service)
+
+    @app.get("/api/identity_document_preview")
+    def preview_identity_document():
+        return document_preview_response(identity_service)
+
+    @app.post("/api/identity_documents")
+    def upload_identity_document():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        if user.get("role") != "member":
+            return error("Identity applications are for member accounts", 403)
+        if request.mimetype != "multipart/form-data":
+            return error("Upload documents as multipart/form-data", 415)
+        if set(request.files) != {"file"} or len(request.files.getlist("file")) != 1:
+            return error("Choose exactly one document", 400)
+        if set(request.form) - {"kind", "expires_on", "expected_version"} or any(len(request.form.getlist(k)) != 1 for k in request.form):
+            return error("Invalid document fields", 400)
+        if sum(len(value.encode("utf-8")) for value in request.form.values()) > MAX_JSON_BYTES:
+            return error("Document fields are too large", 413)
+        raw_version = request.form.get("expected_version", "")
+        if not re.fullmatch(r"[0-9]{1,10}", raw_version):
+            return error("A valid expected_version is required", 400)
+        file = request.files["file"]
+        return jsonify(identity_service.upload_document(
+            user, kind=request.form.get("kind"), expires_on=request.form.get("expires_on"),
+            filename=file.filename or "document", content=file.stream, expected_version=int(raw_version),
+        ))
+
+    @app.get("/api/identity_document")
+    def download_identity_document():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        document_id = request.args.get("document_id", "")
+        if not document_id or len(document_id) > 128:
+            return error("A document identifier is required", 400)
+        document = identity_service.get_document(user, document_id)
+        return send_file(io.BytesIO(document["content"]), mimetype=document["content_type"],
+                         as_attachment=True, download_name=document["filename"], max_age=0)
 
     for action in POST_REQUIRED:
         def post_action(action_name: str = action):

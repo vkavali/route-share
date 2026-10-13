@@ -69,7 +69,7 @@ def test_mobile_login_returns_opaque_token_without_web_cookie_and_stores_only_ha
     result = response.json
     assert result["token"] and result["expires_at"]
     assert result["user"]["id"] == "passenger"
-    assert result["user"]["access"] == {"is_staff": False, "can_drive": False, "staff_capabilities": []}
+    assert result["user"]["access"] == {"is_staff": False, "can_drive": False, "can_request": True, "staff_capabilities": []}
     assert "password_hash" not in str(result)
     assert "Set-Cookie" not in response.headers
     with app.extensions["beta_store"].read() as tx:

@@ -3,14 +3,19 @@
 from __future__ import annotations
 
 import hashlib
+import json
 import re
 import uuid
+from .user_projection import account_user
+from .permissions import identity_review_summary
 from datetime import datetime, timedelta, timezone
 
 
 UTC = timezone.utc
 CLIENT_MESSAGE_ID = re.compile(r"^[A-Za-z0-9_-]{1,64}$")
 MESSAGE_RATE_PER_MINUTE = 20
+CHAT_RETENTION_DAYS = 90
+RETENTION_BATCH_SIZE = 500
 
 
 class CommunityError(Exception):
@@ -50,18 +55,81 @@ def _normalized_phone(value) -> str:
     return "+91" + digits
 
 
+from .auth import current_actor_matches
+
+
 class CommunityService:
     def __init__(self, store):
         self.store = store
 
     @staticmethod
+    def _retained_message(row, at):
+        created = _parse(row.get("created_at"))
+        return created is not None and created > at - timedelta(days=CHAT_RETENTION_DAYS)
+
+    @classmethod
+    def _retained_notification(cls, tx, row, at):
+        if row.get("type") != "chat_message":
+            return True
+        created = _parse(row.get("created_at"))
+        message = tx.get("messages", row.get("message_id", ""))
+        return (created is not None and created > at - timedelta(days=CHAT_RETENTION_DAYS)
+                and message is not None and cls._retained_message(message, at))
+
+    def maintenance(self, now=None):
+        """Bounded primary-chat cleanup; no physical/WAL/backup erasure claim.
+
+        A content-free digest tombstone prevents old client-message identifiers
+        from replaying expired text after deletion. Safety/legal records and
+        non-chat notifications are outside this retention operation.
+        """
+        at = now or _now()
+        if not isinstance(at, datetime):
+            raise ValueError("Maintenance time must be a datetime")
+        at = at.replace(tzinfo=UTC) if at.tzinfo is None else at.astimezone(UTC)
+        counts = {"messages_deleted": 0, "notifications_deleted": 0,
+                  "messages_scanned": 0, "notifications_scanned": 0}
+        with self.store.transaction() as tx:
+            cursor = tx.get("community_maintenance", "chat_retention") or {"id": "chat_retention"}
+            for collection, cursor_key, scanned_key, deleted_key in (
+                ("messages", "message_cursor", "messages_scanned", "messages_deleted"),
+                ("notifications", "notification_cursor", "notifications_scanned", "notifications_deleted"),
+            ):
+                # Bound both scanned and mutated rows. Store's general list()
+                # loads an entire collection, so this maintenance-only query
+                # uses the same transaction with a strict page limit.
+                page = tx._connection.execute(
+                    "SELECT id,data FROM documents WHERE collection=? AND id>? ORDER BY id LIMIT ?",
+                    (collection, cursor.get(cursor_key, ""), RETENTION_BATCH_SIZE)).fetchall()
+                counts[scanned_key] = len(page)
+                for entry in page:
+                    row = json.loads(entry["data"])
+                    if collection == "messages":
+                        created = _parse(row.get("created_at"))
+                        expired = created is not None and created <= at - timedelta(days=CHAT_RETENTION_DAYS)
+                        if expired:
+                            tx.put("expired_message_ids", row["id"], {"id": row["id"]})
+                    else:
+                        expired = not self._retained_notification(tx, row, at)
+                    if expired:
+                        tx.delete(collection, row["id"])
+                        counts[deleted_key] += 1
+                cursor[cursor_key] = page[-1]["id"] if len(page) == RETENTION_BATCH_SIZE else ""
+            tx.put("community_maintenance", cursor["id"], cursor)
+        return counts
+
+    @staticmethod
+    def _actor(tx, user):
+        current = tx.get("users", user.get("id", ""))
+        if not current_actor_matches(current, user):
+            raise CommunityError("This account session is unavailable.", 401, "account_unavailable")
+        return current
+
+    @staticmethod
     def _verification(user):
-        value = user.get("verification") or {}
-        allowed = {"not_checked", "pending", "verified", "rejected", "expired"}
-        return {
-            key: value.get(key) if isinstance(value.get(key), str) and value.get(key) in allowed else "not_checked"
-            for key in ("phone", "identity", "dl", "rc", "selfie")
-        }
+        # Keep the existing flat-check contract while sharing current expiry logic.
+        from .reviews import _verification
+        return _verification(user)['checks']
 
     def profile_for(self, user):
         return {
@@ -69,7 +137,9 @@ class CommunityService:
             "name": user.get("name", ""),
             "phone": user.get("phone", ""),
             "share_phone": bool(user.get("share_phone", False)),
+            "phone_verified": user.get("phone_verified") is True,
             "verification": self._verification(user),
+            "identity_review": identity_review_summary(user),
         }
 
     def public_summary(self, user_id):
@@ -77,25 +147,25 @@ class CommunityService:
             return self.public_summary_in(tx, user_id)
 
     def public_summary_in(self, tx, user_id):
+        from .reviews import ReviewsService
         user = tx.get("users", user_id)
         if not user:
             return None
-        ratings = [row for row in tx.list("ratings") if row.get("subject_id") == user_id]
-        trips = tx.list("trips")
-        completed_ids = {row["id"] for row in trips if row.get("driver_id") == user_id and row.get("status") == "completed"}
-        trip_by_id = {row["id"]: row for row in trips}
-        completed_ids.update(
-            row.get("trip_id") for row in tx.list("bookings")
-            if row.get("passenger_id") == user_id and row.get("status") == "segment_completed"
-            and trip_by_id.get(row.get("trip_id"), {}).get("status") == "completed"
-        )
-        stars = [row.get("stars") for row in ratings
-                 if isinstance(row.get("stars"), (int, float)) and not isinstance(row.get("stars"), bool)]
+        trips, _users, bookings = ReviewsService._completed(tx)
+        ratings = [row for row in ReviewsService._valid_ratings(tx, bookings)
+                   if row['subject_id'] == user_id]
+        # This compact summary is also used for passengers: retain both completed
+        # participant roles, but never count orphan/incomplete/forged rating rows.
+        completed_ids = {row["id"] for row in trips.values()
+                         if row.get("driver_id") == user_id and row.get("status") == "completed"}
+        completed_ids.update(row['trip_id'] for row in bookings.values() if row['passenger_id'] == user_id)
+        stars = [row['stars'] for row in ratings]
         return {
             "id": user["id"],
             "name": user.get("name", ""),
             "development": bool(user.get("development", True)),
             "verification": self._verification(user),
+            "identity_review": identity_review_summary(user),
             "rating_average": round(sum(stars) / len(stars), 2) if len(stars) >= 3 else None,
             "rating_count": len(stars),
             "completed_trip_count": len(completed_ids),
@@ -122,6 +192,7 @@ class CommunityService:
         if not isinstance(share_phone, bool):
             raise CommunityError("Choose whether to share your phone number.", code="invalid_share_choice")
         with self.store.transaction() as tx:
+            user = self._actor(tx, user)
             record = tx.get("users", user["id"])
             if not record:
                 raise CommunityError("Profile not found.", 404, "not_found")
@@ -135,13 +206,15 @@ class CommunityService:
                     phone = _normalized_phone(raw)
             if share_phone and not phone:
                 raise CommunityError("Add a phone number before sharing it.", code="phone_required")
+            if record.get("phone_verified") is True and phone != old_phone:
+                raise CommunityError("Your verified sign-in number cannot be changed here. Contact support.", code="verified_phone_readonly")
             verification = dict(record.get("verification") or {})
             if phone != old_phone:
                 verification["phone"] = "not_checked"
             record.update(name=name.strip(), phone=phone, share_phone=share_phone, verification=verification)
             tx.put("users", record["id"], record)
             own = self.profile_for(record)
-            current_user = {key: value for key, value in record.items() if key not in {"password", "password_hash"}}
+            current_user = account_user(record)
         return {"profile": own, "user": current_user}
 
     @staticmethod
@@ -206,6 +279,7 @@ class CommunityService:
         if not isinstance(booking_id, str) or not booking_id or len(booking_id) > 128:
             raise CommunityError("A booking is required.", code="invalid_booking")
         with self.store.transaction() as tx:
+            user = self._actor(tx, user)
             booking = self._participant_booking(tx, booking_id, user["id"])
             trip = tx.get("trips", booking.get("trip_id"))
             if self._pair_blocked(tx, booking["driver_id"], booking["passenger_id"]):
@@ -229,12 +303,15 @@ class CommunityService:
         return booking, trip, counterpart_id, counterpart, can_send
 
     def _chat(self, user, payload):
+        self.maintenance()
+        at = _now()
         booking_id = payload.get("booking_id")
         if not isinstance(booking_id, str) or not booking_id or len(booking_id) > 128:
             raise CommunityError("A booking is required.", code="invalid_booking")
         with self.store.read() as tx:
+            user = self._actor(tx, user)
             booking, trip, _other_id, _other, can_send = self._chat_access(tx, user, booking_id)
-            rows = [row for row in tx.list("messages") if row.get("booking_id") == booking_id]
+            rows = [row for row in tx.list("messages") if row.get("booking_id") == booking_id and self._retained_message(row, at)]
             rows.sort(key=lambda row: (row.get("created_at", ""), row.get("id", "")))
             messages = [self._message_view(row) for row in rows[-100:]]
             return {
@@ -257,6 +334,8 @@ class CommunityService:
         return {field: row.get(field) for field in fields}
 
     def _send_message(self, user, payload):
+        self.maintenance()
+        at = _now()
         booking_id = payload.get("booking_id")
         text = payload.get("text")
         client_id = payload.get("client_message_id")
@@ -269,8 +348,11 @@ class CommunityService:
             raise CommunityError("A valid client message identifier is required.", code="invalid_message_id")
         message_id = self._message_id(booking_id, user["id"], client_id)
         with self.store.transaction() as tx:
+            user = self._actor(tx, user)
             booking, trip, counterpart_id, counterpart, can_send = self._chat_access(tx, user, booking_id)
             existing = tx.get("messages", message_id)
+            if tx.get("expired_message_ids", message_id) or (existing and not self._retained_message(existing, at)):
+                raise CommunityError("This message has expired. Start a new message.", 409, "message_expired")
             if existing:
                 if existing.get("text") != text:
                     raise CommunityError("That message identifier was already used.", 409, "idempotency_conflict")
@@ -295,9 +377,12 @@ class CommunityService:
             return {"message": self._message_view(message)}
 
     def _chats(self, user, payload):
+        self.maintenance()
+        at = _now()
         with self.store.read() as tx:
+            user = self._actor(tx, user)
             trips = {row["id"]: row for row in tx.list("trips")}
-            messages = tx.list("messages")
+            messages = [row for row in tx.list("messages") if self._retained_message(row, at)]
             bookings = [row for row in tx.list("bookings") if user["id"] in {row.get("driver_id"), row.get("passenger_id")}]
             output = []
             for booking in bookings:
@@ -321,9 +406,11 @@ class CommunityService:
             return {"chats": output}
 
     def unread_counts(self, user_id):
+        self.maintenance()
+        at = _now()
         with self.store.read() as tx:
             notifications = sum(row.get("recipient_id") == user_id and not row.get("read_at")
-                                for row in tx.list("notifications"))
+                                for row in tx.list("notifications") if self._retained_notification(tx, row, at))
             blocked = {(row.get("blocker_id"), row.get("blocked_id")) for row in tx.list("blocks")}
             booking_ids = {
                 row["id"] for row in tx.list("bookings")
@@ -332,26 +419,29 @@ class CommunityService:
                 and (row.get("passenger_id"), row.get("driver_id")) not in blocked
             }
             unread_chats = sum(row.get("booking_id") in booking_ids and row.get("recipient_id") == user_id
-                               and not row.get("read_at") for row in tx.list("messages"))
+                               and not row.get("read_at") for row in tx.list("messages") if self._retained_message(row, at))
         return {"notification_unread_count": notifications, "chat_unread_count": unread_chats}
 
     def _mark_chat_read(self, user, payload):
+        self.maintenance()
+        at = _now()
         booking_id, upto_id = payload.get("booking_id"), payload.get("upto_message_id")
         if not isinstance(booking_id, str) or not booking_id or len(booking_id) > 128:
             raise CommunityError("A booking is required.", code="invalid_booking")
         if not isinstance(upto_id, str) or not upto_id or len(upto_id) > 128:
             raise CommunityError("A message is required.", code="invalid_message_id")
         with self.store.transaction() as tx:
+            user = self._actor(tx, user)
             self._chat_access(tx, user, booking_id)
             target = tx.get("messages", upto_id)
-            if not target or target.get("booking_id") != booking_id:
+            if not target or target.get("booking_id") != booking_id or not self._retained_message(target, at):
                 raise CommunityError("Message not found in this booking.", 404, "not_found")
             target_stamp = target.get("created_at", "")
             read_time = _stamp()
             read_ids = set()
             for row in tx.list("messages"):
                 if (row.get("booking_id") == booking_id and row.get("recipient_id") == user["id"]
-                        and not row.get("read_at") and (row.get("created_at", ""), row.get("id", "")) <= (target_stamp, upto_id)):
+                        and self._retained_message(row, at) and not row.get("read_at") and (row.get("created_at", ""), row.get("id", "")) <= (target_stamp, upto_id)):
                     row["read_at"] = read_time
                     tx.put("messages", row["id"], row)
                     read_ids.add(row["id"])
@@ -410,18 +500,25 @@ class CommunityService:
                         self._notification(tx, participant, trip_type, booking["id"], now=_parse(at) if at else None)
 
     def _notifications(self, user, payload):
+        self.maintenance()
+        at = _now()
         with self.store.read() as tx:
-            rows = [row for row in tx.list("notifications") if row.get("recipient_id") == user["id"]]
+            user = self._actor(tx, user)
+            rows = [row for row in tx.list("notifications") if row.get("recipient_id") == user["id"]
+                    and self._retained_notification(tx, row, at)]
         rows.sort(key=lambda row: (row.get("created_at", ""), row.get("id", "")), reverse=True)
         return {"notifications": [self._notification_view(row) for row in rows[:100]]}
 
     def _mark_notification_read(self, user, payload):
+        self.maintenance()
+        at = _now()
         notification_id = payload.get("notification_id")
         if not isinstance(notification_id, str) or not notification_id or len(notification_id) > 128:
             raise CommunityError("A notification is required.", code="invalid_notification")
         with self.store.transaction() as tx:
+            user = self._actor(tx, user)
             row = tx.get("notifications", notification_id)
-            if not row or row.get("recipient_id") != user["id"]:
+            if not row or row.get("recipient_id") != user["id"] or not self._retained_notification(tx, row, at):
                 raise CommunityError("Notification not found.", 404, "not_found")
             if not row.get("read_at"):
                 row["read_at"] = _stamp()

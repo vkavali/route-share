@@ -5,9 +5,11 @@ import uuid
 from collections import Counter
 from datetime import datetime, timezone, timedelta
 from .community import CommunityService
+from .auth import is_active_account, current_actor_matches
 from .matching import evaluate, inventory, Incompatible, distance, project
-from .permissions import PermissionDenied, access_summary, authorize
+from .permissions import PermissionDenied, access_summary, authorize, can_drive, can_request, identity_review_summary
 from .routing import RoutingError
+from .user_projection import account_user, operations_user
 
 IST = timezone(timedelta(hours=5, minutes=30))
 BASELINE = '20 km endpoint-radius baseline among the same time-, detour- and capacity-eligible supply; not a replica of a competitor.'
@@ -73,7 +75,7 @@ def timestamp(value, name):
 
 
 def safe_user(user):
-    return {k: v for k, v in user.items() if k not in ('password_hash', 'password')}
+    return account_user(user)
 
 
 class Service:
@@ -102,11 +104,11 @@ class Service:
         # Never authorize from the request's possibly stale actor snapshot.
         with self.store.read() as tx:
             current_user = tx.get('users', user_id)
-        if not current_user:
+        if not current_actor_matches(current_user, user):
             raise DomainError('This account is no longer available.', 401)
         user = safe_user(current_user)
         try:
-            authorize(user, action)
+            authorize(current_user, action)
         except PermissionDenied as exc:
             raise DomainError(str(exc), 403) from exc
         if action in {'profile', 'update_profile', 'contact', 'chat', 'chats', 'send_message',
@@ -118,7 +120,8 @@ class Service:
         try:
             result = method(user, payload)
             if action == 'state' and isinstance(result, dict):
-                result['access'] = access_summary(user)
+                with self.store.read() as tx:
+                    result['access'] = access_summary(tx.get('users', user['id']) or {})
             return result
         except RoutingError as exc:
             raise DomainError(str(exc), 503) from exc
@@ -130,8 +133,9 @@ class Service:
         return row
 
     def _event(self, tx, user, kind, object_id, details=None):
+        actor = tx.get('users', user['id']) or {}
         row = {'id':uid(),'actor_id':user['id'],'kind':kind,'object_id':object_id,
-               'at':now().isoformat(),'details':details or {},'development':True}
+               'at':now().isoformat(),'details':details or {},'development':actor.get('development') is True}
         tx.put('events',row['id'],row)
         self.community.notify_lifecycle(tx, kind, object_id, user['id'], row['at'])
 
@@ -142,13 +146,74 @@ class Service:
                'traffic':False}
         tx.put('route_calculations',row['id'],row)
 
+    def _current_actor(self, tx, user, action):
+        actor = tx.get('users', user['id'])
+        if not current_actor_matches(actor, user):
+            raise DomainError('This account is no longer available.', 401)
+        try:
+            authorize(actor, action)
+        except PermissionDenied as exc:
+            raise DomainError(str(exc), 403) from exc
+        return safe_user(actor)
+
+    @staticmethod
+    def _vehicle_identity(value):
+        if not isinstance(value, dict):
+            return None
+        fields = [value.get(key, '') for key in ('model', 'plate')]
+        if any(not isinstance(field, str) for field in fields):
+            return None
+        return tuple(field.strip().casefold() for field in fields)
+
+    def _driver_available(self, tx, trip):
+        driver = tx.get('users', trip.get('driver_id', ''))
+        return bool(driver and can_drive(driver)
+                    and self._vehicle_identity(trip.get('driver_vehicle', {})) is not None
+                    and self._vehicle_identity(trip.get('driver_vehicle', {})) == self._vehicle_identity(driver.get('vehicle', {})))
+
+    @staticmethod
+    def _same_account_pool(tx, first_id, second_id):
+        """Development fixtures and actual members never form a booking pair."""
+        first, second = tx.get('users', first_id), tx.get('users', second_id)
+        return bool(is_active_account(first) and is_active_account(second)
+                    and first.get('role') == second.get('role') == 'member'
+                    and (first.get('development') is True) == (second.get('development') is True))
+
+    @staticmethod
+    def _require_passenger_identity(tx, booking):
+        passenger = tx.get('users', booking.get('passenger_id', '')) or {}
+        if not can_request(passenger):
+            raise DomainError('A passenger needs a current identity review before this ride can continue.', 409)
+
+    def _require_available(self, tx, trip):
+        if not self._driver_available(tx, trip):
+            raise DomainError('This trip no longer has current approval for its listed vehicle.', 409)
+
+    def _current_driver_projection(self, trip):
+        # Stored trip/car identity is immutable. Only current trust status is projected.
+        from .reviews import _verification
+        with self.store.read() as tx:
+            driver = tx.get('users', trip.get('driver_id', '')) or {}
+            available = self._driver_available(tx, trip)
+            summary = _verification(driver)
+        checks = dict(summary['checks'])
+        if not available:
+            for key in ('dl', 'rc', 'insurance', 'selfie'):
+                if checks[key] == 'verified':
+                    checks[key] = 'expired' if summary['status'] == 'expired' else 'not_checked'
+        return {'identity_review': identity_review_summary(driver), 'verification': checks, 'verification_status': summary['status'] if available else (
+                    'expired' if summary['status'] == 'expired' else 'not_verified'),
+                'driver_available': available}
+
     def _trip_view(self, trip, bookings):
-        return {**trip,'inventory':inventory(trip,[b for b in bookings if b['trip_id']==trip['id']])}
+        return {**trip, **self._current_driver_projection(trip),
+                'inventory':inventory(trip,[b for b in bookings if b['trip_id']==trip['id']])}
 
     def _booking_view(self, booking, trip, viewer_id):
         counterpart_id = booking['passenger_id'] if viewer_id == booking['driver_id'] else booking['driver_id']
         view = {**booking, 'trip_status':trip['status'], 'trip_departure':trip['departure'],
                 'counterpart_summary':self.community.public_summary(counterpart_id)}
+        view['match'] = {**(booking.get('match') or {}), **self._current_driver_projection(trip)}
         view['can_contact'] = self.community.contact_available(booking, trip, viewer_id)
         return view
 
@@ -196,15 +261,19 @@ class Service:
                'departure':departure.astimezone(IST).isoformat(),'seats':seats,'max_detour_minutes':detour,
                'route':route,'expires_at':(now()+timedelta(minutes=20)).isoformat()}
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'preview')
+            row['driver_vehicle'] = user.get('vehicle', {})
             tx.put('previews',row['id'],row)
             self._route_log(tx,route,'driver_preview',row['id'])
         return {'preview':row}
 
     def _publish(self, user, payload):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'publish')
             preview = self._get(tx,'previews',payload.get('preview_id'))
             if preview['driver_id'] != user['id']:
                 raise DomainError('Only the preview owner can publish it.',403)
+            self._require_available(tx, preview)
             if preview.get('trip_id'):
                 return {'trip':self._trip_view(tx.get('trips',preview['trip_id']),tx.list('bookings'))}
             if timestamp(preview['expires_at'],'Expiry') < now() or timestamp(preview['departure'],'Departure') < now():
@@ -212,18 +281,22 @@ class Service:
             trip = {k:v for k,v in preview.items() if k not in ('expires_at',)}
             trip.update(id=uid(),driver_name=user['name'],driver_vehicle=user.get('vehicle',{}),
                         verification=user.get('verification',{}),status='published',created_at=now().isoformat(),
-                        version=1,detour_minutes=0,development=True)
+                        version=1,detour_minutes=0,development=user.get('development') is True)
             tx.put('trips',trip['id'],trip)
             preview['trip_id']=trip['id']; tx.put('previews',preview['id'],preview)
             self._event(tx,user,'trip_published',trip['id'])
             return {'trip':self._trip_view(trip,[])}
 
     def _new_match(self, trip, request, calculation, completed=0):
+        from .route_preview import passenger_route_preview
+        preview = passenger_route_preview(calculation.get('proposed_route'),
+                                          calculation.get('routed_pickup'), calculation.get('routed_dropoff'))
         return {'id':uid(),'request_id':request['id'],'trip_id':trip['id'],'driver_name':trip['driver_name'],
-                'vehicle':trip.get('driver_vehicle',{}),'verification':trip.get('verification',{}),
+                'vehicle':trip.get('driver_vehicle',{}), **self._current_driver_projection(trip),
                 'pickup':request['origin'],'dropoff':request['destination'],'passenger_seats':request['seats'],
                 'route_provider':trip['route']['provider'],'created_at':now().isoformat(),
                 'driver_completed_trips':completed,
+                **({'preview_route': preview} if preview is not None else {}),
                 **{k:v for k,v in calculation.items() if k not in ('proposed_route','pickup_schedule')}}
 
     def _search(self, user, payload):
@@ -235,12 +308,16 @@ class Service:
             raise DomainError('Choose points at least 1 km apart.')
         request = {'id':uid(),'passenger_id':user['id'],'passenger_name':user['name'],'origin':origin,'destination':destination,
                    'window_start':start.astimezone(IST).isoformat(),'window_end':end.astimezone(IST).isoformat(),
-                   'seats':integer(payload.get('seats'),'Seats',1,1),'created_at':now().isoformat(),'development':True}
+                   'seats':integer(payload.get('seats'),'Seats',1,1),'created_at':now().isoformat(),'development':user.get('development') is True}
         with self.store.read() as tx:
             trips,bookings=tx.list('trips'),tx.list('bookings')
+            available_trip_ids = {trip['id'] for trip in trips if self._driver_available(tx, trip)
+                                  and self._same_account_pool(tx, user['id'], trip['driver_id'])}
             blocked_pairs={(b['blocker_id'],b['blocked_id']) for b in tx.list('blocks')}
         matches, errors, logs, evaluations = [],[],[],[]
         for trip in trips:
+            if trip['id'] not in available_trip_ids:
+                continue
             if (user['id'],trip['driver_id']) in blocked_pairs or (trip['driver_id'],user['id']) in blocked_pairs:
                 continue
             departure=timestamp(trip['departure'],'Departure')
@@ -262,14 +339,27 @@ class Service:
                 continue
             except RoutingError as exc:
                 errors.append({'trip_id':trip['id'],'error':str(exc)})
-        traditional=sum(m['baseline_match'] for m in matches)
-        metrics={'traditional_match_count':traditional,'route_aware_match_count':len(matches),
-                 'incremental_matches':len(matches)-traditional,
-                 'match_lift_percentage':round((len(matches)-traditional)/traditional*100,2) if traditional and not errors else None,
-                 'complete':not errors,'evaluation_errors':len(errors),'baseline_definition':BASELINE}
-        request['metrics']=metrics
-        request['evaluations']=evaluations
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'search')
+            request['development'] = user.get('development') is True
+            current_trips = {t['id']: t for t in tx.list('trips')}
+            matches = [m for m in matches if m['trip_id'] in current_trips
+                       and current_trips[m['trip_id']]['status'] == 'published'
+                       and self._driver_available(tx, current_trips[m['trip_id']])
+                       and self._same_account_pool(tx, user['id'], current_trips[m['trip_id']]['driver_id'])
+                       and not self._pair_blocked(tx, user['id'], current_trips[m['trip_id']]['driver_id'])]
+            for match in matches:
+                match.update(self._current_driver_projection(current_trips[match['trip_id']]))
+            traditional=sum(m['baseline_match'] for m in matches)
+            metrics={'traditional_match_count':traditional,'route_aware_match_count':len(matches),
+                     'incremental_matches':len(matches)-traditional,
+                     'match_lift_percentage':round((len(matches)-traditional)/traditional*100,2) if traditional and not errors else None,
+                     'complete':not errors,'evaluation_errors':len(errors),'baseline_definition':BASELINE}
+            request['metrics']=metrics
+            matched_trip_ids = {match['trip_id'] for match in matches}
+            request['evaluations'] = [({**row, 'outcome':'unavailable', 'reason':'Availability changed during search'}
+                                       if row['outcome'] == 'matched' and row['trip_id'] not in matched_trip_ids else row)
+                                      for row in evaluations]
             tx.put('requests',request['id'],request)
             for match in matches: tx.put('matches',match['id'],match)
             for route in logs: self._route_log(tx,route,'passenger_search',request['id'])
@@ -278,6 +368,7 @@ class Service:
 
     def _request(self, user, payload):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'request')
             match=self._get(tx,'matches',payload.get('match_id'))
             request=self._get(tx,'requests',match['request_id'])
             if request['passenger_id'] != user['id']:
@@ -285,6 +376,9 @@ class Service:
             if request.get('seats') != 1:
                 raise DomainError('A seat request is for one passenger. Search again for one seat.')
             trip=self._get(tx,'trips',match['trip_id'])
+            self._require_available(tx, trip)
+            if not self._same_account_pool(tx, user['id'], trip['driver_id']):
+                raise DomainError('This ride is no longer available.',409)
             if self._pair_blocked(tx,user['id'],trip['driver_id']):
                 raise DomainError('This ride is no longer available.',409)
             allbookings = tx.list('bookings')
@@ -320,7 +414,7 @@ class Service:
                      'passenger_name':user['name'],'pickup':request['origin'],'dropoff':request['destination'],
                      'seats':request['seats'],'status':'pending','match':match,'start_m':match['start_m'],'end_m':match['end_m'],
                      'window_start':request['window_start'],'window_end':request['window_end'],
-                     'created_at':now().isoformat(),'development':True}
+                     'created_at':now().isoformat(),'development':user.get('development') is True}
             tx.put('bookings',booking['id'],booking)
             self._event(tx,user,'seat_requested',booking['id'])
             return {'booking':self._booking_view(booking,trip,user['id'])}
@@ -329,9 +423,14 @@ class Service:
         # BEGIN IMMEDIATE is deliberately held through road re-evaluation in this small
         # local slice. Other processes cannot confirm capacity using a stale snapshot.
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'accept')
             booking=self._get(tx,'bookings',payload.get('booking_id'))
             trip=self._get(tx,'trips',booking['trip_id'])
             if trip['driver_id']!=user['id']: raise DomainError('Only the driver can accept.',403)
+            self._require_available(tx, trip)
+            self._require_passenger_identity(tx, booking)
+            if not self._same_account_pool(tx, booking['driver_id'], booking['passenger_id']):
+                raise DomainError('This ride is no longer available.',409)
             if self._pair_blocked(tx,booking['driver_id'],booking['passenger_id']):
                 raise DomainError('This ride is no longer available.',409)
             if booking['status']=='accepted': return {'booking':self._booking_view(booking,trip,user['id'])}
@@ -348,6 +447,11 @@ class Service:
                 calculation=evaluate(trip,request,[b for b in allbookings if b['trip_id']==trip['id']],self.router)
             except Incompatible as exc:
                 raise DomainError('Availability changed: '+str(exc),409)
+            # Routing can take seconds even while this write transaction excludes revocation.
+            # Recheck wall-clock expiry immediately before accepting the seat.
+            user = self._current_actor(tx, user, 'accept')
+            self._require_available(tx, trip)
+            self._require_passenger_identity(tx, booking)
             booking.update(status='accepted',accepted_at=now().isoformat())
             booking['match']={**booking['match'],**{k:v for k,v in calculation.items() if k not in ('proposed_route','pickup_schedule')}}
             tx.put('bookings',booking['id'],booking)
@@ -380,6 +484,7 @@ class Service:
 
     def _change_booking(self,user,payload,status):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'decline' if status == 'declined' else 'cancel_booking')
             booking=self._get(tx,'bookings',payload.get('booking_id')); trip=self._get(tx,'trips',booking['trip_id'])
             if status=='declined' and user['id']!=booking['driver_id']: raise DomainError('Only the driver can decline.',403)
             if user['id'] not in (booking['driver_id'],booking['passenger_id']): raise DomainError('This booking belongs to other people.',403)
@@ -412,9 +517,18 @@ class Service:
 
     def _trip_transition(self,user,payload,status):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, {'started':'start_trip','completed':'complete_trip','cancelled':'cancel_trip'}[status])
+            if status == 'started':
+                user = self._current_actor(tx, user, 'start_trip')
             trip=self._get(tx,'trips',payload.get('trip_id'))
             if trip['driver_id']!=user['id']: raise DomainError('Only the driver can change this trip.',403)
+            if status == 'started':
+                self._require_available(tx, trip)
             bookings=[b for b in tx.list('bookings') if b['trip_id']==trip['id']]
+            if status == 'started':
+                for passenger_booking in bookings:
+                    if passenger_booking['status'] == 'accepted':
+                        self._require_passenger_identity(tx, passenger_booking)
             if trip['status']==status: return {'trip':self._trip_view(trip,bookings)}
             allowed={'started':'published','completed':'started','cancelled':'published'}
             if trip['status']!=allowed[status]: raise DomainError('This trip status cannot make that transition.',409)
@@ -437,6 +551,7 @@ class Service:
 
     def _complete_segment(self,user,payload):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'complete_segment')
             booking=self._get(tx,'bookings',payload.get('booking_id')); trip=self._get(tx,'trips',booking['trip_id'])
             if user['id'] not in (booking['passenger_id'],booking['driver_id']): raise DomainError('Only the passenger or driver can confirm this segment.',403)
             if booking['status']=='segment_completed': return {'booking':self._booking_view(booking,trip,user['id'])}
@@ -448,6 +563,7 @@ class Service:
 
     def _board_segment(self, user, payload):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'board_segment')
             booking = self._get(tx, 'bookings', payload.get('booking_id'))
             trip = self._get(tx, 'trips', booking['trip_id'])
             if user['id'] != booking.get('passenger_id'):
@@ -463,7 +579,16 @@ class Service:
             return {'booking': self._booking_view(booking, trip, user['id'])}
 
     def _rate(self,user,payload):
+        if user.get('role') != 'member':
+            raise DomainError('Only member participants may rate a booking.',403)
+        comment=payload.get('comment','')
+        if not isinstance(comment,str) or len(comment)>500:
+            raise DomainError('Review comment must be text of at most 500 characters.')
+        publish_comment=payload.get('publish_comment',False)
+        if not isinstance(publish_comment,bool):
+            raise DomainError('Choose whether to publish your review comment.')
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'rate')
             booking=self._get(tx,'bookings',payload.get('booking_id')); trip=self._get(tx,'trips',booking['trip_id'])
             if user['id'] not in (booking['passenger_id'],booking['driver_id']): raise DomainError('Only participants may rate this booking.',403)
             if trip['status']!='completed' or booking['status']!='segment_completed': raise DomainError('Ratings open after the completed journey.',409)
@@ -473,7 +598,7 @@ class Service:
             if existing: return {'rating':existing}
             rating={'id':id,'booking_id':booking['id'],'author_id':user['id'],
                     'subject_id':booking['driver_id'] if user['id']==booking['passenger_id'] else booking['passenger_id'],
-                    'stars':stars,'comment':str(payload.get('comment',''))[:500],'created_at':now().isoformat()}
+                    'stars':stars,'comment':comment,'publish_comment':publish_comment,'created_at':now().isoformat()}
             tx.put('ratings',id,rating); self._event(tx,user,'rating_created',id)
             return {'rating':rating}
 
@@ -500,6 +625,7 @@ class Service:
         if not isinstance(key,str) or not 8 <= len(key) <= 100 or not all(c.isascii() and (c.isalnum() or c in '-_') for c in key):
             raise DomainError('A valid report request identifier is required.')
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'report_safety')
             booking,subject=self._safety_participants(tx,user,payload.get('booking_id'))
             report_id=user['id']+':'+key
             existing=tx.get('safety_reports',report_id)
@@ -509,7 +635,8 @@ class Service:
                 return {'report':existing}
             report={'id':report_id,'booking_id':booking['id'],'reporter_id':user['id'],
                     'subject_id':subject,'category':category,'details':details.strip(),
-                    'status':'open','created_at':now().isoformat(),'development':True}
+                    'status':'open','created_at':now().isoformat(),
+                    'development':(tx.get('users',user['id']) or {}).get('development') is True}
             tx.put('safety_reports',report_id,report)
             # Free-text details stay in the access-controlled report, not event logs.
             self._event(tx,user,'safety_report_created',report_id,{'category':category})
@@ -517,6 +644,7 @@ class Service:
 
     def _block_person(self,user,payload):
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'block_person')
             source,subject=self._safety_participants(tx,user,payload.get('booking_id'))
             block_id=user['id']+':'+subject
             block=tx.get('blocks',block_id)
@@ -555,6 +683,7 @@ class Service:
         if not isinstance(resolution,str) or not 10 <= len(resolution.strip()) <= 1000:
             raise DomainError('Add a resolution in 10 to 1000 characters.')
         with self.store.transaction() as tx:
+            user = self._current_actor(tx, user, 'resolve_report')
             report=self._get(tx,'safety_reports',payload.get('report_id'))
             if report['status']=='resolved':
                 return {'report':report}
@@ -564,9 +693,17 @@ class Service:
             return {'report':report}
 
     def _operations(self,user,payload):
+        can_read_safety='safety.act' in access_summary(user)['staff_capabilities']
         with self.store.read() as tx:
-            data={c:tx.list(c) for c in ('users','trips','requests','matches','bookings','ratings','events','route_calculations','safety_reports')}
-        data['users']=[{k:v for k,v in safe_user(u).items() if k not in ('phone','share_phone')} for u in data['users']]
+            data={c:tx.list(c) for c in ('users','trips','requests','matches','bookings','ratings','events','route_calculations')}
+            data['safety_reports']=tx.list('safety_reports') if can_read_safety else []
+        if not can_read_safety:
+            # Case audit targets and actors are case access too, even without report text.
+            data['events']=[event for event in data['events'] if not event.get('kind','').startswith('safety_report_')]
+        # Operations needs rating facts, never participant-only review prose.
+        rating_fields=('id','booking_id','author_id','subject_id','stars','created_at')
+        data['ratings']=[{key:row[key] for key in rating_fields if key in row} for row in data['ratings']]
+        data['users']=[operations_user(u) for u in data['users']]
         data['trips']=[self._trip_view(t,data['bookings']) for t in data['trips']]
         complete=[r for r in data['requests'] if r.get('metrics',{}).get('complete')]
         baseline=sum(r['metrics']['traditional_match_count'] for r in complete)
@@ -591,5 +728,7 @@ class Service:
             'driver_cancellations':sum(b['status']=='cancelled' and bool(b.get('accepted_at')) and b.get('cancelled_by')==b['driver_id'] for b in data['bookings']),
             'passenger_cancellations':sum(b['status']=='cancelled' and bool(b.get('accepted_at')) and b.get('cancelled_by')==b['passenger_id'] for b in data['bookings']),
             'repeat_drivers':sum(n>=2 for n in driver_counts.values()),'repeat_passengers':sum(n>=2 for n in passenger_counts.values()),
-            'baseline_definition':BASELINE,'development_data_only':True,'incomplete_searches_excluded':len(data['requests'])-len(complete)}
+            'baseline_definition':BASELINE,
+            'development_data_only':all(row.get('development') is True for collection in ('trips','requests','bookings') for row in data[collection]),
+            'incomplete_searches_excluded':len(data['requests'])-len(complete)}
         return data

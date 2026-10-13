@@ -1,1 +1,5 @@
-{"NSLocationWhenInUseUsageDescription":"Share your location with the other participant during this accepted booking. Sharing stops when you stop it or arrive."}
+{
+  "NSLocationWhenInUseUsageDescription": "Use your location to choose a pickup or destination, or share it with the other participant during an accepted booking. Sharing stops when you stop it or arrive.",
+  "NSMicrophoneUsageDescription": "Record your trip only when you tap the microphone. Audio is temporarily transcribed on the SeatPal server and deleted after processing or cancellation.",
+  "CFBundleDisplayName": "SeatPal"
+}

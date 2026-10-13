@@ -4,6 +4,7 @@ import * as Crypto from 'expo-crypto';
 import {Api} from './api';
 import {AppText} from './NativeTypography';
 import {Icon} from './Icon';
+import {serviceLabels,type ServiceScreen} from './ServiceScreens';
 
 type CommunityScreen = 'profile' | 'chats' | 'chat' | 'notifications';
 type Summary = {id: string; name: string; development?: boolean; verification?: unknown; rating_average?: number | null; rating_count?: number; completed_trip_count?: number};
@@ -19,6 +20,9 @@ type Props = {
   onOpenBooking: (bookingId: string) => void;
   onUserUpdate: (user: any) => void;
   onError: (error: unknown) => void;
+  onOpenService?: (screen:ServiceScreen)=>void;
+  onOpenIdentity?:(screen:'identity-verification'|'identity-review')=>void;
+  onAccountSecurity?:()=>void;
 };
 type CommunityProfile = {id: string; name: string; phone: string | null; share_phone: boolean; verification?: unknown};
 type ChatMessage = {id: string; booking_id: string; sender_id: string; sender_name: string; text: string; client_message_id: string; created_at: string; read_at: string | null};
@@ -150,7 +154,7 @@ export function CommunityScreens(props: Props) {
     const cleanName = name.trim();
     if (!cleanName) { setLocalError(t('communityNameRequired')); return; }
     let normalizedPhone: string | undefined;
-    const phoneWasEdited = (profile?.phone || '') !== phone.trim();
+    const phoneWasEdited = user?.phone_verified!==true && (profile?.phone || '') !== phone.trim();
     if (phone.trim()) {
       const digits = phone.replace(/[^0-9]/g, '');
       const localNumber = digits.length === 12 && digits.startsWith('91') ? digits.slice(2) : digits;
@@ -221,18 +225,21 @@ export function CommunityScreens(props: Props) {
   const header = (title: string) => <View style={styles.header}>
     <Pressable accessibilityRole="button" accessibilityLabel={t('back')} onPress={onBack} style={styles.back}><Icon name="arrowLeft" size={21} color={COLORS.ink}/></Pressable>
     <AppText style={styles.title}>{title}</AppText>
-    <View style={styles.headerTail}/>
+    <Icon name={screen==='profile'?'user':screen==='notifications'?'calendarBlank':'chatCircleDots'} size={23} color={COLORS.ink}/>
   </View>;
   const card = (children: React.ReactNode) => <View style={styles.card}>{children}</View>;
   const date = (value?: string) => value ? new Date(value).toLocaleString(langTag, {timeZone: 'Asia/Kolkata', dateStyle: 'medium', timeStyle: 'short'}) : '';
 
   if (screen === 'profile') return <View style={styles.screen}>{header(t('communityProfile'))}<ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+    <View style={styles.profileIdentity}><View style={styles.profileAvatar}><Icon name="user" size={32} color={COLORS.ink}/></View><View style={styles.chatSummary}><AppText style={styles.profileName}>{profile?.name||user?.name||t('communityProfile')}</AppText><AppText style={styles.helper}>{t('communityProfile')}</AppText></View></View>
     {card(<>
       {loading && !profile ? <ActivityIndicator color={COLORS.ink}/> : !profile ? <AppText style={styles.empty}>{localError || t('communityEmptyProfile')}</AppText> : <>
         <AppText style={styles.label}>{t('communityName')}</AppText>
         <TextInput accessibilityLabel={t('communityName')} value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" placeholder={t('communityName')} placeholderTextColor={COLORS.muted} style={[styles.input, {fontFamily: lang === 'te' ? 'AnekTelugu400' : 'Manrope400', lineHeight: lang === 'te' ? 24 : undefined}]}/>
         <AppText style={styles.label}>{t('communityPhone')}</AppText>
-        <TextInput accessibilityLabel={t('communityPhone')} value={phone} onChangeText={setPhone} maxLength={18} keyboardType="phone-pad" placeholder="+91" placeholderTextColor={COLORS.muted} style={[styles.input, {fontFamily: 'Manrope400'}]}/>
+        <TextInput accessibilityLabel={t('communityPhone')} value={phone} editable={user?.phone_verified!==true} onChangeText={setPhone} maxLength={18} keyboardType="phone-pad" placeholder="+91" placeholderTextColor={COLORS.muted} style={[styles.input, {fontFamily: 'Manrope400'}]}/>
+        {user?.phone_verified===true?<AppText style={styles.helper}>{t('phoneNumberChangeHelp')}</AppText>:null}
+        <View style={styles.privacyIntro}><Icon name="lockKey" size={23} color={COLORS.ink}/><AppText style={styles.rowTitle}>{t('communitySharePhone')}</AppText></View>
         <Pressable accessibilityRole="checkbox" accessibilityState={{checked: sharePhone}} onPress={() => setSharePhone(value => !value)} style={styles.consentRow}>
           <View style={[styles.check, sharePhone && styles.checkActive]}>{sharePhone ? <Icon name="checkCircle" size={16} color={COLORS.white}/> : null}</View>
           <AppText style={styles.consentText}>{t('communitySharePhone')}</AppText>
@@ -243,12 +250,17 @@ export function CommunityScreens(props: Props) {
         </Pressable>
       </>}
     </>)}
+    <Pressable accessibilityRole="button" onPress={()=>props.onAccountSecurity?.()} style={styles.retry}><AppText style={styles.retryText}>{t('lcSecurity')} →</AppText></Pressable>
+    {(['payments','verification','reviews'] as const).map(target=><Pressable key={target} accessibilityRole="button" onPress={()=>props.onOpenService?.(target)} style={styles.retry}><AppText style={styles.retryText}>{serviceLabels(lang)[target]} →</AppText></Pressable>)}
+    <Pressable accessibilityRole="button" onPress={()=>props.onOpenIdentity?.('identity-verification')} style={styles.retry}><AppText style={styles.retryText}>{lang==='te'?'గుర్తింపు రివ్యూ':lang==='hi'?'पहचान की समीक्षा':'Identity review'} →</AppText></Pressable>
+    {user?.access?.staff_capabilities?.includes('verify.review')?<Pressable accessibilityRole="button" onPress={()=>props.onOpenIdentity?.('identity-review')} style={styles.retry}><AppText style={styles.retryText}>{lang==='te'?'గుర్తింపు అప్లికేషన్లు':lang==='hi'?'पहचान आवेदन':'Identity applications'} →</AppText></Pressable>:null}
     {localError ? <AppText accessibilityRole="alert" style={styles.message}>{localError}</AppText> : null}
     {localError && !profile ? <Pressable accessibilityRole="button" onPress={() => void loadProfile()} style={styles.retry}><AppText style={styles.retryText}>{t('communityRetry')}</AppText></Pressable> : null}
   </ScrollView></View>;
 
   if (screen === 'chats') return <View style={styles.screen}>{header(t('communityChats'))}<ScrollView contentContainerStyle={styles.body}>
-    {loading && chats.length === 0 ? <ActivityIndicator color={COLORS.ink}/> : chats.length === 0 ? card(<AppText style={styles.empty}>{t('communityNoChats')}</AppText>) : chats.map((item: any) => <Pressable key={item.booking_id} onPress={() => onOpenChat(item.booking_id)} style={styles.chatRow}>
+    <AppText style={styles.profileName}>{t('communityChats')}</AppText>
+    {loading && chats.length === 0 ? <ActivityIndicator color={COLORS.ink}/> : chats.length === 0 ? card(<><View style={styles.emptyIcon}><Icon name="chatCircleDots" size={36} color={COLORS.ink}/></View><AppText style={styles.empty}>{t('communityNoChats')}</AppText></>) : chats.map((item: any) => <Pressable key={item.booking_id} onPress={() => onOpenChat(item.booking_id)} style={styles.chatRow}>
       <View style={styles.avatar}><Icon name="user" size={21} color={COLORS.ink}/></View>
       <View style={styles.chatSummary}><AppText style={styles.rowTitle}>{item.counterpart_summary?.name || t('communityChat')}</AppText><AppText numberOfLines={1} style={styles.preview}>{item.latest_message?.text || t('communityNoMessages')}</AppText></View>
       <View style={styles.rowEnd}>{item.unread_count > 0 ? <View style={styles.badge}><AppText style={styles.badgeText}>{item.unread_count}</AppText></View> : null}<AppText style={styles.date}>{date(item.latest_message?.created_at)}</AppText></View>
@@ -281,7 +293,7 @@ export function CommunityScreens(props: Props) {
     {chat?.can_send ? <View style={styles.composer}>
       <TextInput accessibilityLabel={t('communityMessage')} value={draft} onChangeText={setDraft} editable={!sending} multiline maxLength={1000} placeholder={t('communityMessagePlaceholder')} placeholderTextColor={COLORS.muted} style={[styles.composerInput, {fontFamily: lang === 'te' ? 'AnekTelugu400' : 'Manrope400', lineHeight: lang === 'te' ? 24 : undefined}]}/>
       <Pressable accessibilityRole="button" accessibilityLabel={t('communitySend')} disabled={!draft.trim() || sending} onPress={() => void sendMessage()} style={[styles.send, (!draft.trim() || sending) && styles.disabled]}><Icon name="navigationArrow" size={19} color={COLORS.white}/></Pressable>
-    </View> : <View style={styles.readOnly}><Icon name="lockKey" size={17} color={COLORS.muted}/><AppText style={styles.readOnlyText}>{t('communityReadOnly')}</AppText></View>}
+    </View> : loading&&!chat ? <View style={styles.readOnly}><ActivityIndicator color={COLORS.ink}/></View> : <View style={styles.readOnly}><Icon name="lockKey" size={17} color={COLORS.muted}/><AppText style={styles.readOnlyText}>{t('communityReadOnly')}</AppText></View>}
   </View>;
 }
 
@@ -301,15 +313,16 @@ function notificationKey(value: string): string {
 }
 
 const styles = StyleSheet.create({
+  profileIdentity:{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:14},profileAvatar:{width:68,height:68,borderRadius:34,alignItems:'center',justifyContent:'center',backgroundColor:'#E5EECF'},profileName:{fontSize:25,fontWeight:'700',color:COLORS.ink},privacyIntro:{flexDirection:'row',alignItems:'center',gap:10,paddingTop:16,borderTopWidth:1,borderColor:COLORS.line},emptyIcon:{alignSelf:'center',width:76,height:76,borderRadius:38,backgroundColor:'#EDF3DE',alignItems:'center',justifyContent:'center'},
   screen: {flex:  1, backgroundColor: COLORS.ivory},
   header: {minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line},
-  back: {width: 42, height: 42, alignItems: 'center', justifyContent: 'center'}, title: {fontSize: 18, fontWeight: '700', color: COLORS.ink}, headerTail: {width: 42},
-  body: {padding: 18, paddingBottom: 32, gap: 12}, card: {padding: 18, backgroundColor: COLORS.white, borderRadius: 20, gap: 13},
+  back: {width: 44, height: 44, flexShrink:0, alignItems: 'center', justifyContent: 'center'}, title: {flex:1,marginHorizontal:12,fontSize: 18, fontWeight: '700', color: COLORS.ink}, headerTail: {width: 42},
+  body: {padding: 16, paddingBottom: 24, gap: 16}, card: {padding: 16, borderWidth:1,borderColor:COLORS.line, backgroundColor: COLORS.white, borderRadius: 22, gap: 14},
   label: {fontSize: 14, fontWeight: '700', color: COLORS.ink}, input: {minHeight: 50, paddingHorizontal: 14, borderRadius: 14, backgroundColor: COLORS.ivory, color: COLORS.ink, fontSize: 16},
   consentRow: {minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12}, check: {width: 23, height: 23, borderWidth: 1, borderColor: COLORS.muted, borderRadius: 6, alignItems: 'center', justifyContent: 'center'}, checkActive: {backgroundColor: COLORS.ink, borderColor: COLORS.ink}, consentText: {flex: 1, color: COLORS.ink, fontSize: 14, lineHeight: 21}, helper: {color: COLORS.muted, fontSize: 13, lineHeight: 19},
-  primary: {minHeight: 50, borderRadius: 16, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16}, primaryText: {fontSize: 15, fontWeight: '700', color: COLORS.white}, disabled: {opacity: 0.5}, message: {paddingHorizontal: 4, color: COLORS.ink, fontSize: 14, lineHeight: 21}, empty: {paddingVertical: 14, color: COLORS.muted, fontSize: 15, lineHeight: 23, textAlign: 'center'},
-  chatRow: {minHeight: 82, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: COLORS.white}, avatar: {width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.pale, alignItems: 'center', justifyContent: 'center'}, chatSummary: {flex: 1, gap: 5}, rowTitle: {fontSize: 15, fontWeight: '700', color: COLORS.ink}, preview: {fontSize: 13, color: COLORS.muted}, rowEnd: {alignItems: 'flex-end', gap: 6}, badge: {minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, backgroundColor: COLORS.citron}, badgeText: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, date: {fontSize: 11, color: COLORS.muted},
+  primary: {minHeight: 54,paddingVertical:12, borderRadius: 16, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16}, primaryText: {fontSize: 15, fontWeight: '700', color: COLORS.white}, disabled: {opacity: 0.5}, message: {paddingHorizontal: 4, color: COLORS.ink, fontSize: 14, lineHeight: 21}, empty: {paddingVertical: 14, color: COLORS.muted, fontSize: 15, lineHeight: 23, textAlign: 'center'},
+  chatRow: {borderWidth:1,borderColor:COLORS.line,minHeight: 90, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: COLORS.white}, avatar: {width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.pale, alignItems: 'center', justifyContent: 'center'}, chatSummary: {flex: 1,minWidth:0, gap: 5}, rowTitle: {fontSize: 15, fontWeight: '700', color: COLORS.ink}, preview: {fontSize: 13, color: COLORS.muted}, rowEnd: {maxWidth:82,alignItems: 'flex-end', gap: 6}, badge: {minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, backgroundColor: COLORS.citron}, badgeText: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, date: {fontSize: 11, color: COLORS.muted},
   notificationRow: {minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, borderRadius: 17, backgroundColor: COLORS.white}, unread: {backgroundColor: '#F0F3E8'}, notificationIcon: {width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.pale}, unreadDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: COLORS.ink},
   thread: {padding: 16, gap: 10, flexGrow: 1, justifyContent: 'flex-end'}, bubble: {maxWidth: '88%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 17, gap: 5}, ownBubble: {alignSelf: 'flex-end', backgroundColor: '#DDE8D8', borderBottomRightRadius: 5}, otherBubble: {alignSelf: 'flex-start', backgroundColor: COLORS.white, borderBottomLeftRadius: 5}, sender: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, messageText: {fontSize: 15, lineHeight: 22, color: COLORS.ink}, composer: {flexDirection: 'row', alignItems: 'flex-end', gap: 9, padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, backgroundColor: COLORS.white}, composerInput: {flex: 1, minHeight: 45, maxHeight: 120, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: COLORS.ivory, color: COLORS.ink, fontSize: 15, lineHeight: 21}, send: {width: 45, height: 45, borderRadius: 23, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center'}, retry: {minHeight: 46, borderRadius: 15, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center'}, retryText: {color: COLORS.white, fontSize: 15, fontWeight: '700'},
-  readOnly: {minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 18, backgroundColor: COLORS.white}, readOnlyText: {color: COLORS.muted, fontSize: 13, lineHeight: 20},
+  readOnly: {minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 18, backgroundColor: COLORS.white}, readOnlyText: {flex:1,color: COLORS.muted, fontSize: 13, lineHeight: 20},
 });

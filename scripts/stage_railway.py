@@ -15,10 +15,14 @@ FILES = (
     ".railwayignore",
     "Dockerfile",
     "requirements.txt",
+    "requirements-voice.txt",
+    "scripts/build_voice_models.py",
+    "scripts/backup_store.py",
     "hosted.py",
     "gunicorn.conf.py",
+    "app/templates/public-policy.html",
 )
-TREES = ("app", "static")
+TREES = ("app", "static", "docs/voice")
 EXCLUDED_PARTS = {"__pycache__", ".pytest_cache", ".mypy_cache", ".ruff_cache", "node_modules", "build"}
 EXCLUDED_SUFFIXES = {".pyc", ".pyo", ".db", ".sqlite", ".sqlite3", ".env"}
 RUNTIME_ASSET_PNGS = {

@@ -34,3 +34,74 @@
   .auth-page.ref-login .account-choice-grid { grid-auto-rows:68px; }
   .auth-page.ref-login .account-choice { font-size:13px; }
 }
+
+/* Public information is available before sign-in. */
+.auth-public-links{display:flex;flex-wrap:wrap;gap:4px 20px;margin:0 0 12px}.auth-public-links a{display:inline-flex;align-items:center;min-height:44px;color:var(--forest);font-size:14px;font-weight:650;text-underline-offset:4px}.auth-public-links a:focus-visible{outline:3px solid var(--forest);outline-offset:3px;border-radius:3px}
+
+/* Login composition: decorative landscape, then the existing authenticated actions. */
+.auth-page.ref-login.hf-auth {
+  display:grid; grid-template-columns:minmax(0,1.1fr) minmax(360px,.9fr);
+  align-items:start; gap:52px; width:min(1180px,calc(100% - 80px));
+  margin:48px auto 64px; padding:0;
+}
+.hf-auth .auth-scene { min-width:0; position:relative; overflow:hidden; border-radius:30px; background:#f6f5f0; }
+.hf-auth .auth-scene-copy { position:relative; z-index:1; padding:40px 36px 0; }
+.hf-auth .auth-scene-copy h2 { max-width:9em; margin:0; text-wrap:balance; color:#153e35; font-size:clamp(36px,3.7vw,54px); font-weight:800; line-height:1.12; letter-spacing:-.045em; }
+.hf-auth .auth-scene-copy p { margin:18px 0 0; color:#62746a; font-size:17px; line-height:1.65; }
+.hf-auth .auth-scene-image { display:block; width:100%; height:310px; object-fit:cover; object-position:center bottom; margin-top:-22px; }
+.auth-page.ref-login.hf-auth .auth-card { align-self:start; padding:32px; border:1px solid #dfe6db; border-radius:28px; background:#fff; box-shadow:0 16px 48px #173d3406; }
+.hf-auth .auth-card-heading { display:flex; align-items:center; gap:13px; }
+.hf-auth .auth-entry-mark { display:grid; place-items:center; flex:0 0 46px; height:46px; border-radius:16px; color:#153e35; background:#edf4dc; }
+.auth-page.ref-login.hf-auth .auth-welcome { margin:0; font-size:29px; font-weight:750; line-height:1.3; letter-spacing:-.035em; }
+.hf-auth .auth-entry-intro { margin:14px 0 24px; color:#68786f; font-size:14px; line-height:1.65; }
+.hf-auth .phone-panel { margin:0 0 24px; }
+.hf-auth .phone-panel .af-notice { padding:16px 18px; border:1px solid #e4eadb; border-radius:16px; background:#f4f6ef; color:#435c50; font-size:14px; line-height:1.7; }
+.hf-auth .phone-panel>.secondary { min-height:44px; margin:0 10px 0 0; padding:9px 15px; border-radius:12px; }
+.hf-auth .phone-panel>.text-button { min-height:44px; padding:9px 0; font-size:13px; }
+.hf-auth .phone-legacy { margin-top:24px; padding-top:18px; border-top:1px solid #e1e6dc; }
+.hf-auth .phone-legacy>summary { display:list-item; padding:8px 0; color:#153e35; font-size:14px; font-weight:700; line-height:1.6; }
+.hf-auth .phone-legacy>summary::marker { color:#6a806d; font-size:12px; }
+.hf-auth .phone-legacy[open]>summary { margin-bottom:8px; }
+.hf-auth .auth-public-links { justify-content:flex-start; gap:12px 24px; margin:20px 0 -8px; padding-top:14px; border-top:1px solid #e8ece3; }
+.hf-auth .auth-public-links a { min-height:44px; font-size:13px; font-weight:600; color:#62766a; text-decoration:underline; text-decoration-color:#b9c7ba; text-underline-offset:5px; }
+.hf-auth .auth-public-links a:hover { color:#153e35; }
+.auth-page.ref-login.hf-auth .account-choice { min-height:64px; padding:12px 10px; font-size:13px; }
+.auth-page.ref-login.hf-auth .account-choice.selected { background:#e4f1bb; border-color:#779360; }
+.auth-page.ref-login.hf-auth .auth-submit { border-radius:14px; min-height:54px; }
+.hf-auth :is(button,a,summary):focus-visible { outline:3px solid #7c9659; outline-offset:3px; }
+.hf-topbar.auth-topbar .brand-title { display:block; width:max-content; white-space:nowrap; }
+html:lang(te) .hf-auth .auth-scene-copy h2 { font-size:42px; line-height:1.35; letter-spacing:0; }
+html:lang(te) .auth-page.ref-login.hf-auth .auth-welcome { font-size:28px; line-height:1.5; letter-spacing:0; }
+@media(max-width:1000px) and (min-width:801px) {
+ .auth-page.ref-login.hf-auth { gap:26px; width:calc(100% - 48px); grid-template-columns:minmax(0,1fr) minmax(340px,1fr); }
+ .hf-auth .auth-scene-copy { padding:30px 24px 0; }
+ .hf-auth .auth-scene-copy h2 { font-size:39px; }
+}
+@media(max-width:800px) {
+ .auth-page.ref-login.hf-auth { display:block; width:auto; margin:4px 16px 32px; }
+ .hf-auth .auth-scene { display:flex; min-height:112px; align-items:center; margin:0 0 18px; border-radius:20px; }
+ .hf-auth .auth-scene-copy { width:62%; padding:18px 14px 18px 18px; }
+ .hf-auth .auth-scene-copy h2 { max-width:12em; font-size:24px; line-height:1.2; letter-spacing:-.035em; }
+ .hf-auth .auth-scene-copy p { display:none; }
+ .hf-auth .auth-scene-image { position:absolute; right:0; bottom:0; width:39%; height:112px; margin:0; object-fit:cover; object-position:35% bottom; mask-image:linear-gradient(to right,transparent,#000 25%); }
+ .auth-page.ref-login.hf-auth .auth-card { padding:24px 20px; border-radius:23px; }
+ .auth-page.ref-login.hf-auth .auth-welcome { font-size:26px; }
+ .hf-auth .auth-entry-intro { margin:12px 0 20px; font-size:13px; }
+ .hf-auth .auth-entry-mark { flex-basis:40px; height:40px; border-radius:13px; }
+ .hf-auth .phone-panel { margin-bottom:20px; }
+ .hf-auth .phone-legacy { margin-top:20px; padding-top:14px; }
+ .hf-auth .auth-public-links { margin-top:16px; gap:4px 24px; }
+ html:lang(te) .hf-auth .auth-scene-copy h2 { font-size:24px; line-height:1.45; }
+ html:lang(te) .auth-page.ref-login.hf-auth .auth-welcome { font-size:26px; }
+}
+@media(max-width:360px) {
+ .auth-page.ref-login.hf-auth { margin-inline:12px; }
+ .auth-page.ref-login.hf-auth .auth-card { padding:20px 16px; }
+ .hf-auth .auth-scene-copy h2,html:lang(te) .hf-auth .auth-scene-copy h2 { font-size:22px; }
+ .hf-auth .auth-card-heading { gap:10px; }
+ .auth-page.ref-login.hf-auth .account-choice { font-size:12px; gap:7px; }
+}
+
+.hf-auth.auth-phone-disabled .phone-legacy { padding-top:0; border-top:0; }
+.hf-auth.auth-phone-disabled .phone-legacy>summary { min-height:52px; box-sizing:border-box; padding:14px 18px; border:1px solid #a9bf83; border-radius:14px; background:#e7f1cf; color:#173d34; }
+.hf-auth.auth-phone-disabled .phone-legacy[open]>summary { margin-bottom:18px; }

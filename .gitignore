@@ -64,3 +64,6 @@ outputs/
 .playwright-cli/
 .DS_Store
 Thumbs.db
+
+# Local browser QA artifacts
+output/

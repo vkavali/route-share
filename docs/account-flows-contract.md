@@ -1,0 +1,40 @@
+# Driver review, contributions and reviews
+
+These flows serve a member arranging a seat on a privately owned car's already-planned trip, and the staff member reviewing the owner's submitted evidence. They replace out-of-app document exchanges, unexplained contribution estimates and reviews that could not be found. A returning passenger must be able to see the current driver checks, the agreed contribution and what actually happened to their payment.
+
+Public phone-OTP signup/sign-in and required member onboarding are now implemented in source. The provider contract is [phone-auth-contract.md](phone-auth-contract.md); configuration and live activation gates are [phone-auth-release.md](phone-auth-release.md). Real SMS delivery, the actual MSG91 widget response contract and operator configuration remain unverified/unconfigured. Existing local fixture accounts remain separate.
+
+## Complete behavior
+
+1. A member saves their legal name, vehicle and declarations, uploads licence, RC, insurance and a selfie, and submits the application. Evidence is private. Submitting never grants approval. Expired documents and incomplete applications are rejected. The member sees the saved state and any requested corrections.
+2. Staff with `verify.review` retrieves each current document, explicitly records licence/RC/insurance/identity-match checks, and approves, rejects or requests corrections with a reason. Decisions are versioned, idempotent and audited. Approval expires at the earliest relevant document expiry. Staff can revoke it. This records human review of supplied evidence; it is not a police check, government authentication or guarantee of safety.
+3. Withdrawing evidence consent removes current evidence from the primary store and removes driving approval, including while review is pending. Audit/application records remain. Backup and SQLite WAL retention are separate operational responsibilities. Maintenance removes expired evidence after its retention window.
+4. An approved owner publishes a trip with the approved vehicle. Search, request, acceptance and start check current approval and the listed vehicle. A revoked or expired approval cannot continue admitting new passengers. Existing journeys retain cancellation/completion controls.
+5. The approved owner first declares total fuel/toll costs and a positive owner share for the trip. The passenger ceiling is declared costs minus that share. Proposals, agreements, disputed amounts and unconfirmed refunds reserve capacity under this aggregate ceiling, including legacy records; confirmed refunds and explicitly voided unpaid agreements release their reservation. Transactions prevent concurrent quotes exceeding the ceiling. On an accepted booking, the owner proposes a contribution, payee name and UPI ID in integer paise. The passenger explicitly agrees. The agreed amount and payee cannot be changed afterwards. The saved budget version remains attached to that agreement. Declarations are marked unverified: this is not receipt validation or an automatically calculated segment allocation.
+6. The passenger opens their UPI app or copies the exact payment details. Only the passenger's report followed by the owner's receipt confirmation changes the record to owner-confirmed. Neither opening a link nor returning from another app proves settlement. No money is transferred by the server.
+7. Participants can record disputes and refund requests; the owner reports a refund and the passenger confirms receipt. These are manual records, not automatic bank refunds. Cancellation or blocking removes new collection access but preserves applicable reconciliation actions.
+8. After both the passenger segment and trip complete, each participant may submit one immutable rating. A member sees their given/received reviews and journeys awaiting review. Driver profiles show completed-trip reviews; written comments are public only with explicit publication consent. Existing comments remain private. Averages appear after three valid reviews.
+9. Real phone members can enroll a client-generated recovery code after purpose-bound OTP reauthentication. Recovery needs that saved code and verification of the new phone, rotates the recovery code, revokes old sessions and disables contact sharing. Account deletion requires separate recent proof and refuses active travel/unresolved payments. It removes or minimizes current private data while retaining explicitly disclosed terminal history/safety facts and an abuse reservation. See [account-lifecycle-contract.md](account-lifecycle-contract.md) for exact boundaries. Ordinary OTP sign-in is not protected from phone-number recycling by this recovery feature.
+
+## State guarantees
+
+- APIs reload the current actor and enforce permissions; hidden buttons are not authorization.
+- SQLite transactions, versions and idempotency keys prevent stale decisions and duplicate payment transitions.
+- Private evidence, payee accounts and notes are stored separately from user and trip summaries. Public and operations projections allowlist fields.
+- Empty histories have usable empty states. Pending requests disable duplicate submits. Conflicts reload saved state before another decision. Failures never display success.
+- Web and native navigation expose verification, payments and reviews through Profile, with relevant booking actions and staff review access.
+- English and Telugu labels use the current design. SeatPal is the current display name; technical application identifiers remain unchanged.
+
+## Configuration and release boundaries
+
+`DIRECT_UPI_ENABLED=1` enables the participant agreement/manual-payment workflow. It defaults off; changing code does not enable collections in the live deployment. No payment processor, tax calculation, escrow, automatic bank reconciliation or automatic refund service has been introduced. The separately gated SMS adapter does not enable payments. Tests enable it only on isolated fixture databases; test amounts and documents are not customer data.
+
+Even when enabled, new collection requires both participants to be active non-development phone-authenticated members with verified valid Indian sign-in numbers. The owner also needs current human-reviewed approval and a matching listed vehicle. Budget mutation requires that same owner eligibility. Shared demo accounts cannot gain a real UPI link through their development approval. Losing new-collection eligibility does not by itself remove authorized manual reconciliation of prior agreements; role, session, participant and payment-state restrictions still apply, and no UPI link is exposed while ineligible.
+
+The four seeded identities remain development accounts. Public phone verification, individual member accounts, consent, required-name onboarding and the bounded lifecycle actions above exist in source; activation remains off until the real provider contract, SMS delivery, stable private identity key, message allowance and operator details are configured and verified. OTP establishes control of a phone number, not identity, age or driving eligibility. A staffed review/safety process, external retention/recovery procedures and a settled operating/payment policy remain launch requirements. Never present test fixture approval as identity verification.
+
+Native document selection, secure evidence download/sharing and copyable UPI details use new Expo modules. A fresh iOS binary is required; existing TestFlight build 3 does not contain the current account/phone changes. No commit, deployment, bank transfer or new TestFlight upload is implied by local validation.
+
+## Assumptions and deliberate exclusions
+
+The provisional payment model is an owner-proposed fuel/toll split accepted by the passenger, pending the user's choice between that and a calculated contribution. The scope is direct UPI, not a wallet. No platform commission, GST amount, fare formula, insurance coverage or police clearance is invented. Driver ratings describe completed user experiences, not a safety guarantee.

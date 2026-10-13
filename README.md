@@ -1,8 +1,12 @@
-# RouteShare
+# SeatPal — route sharing beta
 
-An India intercity route-sharing beta with a Flask/SQLite API, a browser client, and an Expo/React Native mobile client. Drivers publish planned trips; passengers search compatible routes and request seats. The server enforces booking decisions, segment capacity, permissions, and temporary foreground location-sharing rules.
+An India intercity route-sharing beta with a Flask/SQLite API, a browser client, and an Expo/React Native mobile client. Private vehicle owners publish trips they already planned; passengers find compatible routes and request a seat. The server saves booking decisions and enforces segment capacity, current driver approval, participant permissions and temporary foreground location sharing.
 
-Hosted web beta: https://route-share-beta.up.railway.app
+Current source includes public phone-OTP signup/sign-in, required profile and policy consent, private driver-document applications and staff review, participant contribution/payment acknowledgements, and completed-trip reviews. Members can enroll a saved recovery code, recover to a new verified phone, or request account deletion after resolving active travel/payment blockers and reauthenticating. Owner-declared expense budgets reserve contributions across the trip and require a positive owner share. Phone ownership is separate from driver approval; direct UPI records are manual acknowledgements, not bank settlement verification.
+
+Phone signup is implemented but **live activation is not configured or verified**: the MSG91 account/widget contract, real SMS delivery, stable private identity key, explicit message allowance and real operator contact must pass the gates in [docs/phone-auth-release.md](docs/phone-auth-release.md). `PHONE_AUTH_ENABLED` and `DIRECT_UPI_ENABLED` default off. SeatPal is the current display name; `APP_DISPLAY_NAME` controls the public policy-page label, not native identifiers or store metadata.
+
+Hosted web beta: https://route-share-beta.up.railway.app. Check the dated release evidence for the deployed source snapshot and activation status; the URL alone does not establish that this checkout is deployed or public signup is active.
 
 ## Run locally
 
@@ -37,7 +41,7 @@ npm run typecheck
 npm run start
 ```
 
-iOS and Android JavaScript exports are available through the npm scripts. An export is not a signed app binary. No completed TestFlight upload, native device journey, or App Store release is claimed; see [mobile/BUILD_EVIDENCE.md](mobile/BUILD_EVIDENCE.md).
+iOS and Android JavaScript exports are available through the npm scripts. An export is not a signed app binary. Existing TestFlight build 3 predates the current account/phone changes; they require a fresh native build and device verification. This README does not assert current Apple processing/review status or a production App Store release; see the dated evidence in [mobile/BUILD_EVIDENCE.md](mobile/BUILD_EVIDENCE.md).
 
 ## Hosted runtime
 
@@ -45,8 +49,12 @@ iOS and Android JavaScript exports are available through the npm scripts. An exp
 
 ## Scope and limits
 
-This is an invited beta, with public registration and payments disabled. Identity-provider behavior is a mock boundary. Map search, routes, and tiles depend on external services; their availability is not guaranteed. Location sharing is explicit, foreground-only, temporary, and is not emergency dispatch. No real-ride or customer-demand validation is claimed.
+The public phone-account implementation is separate from the existing password-protected development and staff identities. New payment collections require active, individually phone-verified non-development participants and a currently human-reviewed owner with the listed vehicle; shared demo approvals cannot unlock real UPI collection. Authorized reconciliation of earlier agreements remains separate. Local tests use an injected provider; they do not prove real SMS delivery or authorize production activation. New phone members receive no driving/staff privileges. Driver evidence review records a human decision, not government authentication, police clearance or insurance approval.
 
-Behavior and privacy decisions are in [docs/feature-behavior.md](docs/feature-behavior.md), [docs/beta-permission-contract.md](docs/beta-permission-contract.md), and [docs/adr-001-closed-beta.md](docs/adr-001-closed-beta.md).
+Map search, routes and tiles depend on external services; their availability is not guaranteed. Location sharing is explicit, foreground-only, temporary, and is not emergency dispatch. Expense budgets enforce a declared aggregate ceiling; they do not verify receipts, calculate a fair segment allocation or prove actual costs. Automatic bank settlement/refunds remain absent. Recovery requires a previously saved code; it does not protect ordinary OTP sign-in from reassigned phone numbers. Deletion retains disclosed terminal transaction/safety records and an abuse-prevention phone reservation. Chat views exclude messages older than 90 days, with bounded primary-store cleanup; backup and provider retention are separate. A staffed review/support process and settled operating policy remain launch requirements. No real-ride or customer-demand validation is claimed.
+
+Private SQLite snapshot and new-destination restore commands are documented in [docs/backup-restore.md](docs/backup-restore.md). A verified same-volume pre-deployment snapshot is a protective copy, not off-host disaster recovery.
+
+Current account behavior is documented in [docs/account-flows-contract.md](docs/account-flows-contract.md), [docs/phone-auth-contract.md](docs/phone-auth-contract.md), [docs/account-lifecycle-contract.md](docs/account-lifecycle-contract.md) and [docs/phone-auth-release.md](docs/phone-auth-release.md). Existing behavior and privacy decisions remain in [docs/feature-behavior.md](docs/feature-behavior.md) and [docs/beta-permission-contract.md](docs/beta-permission-contract.md). [docs/adr-001-closed-beta.md](docs/adr-001-closed-beta.md) and dated pilot-readiness research record earlier scope/findings; they do not supersede approved public signup/direct UPI or establish current launch readiness.
 
 Source, reproducible dependency lockfiles, and required runtime assets belong in this repository. Credentials, environment files, databases, dependency installs, local evidence/screenshots, generated exports, signing material, and agent caches are excluded. Bundled fonts/icons/vendor libraries retain their license and provenance files.

@@ -38,11 +38,23 @@ def login(client, account="driver"):
 
 
 def test_bootstrap_and_login_never_expose_password_hash(client):
+    def assert_no_credentials(value):
+        if isinstance(value, dict):
+            assert not {"password", "password_hash"}.intersection(key.lower() for key in value)
+            for nested in value.values():
+                assert_no_credentials(nested)
+        elif isinstance(value, list):
+            for nested in value:
+                assert_no_credentials(nested)
+        elif isinstance(value, str):
+            assert "correct-horse-battery" not in value
+            assert not value.startswith(("scrypt:", "pbkdf2:"))
+
     initial = client.get("/api/bootstrap").json
     assert initial["user"] is None
     assert initial["flags"]["public_registration_enabled"] is False
     assert initial["flags"]["paid_rides_enabled"] is False
-    assert "password" not in str(initial).lower()
+    assert_no_credentials(initial)
 
     response = client.post(
         "/api/login",
@@ -51,7 +63,7 @@ def test_bootstrap_and_login_never_expose_password_hash(client):
     )
     assert response.status_code == 200
     assert response.json["user"]["development"] is True
-    assert "password_hash" not in str(response.json)
+    assert_no_credentials(response.json)
     assert client.get("/api/bootstrap").json["user"]["id"] == "driver"
 
 

@@ -1,0 +1,98 @@
+/* Product-first landing. Landmarks are decorative miniatures, never route geography. */
+.public-landing{background:#f0f2e9}
+.public-landing .site-header{position:relative;z-index:5;margin-top:24px;padding:15px 24px;border:1px solid #fff;border-radius:22px;background:#fffefa;box-shadow:0 10px 34px -22px #173d3466}
+.public-landing .wordmark{font-size:29px}.public-landing .site-nav{gap:30px}
+.public-landing .layered-hero{position:relative;isolation:isolate;padding:42px 0 56px;background:#f0f2e9;overflow:hidden}
+.public-landing .hero-layout{display:grid;grid-template-columns:minmax(0,1.12fr) minmax(0,1fr);gap:70px;align-items:center}
+.public-landing .hero-copy{min-width:0;position:relative;z-index:2;color:var(--forest)}
+.public-landing .hero-copy h1{max-width:660px;font-size:clamp(58px,5.2vw,76px);font-weight:800;line-height:1.04;letter-spacing:-.065em}
+.public-landing .hero-copy .route-label{margin-bottom:24px;font-size:14px;font-weight:700;color:var(--sage)}
+.public-landing .hero-copy .hero-body{max-width:560px;color:#53685f;margin-top:26px;font-size:17px;line-height:1.75}
+.public-landing .hero-copy .hero-actions{margin-top:28px;gap:18px}.public-landing .hero-copy .beta-status{margin:0;font-size:13px;color:var(--sage)}
+.public-landing .hero-copy .primary{background:var(--forest);color:var(--white);min-height:54px}
+.public-landing .local-journey{position:relative;padding:38px 0 64px;min-width:0}
+
+.public-landing .landmark-layer{position:absolute;inset:0;z-index:4;pointer-events:none}
+.public-landing .landmark{position:absolute;width:132px;z-index:2;transform-origin:50% 90%}
+.public-landing .landmark img{display:block;width:100%;height:auto;object-fit:contain;filter:drop-shadow(0 9px 7px #23433216)}
+
+.public-landing .landmark-charminar{z-index:4;top:-30px;right:4px;width:100px;animation-delay:.1s}
+.public-landing .landmark-waterfall{bottom:0;left:4px;width:96px;animation-delay:.35s}
+.public-landing .landmark-rock{bottom:-2px;right:4px;width:96px;animation-delay:.55s}
+
+.public-landing .corridor-plate{position:relative;z-index:3;width:100%;padding:28px 30px 26px;color:var(--white);background:#163e34;border:1px solid #537163;border-radius:26px;box-shadow:0 24px 44px -22px #173d3460,0 3px 0 #ffffff15 inset}
+.public-landing .corridor-label{font-size:14px;letter-spacing:.01em;color:#dbe8d4;margin-bottom:24px;font-weight:650}
+.public-landing .corridor-stops{position:relative;padding-left:32px;margin-bottom:22px}
+.public-landing .corridor-stops:before{content:'';position:absolute;left:5px;top:16px;bottom:16px;width:1px;background:#8daf83}
+.public-landing .corridor-stops p{position:relative;font-size:27px;line-height:1.4;letter-spacing:-.025em;font-weight:700;margin:0}
+.public-landing .corridor-stops p+p{margin-top:26px}
+.public-landing .corridor-stops p:before{content:'';position:absolute;left:-32px;top:13px;width:11px;height:11px;border-radius:50%;background:var(--white);box-shadow:0 0 0 4px #163e34}
+.public-landing .corridor-stops p+p:before{background:var(--lime);border-radius:3px}
+
+.public-landing .corridor-note{color:#dce7d9;font-size:15px;line-height:1.65;margin:0}
+.public-landing .corridor-actions{display:flex;align-items:center;gap:20px;margin-top:24px;flex-wrap:wrap}
+.public-landing .corridor-actions .button{background:var(--lime);color:var(--forest);padding:12px 20px;min-height:50px}
+.public-landing .corridor-actions .text-link{font-size:14px;color:var(--white)}
+
+
+/* This foreground sheet is the transition from atmosphere to real instructions. */
+.public-landing .layered-guide{position:relative;z-index:4;margin-top:36px;padding:44px 48px 30px;background:var(--white);border:1px solid #e3e9dc;border-radius:32px;box-shadow:0 24px 52px -35px #173d345e}
+.public-landing .layered-guide .section-heading h2{max-width:550px;font-size:38px}
+.public-landing .layered-guide .role-heading{margin-top:34px}
+.public-landing .layered-guide .steps{gap:32px}
+.public-landing .layered-guide .steps li{border:0;padding-top:14px;position:relative}
+.public-landing .layered-guide .steps li:not(:last-child):after{content:'';position:absolute;top:35px;left:60px;right:0;height:1px;background:var(--line)}
+.public-landing .layered-guide .step-number{position:relative;z-index:1;background:#e7efda;box-shadow:0 0 0 7px var(--white);margin-bottom:24px}
+.public-landing .guide-availability{display:grid;grid-template-columns:1fr 2fr;gap:36px;border-top:1px solid var(--line);margin-top:32px;padding-top:24px}
+.public-landing .guide-availability h3{font-size:17px;letter-spacing:-.015em}
+.public-landing .guide-availability p{font-size:13px;color:var(--sage);margin:0}
+.public-landing .guide-availability p+p{margin-top:6px}
+.public-landing .facts-section{position:relative;margin-top:0;padding-block:76px;background:#163e34}
+.public-landing .facts-section:before{content:'';position:absolute;inset:0 0 auto;height:1px;background:#335649}
+.public-landing .facts-layout{gap:100px;grid-template-columns:1fr 1.25fr;align-items:center}
+.public-landing .facts-intro h2{max-width:420px;font-size:44px;line-height:1.15;margin-bottom:24px}
+.public-landing .facts-intro p{max-width:440px;color:#d7e3d2;font-size:16px}
+.public-landing .facts-list{padding:8px 28px;background:#224a3f;border:1px solid #426355;border-radius:24px;box-shadow:0 8px 24px -18px #081e17}
+.public-landing .facts-list article{padding:24px 0}.public-landing .facts-list article+article{margin:0;padding-top:24px;border-top:1px solid #52726388}
+.public-landing .facts-list h3{font-size:20px;color:#f7f8ef}.public-landing .facts-list p{font-size:15px;color:#d5e2d1}
+.public-landing .landing-questions{display:grid;grid-template-columns:1fr 1.4fr;gap:96px;padding-block:72px}
+.public-landing .landing-questions h2{max-width:390px;margin-bottom:22px}
+.public-landing .landing-answers{padding:0 24px;background:#fafbf5;border:1px solid #dbe4d4;border-radius:22px}
+.public-landing .landing-answers .faq-item:first-child{border-top:0}.public-landing .landing-answers .faq-item:last-child{border-bottom:0}
+.public-landing .landing-final{display:flex;align-items:center;justify-content:space-between;gap:48px;padding:42px 48px;background:var(--lime);border:1px solid #c8dc93;border-radius:26px;box-shadow:0 16px 36px -30px #173d3455}
+.public-landing .landing-final h2{max-width:680px;font-size:38px}.public-landing .landing-final p{margin:14px 0 0;max-width:650px;font-size:15px}.public-landing .landing-final>div:last-child{flex:none}.public-landing .landing-final .beta-status{font-size:12px;text-align:center}
+.public-landing .support-section{padding-block:54px}.public-landing .support-section h2{font-size:26px}.public-landing .support-section p{font-size:14px}.public-landing .site-footer{padding-top:24px}
+
+html[lang=te] .public-landing .hero-copy h1{font-size:clamp(48px,4.8vw,66px);line-height:1.4;letter-spacing:0;font-weight:700}
+html[lang=te] .public-landing .corridor-stops p{font-size:28px;line-height:1.5;letter-spacing:0}
+html[lang=te] .public-landing .facts-intro h2{line-height:1.5;letter-spacing:0;font-size:38px}
+@media(max-width:1100px){.public-landing .hero-layout{gap:42px;grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.public-landing .hero-copy h1{font-size:56px}.public-landing .corridor-plate{padding:26px 24px}.public-landing .corridor-stops p{font-size:24px}.public-landing .landmark-charminar{width:96px}.public-landing .landmark-waterfall{left:4px;width:90px}.public-landing .landmark-rock{right:4px;bottom:0;width:90px}.public-landing .layered-guide{padding:36px 32px 28px}.public-landing .layered-guide .section-heading h2{font-size:32px}.public-landing .facts-layout,.public-landing .landing-questions{gap:56px}.public-landing .landing-final{padding:36px}.public-landing .landing-final h2{font-size:32px}}
+@media(max-width:850px){.public-landing .hero-layout{grid-template-columns:minmax(0,1fr);gap:40px}.public-landing .hero-copy{max-width:640px}.public-landing .layered-hero{padding-top:32px;padding-bottom:44px}.public-landing .local-journey{width:440px;max-width:100%;margin:auto;padding-top:36px}.public-landing .landmark-charminar{right:4px;top:-30px}.public-landing .layered-guide .section-heading{display:flex;align-items:center}.public-landing .layered-guide .role-switch{margin:0}.public-landing .layered-guide .section-heading h2{max-width:350px;font-size:30px}.public-landing .facts-layout{gap:36px}.public-landing .facts-intro h2{font-size:34px}.public-landing .facts-list{padding-inline:20px}.public-landing .landing-final{gap:24px}.public-landing .landing-final h2{font-size:30px}}
+@media(max-width:700px){
+ .public-landing .site-header{width:calc(100% - 24px);margin-top:12px;padding:12px 14px 8px;border-radius:18px;gap:8px 12px}.public-landing .site-header .wordmark{font-size:25px}.public-landing .site-header .site-nav{gap:24px;padding-top:0}.public-landing .site-header .site-nav a{min-height:38px;font-size:13px}
+ .public-landing .layered-hero{padding-top:26px;padding-bottom:34px}.public-landing .hero-layout{gap:34px}.public-landing .hero-copy h1{font-size:clamp(42px,11.4vw,58px);line-height:1.06;letter-spacing:-.055em}.public-landing .hero-copy .route-label{font-size:13px;margin-bottom:18px}.public-landing .hero-copy .hero-body{font-size:16px;line-height:1.7;margin-top:20px}.public-landing .hero-copy .hero-actions{margin-top:22px;gap:16px}.public-landing .hero-copy .beta-status{font-size:12px}
+ .public-landing .local-journey{padding-top:30px;padding-bottom:56px}.public-landing .corridor-plate{padding:23px 22px;border-radius:23px}.public-landing .corridor-label{margin-bottom:20px;font-size:13px}.public-landing .corridor-stops p{font-size:24px}.public-landing .corridor-stops p+p{margin-top:22px}.public-landing .corridor-note{font-size:14px;line-height:1.7}.public-landing .corridor-actions{gap:16px;margin-top:20px}.public-landing .corridor-actions .text-link{font-size:13px}
+ .public-landing .landmark-charminar{top:-28px;right:2px;width:92px}.public-landing .landmark-waterfall{bottom:0;left:4px;width:80px}.public-landing .landmark-rock{bottom:0;right:4px;width:80px}
+ .public-landing .layered-guide{width:calc(100% - 24px);margin-top:24px;padding:28px 20px 24px;border-radius:26px;box-shadow:0 18px 40px -30px #173d3466}
+ .public-landing .layered-guide .section-heading{display:block}.public-landing .layered-guide .section-heading h2{max-width:430px;font-size:29px}.public-landing .layered-guide .role-switch{margin-top:20px}.public-landing .layered-guide .role-switch button{font-size:14px;min-height:48px;padding-inline:10px}.public-landing .layered-guide .role-heading{margin-top:24px}
+ .public-landing .layered-guide .steps li{padding-block:18px}.public-landing .layered-guide .steps li:not(:last-child):after{left:18px;right:auto;top:66px;bottom:0;height:auto;width:1px}.public-landing .layered-guide .step-number{margin-bottom:0;box-shadow:none}.public-landing .layered-guide .steps h3{font-size:19px}
+ .public-landing .guide-availability{display:block;padding-top:20px;margin-top:20px}.public-landing .guide-availability h3{margin-bottom:12px;font-size:17px}.public-landing .guide-availability p{font-size:12px;line-height:1.8}
+ .public-landing .facts-section{margin-top:0;padding-block:42px}.public-landing .facts-intro h2{font-size:34px;max-width:400px;margin-bottom:20px}.public-landing .facts-intro p{font-size:15px}.public-landing .facts-list{padding:0 20px;margin-top:24px;border-radius:20px}.public-landing .facts-list article{padding-block:22px}.public-landing .facts-list h3{font-size:19px}.public-landing .facts-list p{font-size:14px}
+ .public-landing .landing-questions{display:block;padding-block:42px}.public-landing .landing-questions h2{font-size:30px;margin-bottom:12px}.public-landing .landing-answers{padding-inline:18px;margin-top:22px;border-radius:20px}.public-landing .landing-answers .faq-item summary{font-size:15px}.public-landing .landing-answers .faq-answer{font-size:14px}
+ .public-landing .landing-final{display:block;padding:28px 24px;border-radius:23px}.public-landing .landing-final h2{font-size:31px}.public-landing .landing-final p{font-size:14px}.public-landing .landing-final>div:last-child{margin-top:22px}.public-landing .landing-final .beta-status{text-align:left;font-size:12px}.public-landing .support-section{padding-block:38px}.public-landing .support-section h2{font-size:24px}
+ html[lang=te] .public-landing .hero-copy h1{font-size:clamp(37px,10vw,46px);line-height:1.4;letter-spacing:0}html[lang=te] .public-landing .hero-copy .hero-body{line-height:1.85}html[lang=te] .public-landing .corridor-stops p{font-size:25px;line-height:1.6}html[lang=te] .public-landing .facts-intro h2{font-size:30px}
+}
+/* A single scroll-driven feature spine. Content remains complete without JavaScript. */
+.public-landing .feature-journey{padding-top:44px;padding-bottom:40px}
+.public-landing .journey-heading{max-width:760px;margin-bottom:44px}.public-landing .journey-heading .route-label{font-size:13px;color:var(--sage);margin-bottom:14px}.public-landing .journey-heading h2{font-size:46px;line-height:1.14;margin-bottom:18px}.public-landing .journey-heading>p:last-child{font-size:17px;color:var(--sage);max-width:640px}
+.public-landing .journey-layout{display:grid;grid-template-columns:220px minmax(0,1fr);gap:64px;align-items:start}
+.public-landing .journey-directory{position:sticky;top:24px;border-top:1px solid #d6dfcf;padding-top:12px}.public-landing .journey-directory summary{font-size:14px;font-weight:700;min-height:44px;cursor:pointer;padding-block:8px}.public-landing .journey-directory nav{display:grid;gap:2px;margin-top:10px}.public-landing .journey-directory a{display:flex;gap:12px;align-items:baseline;min-height:44px;padding:9px 8px;text-decoration:none;font-size:13px;line-height:1.55;color:#63786c;border-radius:8px}.public-landing .journey-directory a>span{font-size:11px;font-variant-numeric:tabular-nums;color:#799070;flex:none}.public-landing .journey-directory a[aria-current]{background:#e3ecd9;color:#173d34;font-weight:750}.public-landing .journey-directory a:hover{text-decoration:underline}
+.public-landing .journey-stops{position:relative;min-width:0}.public-landing .journey-track{position:absolute;z-index:0;left:19px;top:54px;bottom:54px;width:2px;background:#cdd9c5;pointer-events:none}.public-landing .journey-progress{position:absolute;inset:0;background:#48714e;transform:scaleY(1);transform-origin:top}.public-landing .journey-cursor{display:none;position:absolute;top:-7px;left:-6px;width:14px;height:14px;border-radius:50%;background:#bdd980;box-shadow:0 0 0 4px #f0f2e9}
+.public-landing .journey-enhanced .journey-cursor{display:block}.public-landing .feature-stop{position:relative;display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.2fr);gap:34px;padding:40px 0 48px 70px;min-height:270px;scroll-margin-top:calc(min(42vh,320px) - 56px)}.public-landing .feature-stop+.feature-stop{border-top:1px solid #e1e7db}.public-landing .feature-node{position:absolute;z-index:1;left:1px;top:37px;width:38px;height:38px;display:flex;align-items:center;justify-content:center;border:1px solid #c5d2ba;border-radius:50%;background:#fbfcf6;color:#617b59;font-size:12px;font-weight:700;font-variant-numeric:tabular-nums;box-shadow:0 0 0 6px #f0f2e9}.public-landing .feature-stop[data-reached] .feature-node{background:#e1edcf;border-color:#b5c99b}.public-landing .feature-stop[data-active] .feature-node{background:#173d34;color:#f7faf0;border-color:#173d34;box-shadow:0 0 0 6px #f0f2e9,0 8px 15px -8px #173d3466}.public-landing .feature-node svg{display:block;width:20px;height:20px}
+.public-landing .feature-title h3{font-size:29px;line-height:1.2;letter-spacing:-.035em;font-weight:750}.public-landing .feature-body{position:relative;isolation:isolate;padding-left:22px;min-width:0}.public-landing .feature-body:before{content:"";position:absolute;inset:-12px -12px -8px 8px;border:1px solid transparent;border-radius:14px;z-index:-1;pointer-events:none}.public-landing .feature-stop[data-active] .feature-body:before{background:#f8faf3;border-color:#e5ebde;box-shadow:0 12px 24px -22px #234b3855}.public-landing .feature-body>p{font-size:16px;line-height:1.8;color:#415e4f;margin-bottom:16px}.public-landing .feature-body .feature-status{padding:12px 14px;background:#e7eddf;border-left:3px solid #a4bc83;border-radius:0 8px 8px 0;color:#3e5848;font-size:14px;line-height:1.8}.public-landing .feature-body ul{padding-left:18px;margin:0 0 18px;font-size:14px;line-height:1.8;color:#64766b}.public-landing .feature-body li+li{margin-top:7px}.public-landing .feature-body .text-link{font-size:14px;gap:10px;min-height:44px}.public-landing .landing-final{margin-top:54px}
+html[lang=te] .public-landing .journey-heading h2{font-size:40px;line-height:1.4;letter-spacing:0}html[lang=te] .public-landing .feature-title h3{font-size:27px;line-height:1.5;letter-spacing:0;font-weight:700}
+@media(max-width:1100px){.public-landing .journey-layout{grid-template-columns:190px minmax(0,1fr);gap:32px}.public-landing .feature-stop{grid-template-columns:1fr;gap:20px;padding-left:64px}.public-landing .feature-body{padding-left:0}.public-landing .feature-body:before{left:-12px}.public-landing .feature-stop[data-active] .feature-title h3{color:#356347}}
+@media(max-width:900px){.public-landing .journey-layout{grid-template-columns:minmax(0,1fr);gap:24px}.public-landing .journey-directory{position:static;padding:10px 16px;background:#f9faf4;border:1px solid #d9e2d1;border-radius:12px}.public-landing .journey-directory nav{grid-template-columns:1fr 1fr;gap:2px 12px}.public-landing .feature-stop{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);gap:24px}.public-landing .journey-heading h2{font-size:39px}}
+@media(max-width:700px){.public-landing .feature-journey{padding-top:18px;padding-bottom:24px}.public-landing .journey-heading{margin-bottom:26px}.public-landing .journey-heading h2{font-size:32px;line-height:1.2}.public-landing .journey-heading>p:last-child{font-size:16px}.public-landing .journey-directory a{font-size:13px}.public-landing .journey-stops{margin-top:2px}.public-landing .journey-track{left:13px}.public-landing .feature-stop{display:block;padding:29px 0 32px 44px;min-height:0;scroll-margin-top:calc(min(42vh,320px) - 43px)}.public-landing .feature-node{left:0;top:29px;width:28px;height:28px;font-size:10px;box-shadow:0 0 0 5px #f0f2e9}.public-landing .feature-node svg{width:16px;height:16px}.public-landing .feature-title h3{font-size:25px;line-height:1.28;margin-bottom:18px}.public-landing .feature-body>p{font-size:16px;line-height:1.75}.public-landing .feature-body ul{font-size:14px;line-height:1.8}.public-landing .feature-body .text-link{font-size:14px}.public-landing .landing-final{margin-top:32px}html[lang=te] .public-landing .journey-heading h2{font-size:30px;line-height:1.45}html[lang=te] .public-landing .feature-title h3{font-size:24px;line-height:1.5}}
+@media(prefers-reduced-motion:reduce){.public-landing .journey-cursor{display:none!important}.public-landing .journey-progress{transform:scaleY(1)!important}}
+@media(prefers-reduced-motion:reduce){.public-landing *,.public-landing *:before,.public-landing *:after{animation:none!important;transition:none!important;scroll-behavior:auto!important}}
