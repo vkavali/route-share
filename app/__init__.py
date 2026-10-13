@@ -595,14 +595,28 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         return app.send_static_file("index.html")
 
     @app.get("/welcome")
+    @app.get("/welcome/latest")
+    @app.get("/welcome/previous")
     @app.get("/faq")
     def public_site():
         from .public_site import public_site_context
-        return render_template("public-site.html", **public_site_context(
+        from .public_site_latest import public_site_latest_context
+        args = dict(
             page="faq" if request.path == "/faq" else "landing",
             language=request.args.get("lang", "en"), app_name=app.config["APP_DISPLAY_NAME"],
             registration_enabled=phone_auth.enabled, payments_enabled=payment_service.enabled,
-            support_email=support_email, operator_configured=operator_configured))
+            support_email=support_email, operator_configured=operator_configured)
+        if request.path in {"/welcome", "/welcome/latest"}:
+            return render_template("public-site-latest.html", **public_site_latest_context(
+                landing_path=request.path, **args))
+        context = public_site_context(**args)
+        if request.path == "/welcome/previous":
+            lang = context["lang"]
+            context["links"].update(landing="/welcome/previous?lang=" + lang,
+                                    en="/welcome/previous?lang=en", te="/welcome/previous?lang=te")
+            context.update(comparison_url="/welcome/latest?lang=" + lang,
+                           comparison_label="Latest design" if lang == "en" else "కొత్త డిజైన్")
+        return render_template("public-site.html", **context)
 
     @app.get("/terms")
     @app.get("/privacy")

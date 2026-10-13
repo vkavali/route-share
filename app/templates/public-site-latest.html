@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="{{ lang }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="description" content="{{ copy.hero.body if page == 'landing' else copy.faq_intro }}">
+  <meta name="theme-color" content="#f6f5f0">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='assets/seatpal/seat.svg') }}">
+  <title>{{ copy.hero.title if page == 'landing' else copy.faq_title }} · {{ app_name }}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='public-site.css') }}">
+  {% if page == 'landing' %}<link rel="stylesheet" href="{{ url_for('static', filename='landing-latest.css') }}">{% endif %}
+  <script src="{{ url_for('static', filename='public-site-latest.js') }}" defer></script>
+  {% if page == 'landing' %}<script src="{{ url_for('static', filename='journey-scenes-latest.js') }}" defer></script>{% endif %}
+</head>
+<body class="public-site public-{{ page }}">
+  <a class="skip-link" href="#main">{{ copy.skip_content }}</a>
+  <header class="site-header wrap">
+    <a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a>
+    <nav class="site-nav" aria-label="{{ copy.nav_home }}">
+      {% if page == 'landing' %}<a class="how-link" href="#how-it-works">{{ copy.steps_title }}</a>{% else %}<a href="{{ links.landing }}">{{ copy.nav_home }}</a>{% endif %}
+      <a href="{{ links.faq }}" {% if page == 'faq' %}aria-current="page"{% endif %}>{{ copy.nav_faq }}</a>
+    </nav>
+    <div class="header-actions">
+      <div class="language-switch" role="group" aria-label="{{ copy.language_label }}">
+        <a href="{{ links.en }}" lang="en" {% if lang == 'en' %}aria-current="true"{% endif %}>EN</a>
+        <a href="{{ links.te }}" lang="te" {% if lang == 'te' %}aria-current="true"{% endif %}>తెలుగు</a>
+      </div>
+      <a class="button primary header-cta" href="{{ links.app }}#/login">{{ copy.nav_app }}</a>
+    </div>
+  </header>
+  <main id="main" tabindex="-1" {% if page == 'landing' %}data-five-stage-journey{% endif %}>
+  {% if page == 'landing' %}
+    <section class="layered-hero wrap" aria-labelledby="hero-title">
+      <div class="hero-intro"><p class="route-label">{{ copy.hero.eyebrow }}</p><h1 id="hero-title">{% for line in copy.five_stage.title %}<span>{{ line }}</span>{% endfor %}</h1><p class="hero-body">{{ copy.five_stage.body }}</p><div class="hero-actions"><a class="button primary" href="{{ links.app }}#/login">{{ copy.hero.cta }}</a><p class="beta-status">{{ copy.beta_status }}</p></div></div>
+      <div class="hero-route-object journey-object"><div class="seat-brand-stage" data-seat-brand>
+        <svg class="seat-brand-art" viewBox="0 0 520 300" role="img" aria-label="{{ copy.seat_brand.description }}">
+          <g class="seat-envelope seat-car" data-seat-car fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <path data-envelope-line pathLength="1" d="M78 207v-35q0-10 12-12l32-8 24-44q6-11 20-11h134q17 0 29 12l43 43 57 11q24 5 24 28v16h-36m-53 0H177m-51 0H78M143 152h206M270 102v50M102 176h16m300 4h19"/>
+            <circle cx="151" cy="211" r="27"/><circle cx="391" cy="211" r="27"/>
+            <path d="m294 146 11 36h28m-29-2v14h30" stroke="#8da093" stroke-width="6"/>
+          </g>
+          <g class="seat-envelope seat-bike" data-seat-bike fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
+            <g stroke="#284b3c" stroke-width="8"><circle cx="184" cy="231" r="31"/><circle cx="386" cy="231" r="31"/></g>
+            <g stroke-width="1.5"><circle cx="184" cy="231" r="20"/><circle cx="386" cy="231" r="20"/></g>
+            <path data-envelope-line pathLength="1" d="m184 231 44-36 51 1-22 35h-73m74 0 38-4 48-48-16-14m25-16 33 82M340 146l13-8h18m-171 47-30-1m108 62h59q11 0 18-9"/>
+            <path d="M301 164q17-16 34-3l16 16-25 15h-32z" fill="#b2c5af" stroke="#355d47"/>
+            <path d="M273 187h28" stroke="#174539" stroke-width="11"/>
+            <path d="m278 202 29-1 14 14-6 20h-39l-8-15z" fill="#527064" stroke="#174539"/>
+            <path d="M280 210h25m-24 7h25m-24 7h20" stroke="#e4ecd9" stroke-width="2.5"/>
+            <path d="m343 161 8 15 10-5-5-14z" fill="#d8eb9e" stroke="#174539"/>
+            <path d="m357 179 27 51m-1-35q18-1 28 12" stroke-width="5"/>
+            <path d="M244 237h99l10-5" stroke="#355d47" stroke-width="8"/>
+          </g>
+          <g class="seat-core" fill="#174539">
+            <g data-seat-back><path data-seat-headrest d="M176 71h15q8 0 10 8l4 13h-29l-4-12q-2-9 4-9Z"/><path d="M179 101h29l26 79h-27z"/></g>
+            <path data-seat-base d="M209 181h62v17q0 8-8 8h-43q-9 0-12-9l-5-14z"/>
+            <path class="seat-cushion" stroke="#174539" stroke-width="2.5" d="M218 177h46q10 0 10 10v5h-53q-11 0-13-9-1-6 10-6Z" fill="#D8EB9E"/>
+          </g>
+        </svg>
+        <div class="seat-brand-signature" aria-hidden="true">{{ app_name }}</div>
+        <button class="seat-replay" type="button" data-seat-replay hidden>{{ copy.seat_brand.replay }} <span aria-hidden="true">↻</span></button>
+      </div><div class="object-route"><p><span>{{ copy.dimension.from }}</span><strong>{{ copy.layered.origin }}</strong></p><div class="object-connector" aria-hidden="true"><i></i><b></b></div><p><span>{{ copy.dimension.to }}</span><strong>{{ copy.layered.destination }}</strong></p></div><p class="object-label">{{ copy.layered.corridor_label }}</p></div>
+      <div class="hero-baseline"><div class="vehicle-directions" aria-label="{{ copy.mobility.label }}"><span><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m5 10 3-6h16l3 6M3 11h26v8H3zM8 19v3m16-3v3M7 14h4m10 0h4"/></svg>{{ copy.mobility.car }}</span><span><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="6" cy="17" r="4.5"/><circle cx="26" cy="17" r="4.5"/><path d="m6 17 6-6h6l-4 6H6m8 0h5l5-7 2 7M21 5h4l1 12M11 9H7m10 3 3-4 3 2-3 3zM14 14h4v4h-4z"/><path d="M10 10h5" stroke-width="3"/></svg>{{ copy.mobility.bike }}</span></div><p class="mobility-note">{{ copy.mobility.note }}</p><a class="text-link" href="#features">{{ copy.five_stage.explore }} <span aria-hidden="true">↓</span></a></div>
+    </section>
+    <section class="feature-journey wrap" id="features" aria-label="{{ copy.journey.title }}" data-feature-journey>
+      <div class="journey-layout">
+        <details class="journey-directory" open><summary>{{ copy.journey.progress_label }}</summary><nav aria-label="{{ copy.journey.progress_label }}">{% for stage in copy.five_stage.stages %}<span class="directory-chapter">{{ '%02d'|format(loop.index) }} {{ stage.name }}</span>{% for stop in stage.features %}<a href="#feature-{{ stop.id }}" data-feature-link="{{ stop.id }}">{{ stop.title }}</a>{% endfor %}{% endfor %}</nav></details>
+        <div class="journey-stops"><nav class="journey-passport" aria-label="{{ copy.five_stage.explore }}"><div class="passport-route" aria-hidden="true"><span>{{ copy.layered.origin }}</span><i>↔</i><span>{{ copy.layered.destination }}</span></div><div class="passport-chapters">{% for stage in copy.five_stage.stages %}<a href="#stage-{{ stage.id }}" data-stage-jump="{{ stage.id }}" aria-label="{{ stage.name }}"><span aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>{{ stage.nav_label|default(stage.name) }}</a>{% endfor %}</div><div class="passport-progress" aria-hidden="true"><span></span></div></nav><div class="journey-track" aria-hidden="true"><span class="journey-progress"></span><span class="journey-cursor"></span></div>
+        {% for stage in copy.five_stage.stages %}<section class="journey-stage stage-{{ stage.id }}" id="stage-{{ stage.id }}" data-journey-stage="{{ stage.id }}" aria-labelledby="stage-title-{{ stage.id }}">
+          <header class="stage-heading"><span class="stage-step">{{ '%02d'|format(loop.index) }} / {{ stage.name }}</span><h2 id="stage-title-{{ stage.id }}">{{ stage.title }}</h2><p>{{ stage.body }}</p></header>
+          <div class="stage-scene scene-{{ stage.id }}">
+          {% if stage.id == 'find' %}
+            <figure class="ride-story" data-ride-story aria-labelledby="ride-story-title" aria-description="{{ copy.five_stage.merge_description }}">
+              <figcaption id="ride-story-title">{{ copy.five_stage.shared_way }}</figcaption>
+              <div class="story-role-key"><span><i class="role-driver" aria-hidden="true"></i>{{ copy.five_stage.ride_story.driver }}</span><span><i class="role-passenger" aria-hidden="true"></i>{{ copy.five_stage.ride_story.passenger }}</span></div>
+              <div class="ride-story-scene">
+                <svg class="ride-story-art" viewBox="0 0 160 460" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+                  <defs><linearGradient id="story-sage" x1="54" x2="69" gradientUnits="userSpaceOnUse"><stop stop-color="#a3b58c"/><stop offset=".5" stop-color="#d4dfbe"/><stop offset="1" stop-color="#a6b992"/></linearGradient><linearGradient id="story-forest" x1="54" x2="78" gradientUnits="userSpaceOnUse"><stop stop-color="#204732"/><stop offset=".5" stop-color="#527657"/><stop offset="1" stop-color="#2a5139"/></linearGradient><filter id="story-shadow" x="-100%" y="-20%" width="300%" height="150%"><feGaussianBlur stdDeviation="2"/></filter></defs>
+                  <rect x="16" y="137" width="132" height="176" rx="22" fill="#e9efdc"/>
+                  <path d="M60 26 C58 67 60 96 60 137 C64 189 64 261 60 313 C58 356 60 395 60 429" transform="translate(2 3)" stroke="#173a25" opacity=".12" stroke-width="16" fill="none" filter="url(#story-shadow)"/>
+                  <path data-owner-path d="M60 26 C58 67 60 96 60 137 C64 189 64 261 60 313 C58 356 60 395 60 429" stroke="#adc198" stroke-width="12" fill="none" stroke-linecap="round"/>
+                  <path d="M60 137 C64 189 64 261 60 313" stroke="#355f43" stroke-width="12" fill="none" stroke-linecap="round"/>
+                  <path d="M121 137 H60 M60 313 H121" stroke="#8a9a73" stroke-width="1.5" stroke-dasharray="3 4" fill="none"/>
+                  <g fill="#f8faf1" stroke="#56704b" stroke-width="2"><circle cx="60" cy="26" r="5"/><circle cx="60" cy="137" r="6"/><circle cx="60" cy="313" r="6"/><circle cx="60" cy="429" r="5"/></g>
+                  <g class="story-person-token story-driver" data-story-driver transform="translate(63 225)"><circle r="19" fill="#244d36" stroke="#f7f9ef" stroke-width="2"/><circle cy="-6" r="5" fill="white"/><path d="M-8 10V5a8 8 0 0 1 16 0v5z" fill="white"/></g>
+                  <g class="story-person-token story-passenger" data-story-passenger transform="translate(107 225)"><rect x="-18" y="-18" width="36" height="36" rx="8" fill="#e1ecbd" stroke="#597344" stroke-width="1.5"/><circle cy="-6" r="5" fill="#315035"/><path d="M-8 10V5a8 8 0 0 1 16 0v5z" fill="#315035"/></g>
+                </svg>
+                <div class="ride-story-labels"><div class="story-origin"><strong>{{ copy.layered.origin }}</strong><span>{{ copy.five_stage.ride_story.owner }}</span></div><div class="story-pickup"><strong>{{ copy.five_stage.ride_story.pickup }}</strong><span>{{ copy.five_stage.ride_story.join }}</span></div><p class="story-shared">{{ copy.five_stage.ride_story.shared }}</p><div class="story-dropoff"><strong>{{ copy.five_stage.ride_story.dropoff }}</strong><span>{{ copy.five_stage.ride_story.leave }}</span></div><div class="story-destination"><strong>{{ copy.layered.destination }}</strong><span>{{ copy.five_stage.ride_story.continues }}</span></div></div>
+              </div>
+              <div class="story-footer"><p>{{ copy.five_stage.ride_story.caption }}</p><button type="button" data-story-replay hidden>{{ copy.five_stage.ride_story.replay }} <span aria-hidden="true">↻</span></button></div>
+            </figure>
+          {% elif stage.id == 'check' %}
+            <div class="check-profile"><div class="profile-outline" aria-hidden="true"><span></span><i></i></div><ol>{% for item in copy.five_stage.checklist %}<li><span aria-hidden="true">{{ '%02d'|format(loop.index) }}</span>{{ item }}</li>{% endfor %}</ol></div><p class="diagram-caption">{{ copy.five_stage.example }}</p>
+          {% elif stage.id == 'agree' %}
+            <div data-agreement-demo><p class="diagram-caption">{{ copy.five_stage.example }}</p><div class="example-switch" data-example-controls hidden><button type="button" data-agreement-state="pending">{{ copy.five_stage.pending }}</button><button type="button" data-agreement-state="accepted">{{ copy.five_stage.accepted }}</button></div><div class="agreement-panel" data-agreement-panel="pending"><span class="agreement-symbol" aria-hidden="true">···</span><div><h3>{{ copy.five_stage.pending_title }}</h3><p>{{ copy.five_stage.pending_body }}</p></div></div><div class="agreement-panel" data-agreement-panel="accepted"><span class="agreement-symbol" aria-hidden="true">↔</span><div><h3>{{ copy.five_stage.accepted_title }}</h3><p>{{ copy.five_stage.accepted_body }}</p></div></div></div>
+          {% elif stage.id == 'meet' %}
+            <div data-location-demo><p class="diagram-caption">{{ copy.five_stage.example }}</p><div class="example-switch" data-example-controls hidden><button type="button" data-location-state="stopped">{{ copy.five_stage.stopped }}</button><button type="button" data-location-state="sharing">{{ copy.five_stage.sharing }}</button></div><div class="sharing-panel" data-location-panel="stopped"><div class="sharing-window" aria-hidden="true"><i></i><span></span><i></i></div><h3>{{ copy.five_stage.stopped_title }}</h3><p>{{ copy.five_stage.stopped_body }}</p></div><div class="sharing-panel" data-location-panel="sharing"><div class="sharing-window window-open" aria-hidden="true"><i></i><span></span><i></i></div><h3>{{ copy.five_stage.sharing_title }}</h3><p>{{ copy.five_stage.sharing_body }}</p></div></div>
+          {% else %}<ol class="arrival-sequence">{% for item in copy.five_stage.finish %}<li><span aria-hidden="true">{{ loop.index }}</span><strong>{{ item }}</strong></li>{% endfor %}</ol><p class="diagram-caption">{{ copy.five_stage.example }}</p>{% endif %}
+          </div>
+          <div class="stage-features">{% for stop in stage.features %}<section class="feature-stop" id="feature-{{ stop.id }}" data-feature-stop="{{ stop.id }}" aria-labelledby="feature-title-{{ stop.id }}">
+            <span class="feature-node" aria-hidden="true"><!-- Phosphor 2.1.1 paths reused from static/icons.js. -->{% if stop.id == 'plan' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M200,168a32.06,32.06,0,0,0-31,24H72a32,32,0,0,1,0-64h96a40,40,0,0,0,0-80H72a8,8,0,0,0,0,16h96a24,24,0,0,1,0,48H72a48,48,0,0,0,0,96h97a32,32,0,1,0,31-40Zm0,48a16,16,0,1,1,16-16A16,16,0,0,1,200,216Z"/></svg>{% elif stop.id == 'offer' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M240,112H211.31L168,68.69A15.86,15.86,0,0,0,156.69,64H44.28A16,16,0,0,0,31,71.12L1.34,115.56A8.07,8.07,0,0,0,0,120v48a16,16,0,0,0,16,16H33a32,32,0,0,0,62,0h66a32,32,0,0,0,62,0h17a16,16,0,0,0,16-16V128A16,16,0,0,0,240,112ZM44.28,80H156.69l32,32H23ZM64,192a16,16,0,1,1,16-16A16,16,0,0,1,64,192Zm128,0a16,16,0,1,1,16-16A16,16,0,0,1,192,192Z"/></svg>{% elif stop.id == 'driver' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M230.93,220a8,8,0,0,1-6.93,4H32a8,8,0,0,1-6.92-12c15.23-26.33,38.7-45.21,66.09-54.16a72,72,0,1,1,73.66,0c27.39,8.95,50.86,27.83,66.09,54.16A8,8,0,0,1,230.93,220Z"/></svg>{% elif stop.id == 'request' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm45.66,85.66-56,56a8,8,0,0,1-11.32,0l-24-24a8,8,0,0,1,11.32-11.32L112,148.69l50.34-50.35a8,8,0,0,1,11.32,11.32Z"/></svg>{% elif stop.id == 'chat' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M140,128a12,12,0,1,1-12-12A12,12,0,0,1,140,128ZM84,116a12,12,0,1,0,12,12A12,12,0,0,0,84,116Zm88,0a12,12,0,1,0,12,12A12,12,0,0,0,172,116Zm60,12A104,104,0,0,1,79.12,219.82L45.07,231.17a16,16,0,0,1-20.24-20.24l11.35-34.05A104,104,0,1,1,232,128Zm-16,0A88,88,0,1,0,51.81,172.06a8,8,0,0,1,.66,6.54L40,216,77.4,203.53a7.85,7.85,0,0,1,2.53-.42,8,8,0,0,1,4,1.08A88,88,0,0,0,216,128Z"/></svg>{% elif stop.id == 'live' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M128,16a88.1,88.1,0,0,0-88,88c0,75.3,80,132.17,83.41,134.55a8,8,0,0,0,9.18,0C136,236.17,216,179.3,216,104A88.1,88.1,0,0,0,128,16Zm0,56a32,32,0,1,1-32,32A32,32,0,0,1,128,72Z"/></svg>{% elif stop.id == 'costs' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M220,169.09l-92,53.65L36,169.09A8,8,0,0,0,28,182.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,169.09Z"/><path d="M220,121.09l-92,53.65L36,121.09A8,8,0,0,0,28,134.91l96,56a8,8,0,0,0,8.06,0l96-56A8,8,0,1,0,220,121.09Z"/><path d="M28,86.91l96,56a8,8,0,0,0,8.06,0l96-56a8,8,0,0,0,0-13.82l-96-56a8,8,0,0,0-8.06,0l-96,56a8,8,0,0,0,0,13.82Z"/></svg>{% elif stop.id == 'reviews' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M234.29,114.85l-45,38.83L203,211.75a16.4,16.4,0,0,1-24.5,17.82L128,198.49,77.47,229.57A16.4,16.4,0,0,1,53,211.75l13.76-58.07-45-38.83A16.46,16.46,0,0,1,31.08,86l59-4.76,22.76-55.08a16.36,16.36,0,0,1,30.27,0l22.75,55.08,59,4.76a16.46,16.46,0,0,1,9.37,28.86Z"/></svg>{% elif stop.id == 'account' %}<svg width="20" height="20" focusable="false" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" fill="currentColor"><path d="M208,80H176V56a48,48,0,0,0-96,0V80H48A16,16,0,0,0,32,96V208a16,16,0,0,0,16,16H208a16,16,0,0,0,16-16V96A16,16,0,0,0,208,80Zm-72,78.63V184a8,8,0,0,1-16,0V158.63a24,24,0,1,1,16,0ZM160,80H96V56a32,32,0,0,1,64,0Z"/></svg>{% endif %}</span>
+            <div class="feature-title"><h3 id="feature-title-{{ stop.id }}">{{ stop.title }}</h3></div>
+            <div class="feature-body"><p>{{ stop.body }}</p>{% if stop.status %}<p class="feature-status">{{ stop.status }}</p>{% endif %}<details class="feature-notes"><summary>{{ copy.dimension.notes }}</summary><ul>{% for detail in stop.details %}<li>{{ detail }}</li>{% endfor %}</ul></details><a class="text-link" href="{{ stop.href }}">{{ stop.link_label }}<span aria-hidden="true">↗</span></a></div>
+          </section>{% endfor %}</div>
+        </section>{% endfor %}</div>
+      </div>
+    </section>
+    <section class="how-section wrap section-space layered-guide" id="how-it-works" aria-labelledby="steps-title" data-role-guide>
+      <div class="section-heading"><h2 id="steps-title">{{ copy.journey_steps_title }}</h2>
+        <div class="role-switch" role="tablist" aria-label="{{ copy.role_switch_label }}" data-role-switch hidden>
+          <button type="button" role="tab" id="rider-tab" aria-controls="rider-steps" aria-selected="true" tabindex="0" data-role-tab="rider">{{ copy.role_rider }}</button>
+          <button type="button" role="tab" id="owner-tab" aria-controls="owner-steps" aria-selected="false" tabindex="-1" data-role-tab="owner">{{ copy.role_owner }}</button>
+        </div>
+      </div>
+      <section id="rider-steps" class="role-panel" data-role-panel="rider" aria-labelledby="rider-heading"><h3 id="rider-heading" class="role-heading">{{ copy.layered.rider_heading }}</h3><ol class="steps">
+        {% for step in copy.steps %}<li><span class="step-number" aria-hidden="true">{{ loop.index }}</span><div><h3>{{ step.title }}</h3><p>{{ step.body }}</p></div></li>{% endfor %}
+      </ol></section>
+      <section id="owner-steps" class="role-panel" data-role-panel="owner" aria-labelledby="owner-heading"><h3 id="owner-heading" class="role-heading">{{ copy.layered.owner_heading }}</h3><ol class="steps">
+        {% for step in copy.owner_steps %}<li><span class="step-number" aria-hidden="true">{{ loop.index }}</span><div><h3>{{ step.title }}</h3><p>{{ step.body }}</p></div></li>{% endfor %}
+      </ol></section>
+      <div class="guide-availability"><h3>{{ copy.availability.title }}</h3><div><p>{{ copy.availability.registration }}</p><p>{{ copy.availability.payments }}</p></div></div>
+    </section>
+    <section class="landing-final wrap" aria-labelledby="final-title"><div><h2 id="final-title">{{ copy.layered.final_title }}</h2><p>{{ copy.layered.final_body }}</p></div><div><a class="button primary" href="{{ links.app }}#/login">{{ copy.hero.cta }}</a><p class="beta-status">{{ copy.beta_status }}</p></div></section>
+  {% else %}
+    <div class="wrap faq-intro"><a class="text-link" href="{{ links.landing }}">{{ copy.nav_home }}</a><h1>{{ copy.faq_title }}</h1><p>{{ copy.faq_intro }}</p></div>
+    <div class="wrap faq-layout">
+      <aside class="faq-directory"><p class="directory-label">{{ copy.faq_categories_label }}</p><nav aria-label="{{ copy.faq_title }}">{% for group in copy.faq_groups %}<a href="#{{ group.id }}" data-category-link="{{ group.id }}">{{ group.title }}<span aria-hidden="true">{{ group['items']|length }}</span></a>{% endfor %}</nav></aside>
+      <div class="faq-content" data-faq-root data-count-label="{{ copy.faq_result_count }}">
+        <form class="faq-search" role="search" data-faq-search hidden>
+          <label for="faq-query">{{ copy.faq_search_label }}</label>
+          <div class="search-controls"><input id="faq-query" type="search" name="q" autocomplete="off" placeholder="{{ copy.faq_search_placeholder }}" aria-controls="faq-answers"><button class="button secondary" type="reset">{{ copy.faq_reset }}</button></div>
+          <p class="search-status" role="status" aria-live="polite" aria-atomic="true" data-faq-status></p>
+        </form>
+        <p class="faq-empty" data-faq-empty hidden>{{ copy.faq_no_results }}</p>
+        <div id="faq-answers">{% for group in copy.faq_groups %}
+          <section class="faq-group" id="{{ group.id }}" data-faq-group aria-labelledby="title-{{ group.id }}"><h2 id="title-{{ group.id }}">{{ group.title }}</h2>
+            {% for item in group['items'] %}<details id="q-{{ group.id }}-{{ loop.index }}" class="faq-item" data-faq-item><summary>{{ item.question }}</summary><div class="faq-answer"><p>{{ item.answer }}</p></div></details>{% endfor %}
+          </section>{% endfor %}
+        </div>
+      </div>
+    </div>
+  {% endif %}
+    <section class="support-section wrap" aria-labelledby="support-title"><h2 id="support-title">{{ copy.support_title }}</h2><div>{% if operator_configured and support_email %}<p>{{ copy.support_body }}</p><a class="text-link" href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}<p class="muted">{{ copy.support_unavailable }}</p>{% endif %}</div></section>
+  </main>
+  <footer class="site-footer wrap"><div><a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a><p>{{ copy.footer_note }}</p></div><nav aria-label="{{ copy.terms_label }}"><a href="{{ links.faq }}">{{ copy.nav_faq }}</a><a href="{{ links.terms }}">{{ copy.terms_label }}</a><a href="{{ links.privacy }}">{{ copy.privacy_label }}</a><a href="{{ links.app }}#/login">{{ copy.nav_app }}</a>{% if comparison_url %}<a href="{{ comparison_url }}">{{ comparison_label }}</a>{% endif %}</nav></footer>
+</body>
+</html>
