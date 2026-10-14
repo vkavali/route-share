@@ -27,11 +27,13 @@ def test_variants_language_links_assets_and_no_session(public_app, path, lang):
         assert '/static/landing-layered.css' in html and '/static/landing-latest.css' not in html
     else:
         assert f'href="/welcome/previous?lang={lang}"' in html
-        assert 'data-seat-brand' in html and 'data-ride-story' in html
+        assert 'data-seatpal-brand' in html and 'data-ride-story' in html
+        assert '/static/seatpal-landing-brand.css' in html
+        assert '/static/seatpal-landing-brand.js' in html
         assert html.count('data-journey-stage=') == 5
         for key in ('plan', 'offer', 'driver', 'request', 'chat', 'live', 'costs', 'reviews', 'account'):
             assert f'id="feature-{key}"' in html
-        assert '/static/assets/seatpal/seat.svg' in html
+        assert '/static/assets/seatpal/seatpal-mark.svg' in html
         assert '/static/landing-latest.css' in html and '/static/journey-scenes-latest.js' in html
         assert 'seatpal-seat.svg' not in html
     for asset in set(re.findall(r'(?:src|href)="(/static/[^"?#]+)', html)):

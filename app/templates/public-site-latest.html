@@ -5,17 +5,17 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="description" content="{{ copy.hero.body if page == 'landing' else copy.faq_intro }}">
   <meta name="theme-color" content="#f6f5f0">
-  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='assets/seatpal/seat.svg') }}">
+  <link rel="icon" type="image/svg+xml" href="{{ url_for('static', filename='assets/seatpal/seatpal-mark.svg' if page == 'landing' else 'assets/seatpal/seat.svg') }}">
   <title>{{ copy.hero.title if page == 'landing' else copy.faq_title }} · {{ app_name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='public-site.css') }}">
-  {% if page == 'landing' %}<link rel="stylesheet" href="{{ url_for('static', filename='landing-latest.css') }}">{% endif %}
+  {% if page == 'landing' %}<link rel="stylesheet" href="{{ url_for('static', filename='landing-latest.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='seatpal-landing-brand.css') }}"><script src="{{ url_for('static', filename='seatpal-landing-brand.js') }}" defer></script>{% endif %}
   <script src="{{ url_for('static', filename='public-site-latest.js') }}" defer></script>
   {% if page == 'landing' %}<script src="{{ url_for('static', filename='journey-scenes-latest.js') }}" defer></script>{% endif %}
 </head>
 <body class="public-site public-{{ page }}">
   <a class="skip-link" href="#main">{{ copy.skip_content }}</a>
   <header class="site-header wrap">
-    <a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a>
+    <a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seatpal-mark.svg' if page == 'landing' else 'assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a>
     <nav class="site-nav" aria-label="{{ copy.nav_home }}">
       {% if page == 'landing' %}<a class="how-link" href="#how-it-works">{{ copy.steps_title }}</a>{% else %}<a href="{{ links.landing }}">{{ copy.nav_home }}</a>{% endif %}
       <a href="{{ links.faq }}" {% if page == 'faq' %}aria-current="page"{% endif %}>{{ copy.nav_faq }}</a>
@@ -32,34 +32,7 @@
   {% if page == 'landing' %}
     <section class="layered-hero wrap" aria-labelledby="hero-title">
       <div class="hero-intro"><p class="route-label">{{ copy.hero.eyebrow }}</p><h1 id="hero-title">{% for line in copy.five_stage.title %}<span>{{ line }}</span>{% endfor %}</h1><p class="hero-body">{{ copy.five_stage.body }}</p><div class="hero-actions"><a class="button primary" href="{{ links.app }}#/login">{{ copy.hero.cta }}</a><p class="beta-status">{{ copy.beta_status }}</p></div></div>
-      <div class="hero-route-object journey-object"><div class="seat-brand-stage" data-seat-brand>
-        <svg class="seat-brand-art" viewBox="0 0 520 300" role="img" aria-label="{{ copy.seat_brand.description }}">
-          <g class="seat-envelope seat-car" data-seat-car fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-            <path data-envelope-line pathLength="1" d="M78 207v-35q0-10 12-12l32-8 24-44q6-11 20-11h134q17 0 29 12l43 43 57 11q24 5 24 28v16h-36m-53 0H177m-51 0H78M143 152h206M270 102v50M102 176h16m300 4h19"/>
-            <circle cx="151" cy="211" r="27"/><circle cx="391" cy="211" r="27"/>
-            <path d="m294 146 11 36h28m-29-2v14h30" stroke="#8da093" stroke-width="6"/>
-          </g>
-          <g class="seat-envelope seat-bike" data-seat-bike fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round">
-            <g stroke="#284b3c" stroke-width="8"><circle cx="184" cy="231" r="31"/><circle cx="386" cy="231" r="31"/></g>
-            <g stroke-width="1.5"><circle cx="184" cy="231" r="20"/><circle cx="386" cy="231" r="20"/></g>
-            <path data-envelope-line pathLength="1" d="m184 231 44-36 51 1-22 35h-73m74 0 38-4 48-48-16-14m25-16 33 82M340 146l13-8h18m-171 47-30-1m108 62h59q11 0 18-9"/>
-            <path d="M301 164q17-16 34-3l16 16-25 15h-32z" fill="#b2c5af" stroke="#355d47"/>
-            <path d="M273 187h28" stroke="#174539" stroke-width="11"/>
-            <path d="m278 202 29-1 14 14-6 20h-39l-8-15z" fill="#527064" stroke="#174539"/>
-            <path d="M280 210h25m-24 7h25m-24 7h20" stroke="#e4ecd9" stroke-width="2.5"/>
-            <path d="m343 161 8 15 10-5-5-14z" fill="#d8eb9e" stroke="#174539"/>
-            <path d="m357 179 27 51m-1-35q18-1 28 12" stroke-width="5"/>
-            <path d="M244 237h99l10-5" stroke="#355d47" stroke-width="8"/>
-          </g>
-          <g class="seat-core" fill="#174539">
-            <g data-seat-back><path data-seat-headrest d="M176 71h15q8 0 10 8l4 13h-29l-4-12q-2-9 4-9Z"/><path d="M179 101h29l26 79h-27z"/></g>
-            <path data-seat-base d="M209 181h62v17q0 8-8 8h-43q-9 0-12-9l-5-14z"/>
-            <path class="seat-cushion" stroke="#174539" stroke-width="2.5" d="M218 177h46q10 0 10 10v5h-53q-11 0-13-9-1-6 10-6Z" fill="#D8EB9E"/>
-          </g>
-        </svg>
-        <div class="seat-brand-signature" aria-hidden="true">{{ app_name }}</div>
-        <button class="seat-replay" type="button" data-seat-replay hidden>{{ copy.seat_brand.replay }} <span aria-hidden="true">↻</span></button>
-      </div><div class="object-route"><p><span>{{ copy.dimension.from }}</span><strong>{{ copy.layered.origin }}</strong></p><div class="object-connector" aria-hidden="true"><i></i><b></b></div><p><span>{{ copy.dimension.to }}</span><strong>{{ copy.layered.destination }}</strong></p></div><p class="object-label">{{ copy.layered.corridor_label }}</p></div>
+      <div class="hero-route-object journey-object">{% include "_seatpal-landing-brand.html" %}<div class="object-route"><p><span>{{ copy.dimension.from }}</span><strong>{{ copy.layered.origin }}</strong></p><div class="object-connector" aria-hidden="true"><i></i><b></b></div><p><span>{{ copy.dimension.to }}</span><strong>{{ copy.layered.destination }}</strong></p></div><p class="object-label">{{ copy.layered.corridor_label }}</p></div>
       <div class="hero-baseline"><div class="vehicle-directions" aria-label="{{ copy.mobility.label }}"><span><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><path d="m5 10 3-6h16l3 6M3 11h26v8H3zM8 19v3m16-3v3M7 14h4m10 0h4"/></svg>{{ copy.mobility.car }}</span><span><svg viewBox="0 0 32 24" fill="none" stroke="currentColor" stroke-width="1.7" aria-hidden="true"><circle cx="6" cy="17" r="4.5"/><circle cx="26" cy="17" r="4.5"/><path d="m6 17 6-6h6l-4 6H6m8 0h5l5-7 2 7M21 5h4l1 12M11 9H7m10 3 3-4 3 2-3 3zM14 14h4v4h-4z"/><path d="M10 10h5" stroke-width="3"/></svg>{{ copy.mobility.bike }}</span></div><p class="mobility-note">{{ copy.mobility.note }}</p><a class="text-link" href="#features">{{ copy.five_stage.explore }} <span aria-hidden="true">↓</span></a></div>
     </section>
     <section class="feature-journey wrap" id="features" aria-label="{{ copy.journey.title }}" data-feature-journey>
@@ -142,6 +115,6 @@
   {% endif %}
     <section class="support-section wrap" aria-labelledby="support-title"><h2 id="support-title">{{ copy.support_title }}</h2><div>{% if operator_configured and support_email %}<p>{{ copy.support_body }}</p><a class="text-link" href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}<p class="muted">{{ copy.support_unavailable }}</p>{% endif %}</div></section>
   </main>
-  <footer class="site-footer wrap"><div><a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a><p>{{ copy.footer_note }}</p></div><nav aria-label="{{ copy.terms_label }}"><a href="{{ links.faq }}">{{ copy.nav_faq }}</a><a href="{{ links.terms }}">{{ copy.terms_label }}</a><a href="{{ links.privacy }}">{{ copy.privacy_label }}</a><a href="{{ links.app }}#/login">{{ copy.nav_app }}</a>{% if comparison_url %}<a href="{{ comparison_url }}">{{ comparison_label }}</a>{% endif %}</nav></footer>
+  <footer class="site-footer wrap"><div><a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seatpal-mark.svg' if page == 'landing' else 'assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a><p>{{ copy.footer_note }}</p></div><nav aria-label="{{ copy.terms_label }}"><a href="{{ links.faq }}">{{ copy.nav_faq }}</a><a href="{{ links.terms }}">{{ copy.terms_label }}</a><a href="{{ links.privacy }}">{{ copy.privacy_label }}</a><a href="{{ links.app }}#/login">{{ copy.nav_app }}</a>{% if comparison_url %}<a href="{{ comparison_url }}">{{ comparison_label }}</a>{% endif %}</nav></footer>
 </body>
 </html>

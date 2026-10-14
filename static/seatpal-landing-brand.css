@@ -1,0 +1,62 @@
+.public-landing .wordmark {
+  color: #202a32;
+  font-family: Manrope, sans-serif;
+  font-weight: 700;
+}
+
+.sp-seatpal-brand {
+  display: flex;
+  width: min(100%, 440px);
+  max-width: 440px;
+  align-items: center;
+  gap: 8px;
+  color: #202a32;
+}
+.sp-seatpal-brand__mark {
+  display: block;
+  flex: 1 1 auto;
+  width: calc(100% - 52px);
+  min-width: 0;
+  height: auto;
+  aspect-ratio: 740 / 310;
+  overflow: visible;
+  background: transparent;
+}
+.sp-seatpal-brand__mark .ink { stroke: #34414b; stroke-linecap: round; stroke-linejoin: round; fill: none; }
+.sp-seatpal-brand__mark .trace { stroke-dasharray: 1; stroke-dashoffset: 0; }
+.sp-seatpal-brand__mark text {
+  fill: #202a32;
+  font: 700 86px/1 Manrope, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  letter-spacing: -4px;
+}
+.sp-seatpal-brand__toggle {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  flex: 0 0 44px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid rgba(32, 42, 50, .2);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .96);
+  color: #202a32;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.sp-seatpal-brand__toggle[hidden] { display: none; }
+.sp-seatpal-brand__toggle:hover { background: #f5f7f9; }
+.sp-seatpal-brand__toggle:focus-visible { outline: 3px solid #0071e3; outline-offset: 3px; }
+.sp-seatpal-brand__toggle svg { width: 19px; height: 19px; fill: currentColor; }
+.sp-seatpal-brand__play { display: none; }
+.sp-seatpal-brand__pause { display: none; }
+.sp-seatpal-brand__replay { display: none; }
+.sp-seatpal-brand[data-motion="running"] .sp-seatpal-brand__pause,
+.sp-seatpal-brand[data-motion="paused"] .sp-seatpal-brand__play,
+.sp-seatpal-brand[data-motion="finished"] .sp-seatpal-brand__replay { display: block; }
+@media (max-width: 800px) {
+  .public-landing .landing-brand-row { left: 15px; right: 15px; }
+  .public-landing .hero-route-object > .sp-seatpal-brand { margin-inline: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sp-seatpal-brand__toggle { transition: none; }
+}
