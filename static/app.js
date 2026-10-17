@@ -1,4 +1,5 @@
 import { busyMark, beginBusy } from './seatpal-busy.js';
+import { mountSeatPalStartupMotion } from './seatpal-startup-renderer.js';
 import { messages, placeLabels } from './i18n.js';
 import { accessCopy } from './access-copy.js';
 import { pickLocation, mountJourneyMap } from './map-picker.js';
@@ -17,6 +18,7 @@ import { captureLandingIntent, consumeLandingIntent } from './landing-intent.js'
 import { createFestivalGreeting, startFestivalGreetingUpdates } from './festival-greetings.js';
 import { createSessionCoordinator } from './session-coordination.js';
 const app = document.querySelector('#app');
+mountSeatPalStartupMotion(document.querySelector('[data-seatpal-startup]'));
 captureLandingIntent();
 const queryLang=new URLSearchParams(location.search).get('lang');
 const storedLang=localStorage.getItem('route-lang');

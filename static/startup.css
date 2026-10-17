@@ -1,48 +1,86 @@
-/* Visible before scripts and account data arrive; replaced by the actual app. */
-.startup{min-height:70vh;min-height:70dvh;display:grid;place-items:center;padding:32px 20px}
-.startup-card{display:flex;flex-direction:column;align-items:center;gap:18px;max-width:360px;text-align:center;color:var(--sp-ink,#24272B)}
-.startup-card>img{object-fit:contain}
-.startup-card>p{margin:0;font-size:20px;line-height:1.6;font-weight:650}
-.startup-card>a{display:inline-flex;align-items:center;min-height:44px;text-underline-offset:5px;color:inherit;font-size:14px}
-.startup-card>a:focus-visible{outline:3px solid var(--sp-accent,#C64A12);outline-offset:4px;border-radius:4px}
-.startup-card noscript{font-size:14px;line-height:1.6}
-/* Shared approved mark. Pending is driven only by request state, never a timer. */
-.seatpal-loading-mark{display:inline-block;width:24px;height:24px;flex:0 0 24px;object-fit:contain;vertical-align:middle}
-button[data-seatpal-pending] .seatpal-loading-mark{box-sizing:content-box;background:#FAFAF9;padding:3px;border-radius:6px}
-button[data-seatpal-pending]{display:inline-flex;align-items:center;justify-content:center;gap:10px}
-button[data-seatpal-pending] span[role=status]{min-width:0;white-space:normal}
-.seatpal-bootstrap{display:flex;align-items:center;justify-content:center;gap:12px}
-.seatpal-startup-sequence{position:relative;display:grid;place-items:center;width:208px;height:120px}
-.seatpal-startup-sequence svg{display:block;overflow:visible}
-.seatpal-startup-sequence .seat-envelope{opacity:0}
-.seatpal-startup-sequence [data-seat-back],.seatpal-startup-sequence [data-seat-base]{transform-origin:216px 181px}
-.seatpal-startup-sequence[data-animate] .seat-car{animation:seatpal-start-car 4.4s ease both}
-.seatpal-startup-sequence[data-animate] .seat-bike{animation:seatpal-start-bike 4.4s ease both}
-.seatpal-startup-sequence[data-animate] [data-seat-back]{animation:seatpal-start-back 4.4s ease both}
-.seatpal-startup-sequence[data-animate] [data-seat-base]{animation:seatpal-start-base 4.4s ease both}
-.seatpal-startup-sequence[data-animate] [data-seat-headrest]{animation:seatpal-start-head 4.4s ease both}
+/* Full-viewport first paint. Animation is driven by seatpal-startup-renderer.js. */
+.startup {
+  box-sizing: border-box;
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) 20px max(24px, env(safe-area-inset-bottom));
+  background: #faf9f6;
+}
+.startup-card {
+  display: flex;
+  width: min(100%, 360px);
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+  color: var(--sp-ink, #24272b);
+}
+.seatpal-startup-sequence {
+  position: relative;
+  display: block;
+  width: min(360px, calc(100vw - 40px));
+  height: clamp(96px, 34vw, 132px);
+  flex: 0 0 auto;
+  overflow: visible;
+}
+.seatpal-startup-sequence > svg:not([data-seatpal-motion]) {
+  position: absolute;
+  inset: 0;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: 100%;
+  margin: auto;
+}
+.seatpal-startup-sequence > svg[data-seatpal-motion] {
+  display: block;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+}
+.startup-card > p {
+  margin: 0;
+  color: #5b5d60;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 550;
+}
+.startup-card > a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  color: inherit;
+  font-size: 14px;
+  text-underline-offset: 5px;
+}
+.startup-card > a:focus-visible {
+  outline: 3px solid var(--sp-accent, #c64a12);
+  outline-offset: 4px;
+  border-radius: 4px;
+}
+.startup-card noscript { font-size: 14px; line-height: 1.6; }
 
-@keyframes seatpal-start-car{0%,10%,42%,100%{opacity:0}18%,34%{opacity:1}}
-@keyframes seatpal-start-bike{0%,43%,80%,100%{opacity:0}52%,70%{opacity:1}}
-@keyframes seatpal-start-back{0%,8%,88%,100%{transform:none}18%,34%{transform:scale(1,.55)}52%,70%{transform:rotate(-72deg) scale(.3)}}
-@keyframes seatpal-start-base{0%,34%,88%,100%{transform:none}52%,70%{transform:scale(1,.45)}}
-@keyframes seatpal-start-head{0%,34%,88%,100%{opacity:1}52%,70%{opacity:0}}
-@media(prefers-reduced-motion:reduce){.seatpal-loading-mark,.seatpal-startup-sequence[data-animate] :is(.seat-car,.seat-bike,[data-seat-back],[data-seat-base],[data-seat-headrest]){animation:none}.seatpal-startup-sequence .seat-envelope{opacity:0}.seatpal-startup-sequence [data-seat-headrest]{opacity:1}}
-
-/* Pause the current timeline while hidden; resume at the same progress. */
-html[data-seatpal-hidden=true] .seatpal-loading-mark,
-html[data-seatpal-hidden=true] .seatpal-startup-sequence[data-animate] :is(.seat-car,.seat-bike,[data-seat-back],[data-seat-base],[data-seat-headrest]){animation-play-state:paused}
-
-/* Request indicators use the same one-shot poses, with readable action text outside. */
-.seatpal-startup-sequence.seatpal-mini-sequence{display:inline-flex;flex:0 0 52px;width:52px;height:30px;vertical-align:middle;box-sizing:content-box;background:#FAFAF9;padding:2px;border-radius:6px}
-.seatpal-mini-sequence svg{width:100%;height:100%;overflow:hidden}
-.seatpal-mini-sequence[data-animate] :is(.seat-car,.seat-bike,[data-seat-back],[data-seat-base],[data-seat-headrest]){animation-delay:var(--seatpal-delay,0ms)}
-.seatpal-wait-status{display:flex;align-items:center;gap:10px;min-width:0}
-
-/* Long waits stay visibly pending after the single morph; text never pulses. */
-.seatpal-mini-sequence{animation:seatpal-mini-wait 1.4s ease-in-out infinite;animation-delay:calc(4400ms + var(--seatpal-delay,0ms))}
-@keyframes seatpal-mini-wait{0%,100%{opacity:1}50%{opacity:.6}}
-html[data-seatpal-hidden=true] .seatpal-mini-sequence{animation-play-state:paused}
-@media(prefers-reduced-motion:reduce){.seatpal-mini-sequence{animation:none}}
-
-button[data-seatpal-pending]:disabled{opacity:1}
+/* Compact requests use a small spinner; the accompanying status carries meaning. */
+.seatpal-loading-mark {
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  flex: 0 0 16px;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  vertical-align: middle;
+  animation: seatpal-pending-spin 850ms linear infinite;
+}
+button[data-seatpal-pending] { display: inline-flex; align-items: center; justify-content: center; gap: 10px; }
+button[data-seatpal-pending] span[role=status] { min-width: 0; white-space: normal; }
+.seatpal-bootstrap { display: flex; align-items: center; justify-content: center; gap: 12px; }
+.seatpal-wait-status { display: flex; align-items: center; gap: 10px; min-width: 0; }
+button[data-seatpal-pending]:disabled { opacity: 1; }
+@keyframes seatpal-pending-spin { to { transform: rotate(360deg); } }
+html[data-seatpal-hidden=true] .seatpal-loading-mark { animation-play-state: paused; }
+@media (prefers-reduced-motion: reduce) {
+  .seatpal-loading-mark { animation: none; border-right-color: var(--sp-accent, #c64a12); }
+}

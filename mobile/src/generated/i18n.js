@@ -1050,6 +1050,7 @@ Object.assign(messages.te,{afCollectionUnavailable:"ఈ పేమెంట్ �
 
 // Phone account flow; verification is phone ownership only.
 Object.assign(messages.en, {
+  "welcomeToSeatPal": "Welcome to SeatPal",
   "phoneSignIn": "Sign in or create your account",
   "phoneNumber": "Your mobile number",
   "phoneSendCode": "Send code",
@@ -1073,6 +1074,7 @@ Object.assign(messages.en, {
   "phoneNameHelp": "Add your name to finish setting up your account.",
   "phoneFinishProfile": "Save and continue",
   "phoneLegacySignIn": "Staff and test-account sign-in",
+  "phoneTestAccountSignIn": "Sign in with a test account",
   "phoneVerified": "Phone number confirmed",
   "phoneProofOnly": "A code confirms access to this phone number. It does not verify identity or driving eligibility.",
   "phoneInvalidNumber": "Enter a valid 10-digit Indian mobile number.",
@@ -1087,12 +1089,13 @@ Object.assign(messages.en, {
   "phoneSignOutFirst": "Sign out before signing in with another phone number.",
   "phoneNumberChangeHelp": "To change your sign-in number, first save a recovery code in Profile → Account security and deletion. Then sign out and choose “Lost access to your phone?”; you’ll need that code and access to the new number. Sign-in uses phone OTP, so there is no password reset. Phone sharing is optional.",
   "phoneSessionRetry": "You are signed in. Retry loading your account.",
-  "phoneStaffAccount": "Staff account ID",
+  "phoneStaffAccount": "Account ID",
   "staffTestTitle": "Staff and test-account access",
   "staffTestHelp": "Enter the account ID and password provided for staff or testing. Member sign-in uses phone verification.",
   "staffTestFootnote": "This access is only for staff and test accounts. It does not create member accounts."
 });
 Object.assign(messages.te, {
+  "welcomeToSeatPal": "SeatPal కు స్వాగతం",
   "phoneSignIn": "సైన్ ఇన్ అవ్వండి లేదా అకౌంట్ తెరవండి",
   "phoneNumber": "మీ మొబైల్ నంబర్",
   "phoneSendCode": "కోడ్ పంపండి",
@@ -1116,6 +1119,7 @@ Object.assign(messages.te, {
   "phoneNameHelp": "మీ అకౌంట్ పూర్తిచేయడానికి మీ పేరు ఇవ్వండి.",
   "phoneFinishProfile": "సేవ్ చేసి కొనసాగండి",
   "phoneLegacySignIn": "స్టాఫ్, టెస్ట్ అకౌంట్ల సైన్ ఇన్",
+  "phoneTestAccountSignIn": "టెస్ట్ అకౌంట్‌తో సైన్ ఇన్ చేయండి",
   "phoneVerified": "ఫోన్ నంబర్ నిర్ధారించారు",
   "phoneProofOnly": "కోడ్ ద్వారా ఈ ఫోన్ నంబర్ మీ దగ్గర ఉందని మాత్రమే తెలుస్తుంది. గుర్తింపు లేదా డ్రైవింగ్ అర్హత చెక్ చేసినట్టు కాదు.",
   "phoneInvalidNumber": "సరైన 10 అంకెల భారతీయ మొబైల్ నంబర్ ఇవ్వండి.",
@@ -1130,13 +1134,18 @@ Object.assign(messages.te, {
   "phoneSignOutFirst": "మరో ఫోన్ నంబర్‌తో సైన్ ఇన్ అయ్యే ముందు సైన్ అవుట్ అవ్వండి.",
   "phoneNumberChangeHelp": "సైన్ ఇన్ నంబర్ మార్చాలంటే ముందుగా ప్రొఫైల్ → అకౌంట్ భద్రత, తొలగింపు లో రికవరీ కోడ్ సేవ్ చేయండి. తర్వాత సైన్ అవుట్ చేసి “ఫోన్ యాక్సెస్ పోయిందా?” ఎంచుకోండి; ఆ కోడ్, కొత్త నంబర్‌కు యాక్సెస్ అవసరం. సైన్ ఇన్ ఫోన్ OTPతోనే, పాస్‌వర్డ్ రీసెట్ లేదు. ఫోన్ షేర్ చేయడం మీ ఇష్టం.",
   "phoneSessionRetry": "మీరు సైన్ ఇన్ అయ్యారు. అకౌంట్ లోడ్ చేయడానికి మళ్లీ ప్రయత్నించండి.",
-  "phoneStaffAccount": "స్టాఫ్ అకౌంట్ ID",
+  "phoneStaffAccount": "అకౌంట్ ID",
   "staffTestTitle": "స్టాఫ్, టెస్ట్ అకౌంట్ యాక్సెస్",
   "staffTestHelp": "స్టాఫ్ లేదా టెస్టింగ్ కోసం ఇచ్చిన అకౌంట్ ID, పాస్‌వర్డ్ నమోదు చేయండి. సభ్యుల సైన్ ఇన్ ఫోన్ వెరిఫికేషన్‌తో జరుగుతుంది.",
   "staffTestFootnote": "ఈ యాక్సెస్ స్టాఫ్, టెస్ట్ అకౌంట్ల కోసం మాత్రమే. దీనితో సభ్యుల అకౌంట్ సృష్టించబడదు."
 });
 
 Object.assign(messages.hi, {
+  "welcomeToSeatPal": "SeatPal में आपका स्वागत है",
+  "phoneSignIn": "साइन इन करें या अकाउंट बनाएं",
+  "phoneLegacySignIn": "स्टाफ और टेस्ट अकाउंट से साइन इन करें",
+  "phoneTestAccountSignIn": "टेस्ट अकाउंट से साइन इन करें",
+  "phoneStaffAccount": "अकाउंट ID",
   "phoneUnavailable": "सदस्य साइन-इन और पंजीकरण अभी उपलब्ध नहीं हैं। उपलब्ध होने पर फोन सत्यापन यहां दिखेगा।",
   "phonePolicyUnavailable": "नियम या गोपनीयता जानकारी अभी उपलब्ध नहीं है। बाद में फिर कोशिश करें।",
   "staffTestTitle": "स्टाफ और टेस्ट अकाउंट का प्रवेश",

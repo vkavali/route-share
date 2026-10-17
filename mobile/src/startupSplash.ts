@@ -1,10 +1,18 @@
 import * as SplashScreen from 'expo-splash-screen';
-// Hold only until a real RN frame (loading, content or recoverable error) lays out.
-// Never wait for a network operation, font completion or animation duration.
+// Hold until the first real RN layout has had two paint opportunities.
+// Never wait for network, fonts, auth or an animation duration.
 void SplashScreen.preventAutoHideAsync().catch(()=>{});
 let hidden=false;
+let revealScheduled=false;
 export function revealNativeFrame(){
- if(hidden)return;
- hidden=true;
- void SplashScreen.hideAsync().catch(()=>{hidden=false;});
+ if(hidden||revealScheduled)return;
+ revealScheduled=true;
+ requestAnimationFrame(()=>{
+  requestAnimationFrame(()=>{
+   revealScheduled=false;
+   if(hidden)return;
+   hidden=true;
+   void SplashScreen.hideAsync().catch(()=>{hidden=false;});
+  });
+ });
 }

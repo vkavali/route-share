@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#faf9f6">
+  <title>SeatPal startup motion preview</title>
+  <link rel="stylesheet" href="/static/seatpal-startup-preview.css">
+</head>
+<body>
+  <main class="preview-shell">
+    <div class="preview-stage">
+      <div class="seatpal-startup-sequence" data-seatpal-startup aria-hidden="true">
+        <div data-seatpal-fallback><!-- seatpal:startup-frame0:start -->
+          <svg xmlns:ns0="http://www.w3.org/2000/svg" xmlns="http://www.w3.org/2000/svg" viewBox="127 88 740 310" width="100%" height="100%" focusable="false" aria-hidden="true" data-seatpal-frame="0"><g transform="translate(466 307) scale(1.1)"><g transform="rotate(-8)"><ns0:g id="sp-seatpal-seat-back">
+      <ns0:path d="M-8-122V-109M6-122V-109" stroke="#778591" stroke-width="3.5" stroke-linecap="round" />
+      <ns0:path d="M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z" fill="#FF7A24" />
+      <ns0:path d="M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z" fill="#26323c" />
+      <ns0:path d="M-8-105H3Q9-105 9-98L7-37Q7-25 1-20" fill="none" stroke="#9eabb5" stroke-width="2.5" stroke-linecap="round" />
+    </ns0:g></g><g><ns0:path id="sp-seatpal-seat-rail" d="M-5 27H77" fill="none" stroke="#9aa7b2" stroke-width="4" stroke-linecap="round" /></g><g><ns0:g><ns0:path id="sp-seatpal-cushion" d="M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z" fill="#26323c" /><ns0:path d="M-5-2H68Q81-2 85 5" fill="none" stroke="#9eabb5" stroke-width="2.5" stroke-linecap="round" /><ns0:circle id="sp-seatpal-hinge" cx="0" cy="3" r="5" fill="#FF7A24" /></ns0:g></g></g></svg>
+          <!-- seatpal:startup-frame0:end --></div>
+      </div>
+    </div>
+    <footer class="preview-controls" aria-label="Animation preview controls">
+      <span class="preview-marker">Animation preview</span>
+      <button class="preview-replay" type="button" data-replay>Replay</button>
+      <details class="preview-inspect">
+        <summary>Inspect animation</summary>
+        <div class="preview-inspect-panel">
+          <div class="preview-phases" aria-label="Jump to animation phase">
+            <button type="button" data-seek="0">Start</button>
+            <button type="button" data-seek="0.33">Car</button>
+            <button type="button" data-seek="0.65">Bike</button>
+            <button type="button" data-seek="0.87">Resolve</button>
+            <button type="button" data-seek="1">Logo</button>
+          </div>
+          <input class="preview-slider" type="range" min="0" max="1000" value="0" aria-label="Preview animation frame">
+        </div>
+      </details>
+      <p class="preview-caption" data-preview-status role="status" aria-live="polite">Animation preview</p>
+    </footer>
+  </main>
+  <script type="module" src="/static/seatpal-startup-preview.js"></script>
+</body>
+</html>

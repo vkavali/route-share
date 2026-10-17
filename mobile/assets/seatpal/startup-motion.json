@@ -1,0 +1,205 @@
+{
+  "version": 2,
+  "source": {
+    "path": "app/templates/_seatpal-landing-brand.html",
+    "sha256": "e84e6f2d235f30d5a1bac06a4d8b1b833d7c7e577358afa793484bab9dd432c7"
+  },
+  "parts": {
+    "car": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-car\">\n    <path id=\"sp-seatpal-car-fill\" d=\"M150 383L149 307Q149 289 168 282L231 267L283 214Q300 196 326 196H521Q546 196 568 215L621 261L787 279Q816 284 829 306L840 365L841 383H758V365C758 333 732 307 700 307S642 333 642 365V383H318V365C318 333 292 307 260 307S202 333 202 365V383Z\" fill=\"#f3f5f7\" />\n    <path id=\"sp-seatpal-car-outline\" class=\"ink trace sp-seatpal-trace car-trace\" pathLength=\"1\" stroke-width=\"5\" d=\"M150 383L149 307Q149 289 168 282L231 267L283 214Q300 196 326 196H521Q546 196 568 215L621 261L787 279Q816 284 829 306L840 365L841 383H758V365C758 333 732 307 700 307S642 333 642 365V383H318V365C318 333 292 307 260 307S202 333 202 365V383Z\" stroke=\"#34414b\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\n    <g id=\"sp-seatpal-car-decoration\">\n    <path d=\"M253 262L294 221Q305 207 327 207H423V262Z\" fill=\"#dce3e8\" />\n    <path d=\"M433 207H520Q539 207 554 224L594 262H433Z\" fill=\"#dce3e8\" />\n    </g>\n    <path class=\"ink trace sp-seatpal-trace car-trace\" pathLength=\"1\" stroke-width=\"3\" d=\"M253 262L294 221Q305 207 327 207H520Q539 207 554 224L594 262M428 208V262M163 298H184M798 298H820\" stroke=\"#34414b\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\n    <path class=\"ink trace sp-seatpal-trace car-trace\" pathLength=\"1\" stroke=\"#34414b\" stroke-width=\"3\" d=\"M158 322H189M797 322H827M323 375H637\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\n    <g id=\"sp-seatpal-car-small-details\">\n    <path d=\"M153 316H175L183 321H153Z\" fill=\"#d87063\" stroke=\"#a4afb8\" stroke-width=\"2\" />\n    <path d=\"M819 316H837L841 326H816Z\" fill=\"#f8fafc\" stroke=\"#a4afb8\" stroke-width=\"2\" />\n    <path d=\"M306 322H352M477 322H526\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" />\n    <path d=\"M335 347V354M380 347V354M493 347V354M538 347V354\" fill=\"none\" stroke=\"#b5c0c9\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    <ellipse cx=\"571\" cy=\"281\" rx=\"3\" ry=\"14\" transform=\"rotate(-25 571 281)\" fill=\"none\" stroke=\"#778591\" stroke-width=\"2.5\" />\n    <path d=\"M577 294L594 309M585 275H606L616 286\" fill=\"none\" stroke=\"#a4afb8\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    </g>\n    <g id=\"sp-seatpal-driver-seat\" transform=\"translate(486 326) scale(.76)\">\n      <g transform=\"rotate(-12)\">\n        <path d=\"M-8-122V-109M6-122V-109\" stroke=\"#778591\" stroke-width=\"3.5\" stroke-linecap=\"round\" />\n        <path d=\"M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z\" fill=\"#FF7A24\" />\n        <path d=\"M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z\" fill=\"#26323c\" />\n        <path d=\"M-8-105H3Q9-105 9-98L7-37Q7-25 1-20\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      </g>\n      <path d=\"M-5 27H77\" fill=\"none\" stroke=\"#9aa7b2\" stroke-width=\"4\" stroke-linecap=\"round\" />\n      <path d=\"M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z\" fill=\"#26323c\" />\n      <path d=\"M-5-2H68Q81-2 85 5\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      <circle cx=\"0\" cy=\"3\" r=\"5\" fill=\"#FF7A24\" />\n    </g>\n  </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "bike": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-bike\">\n    <path class=\"bike-fill\" d=\"M378 309Q394 294 420 294H463L478 306 468 334 450 343H397L380 330Z\" fill=\"#26323c\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <path class=\"bike-fill\" d=\"M306 335Q365 283 424 335L428 343Q365 298 302 343Z\" fill=\"#cbd3d9\" stroke=\"#697783\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <path class=\"bike-fill\" d=\"M526 335Q585 283 644 335L648 343Q585 298 522 343Z\" fill=\"#cbd3d9\" stroke=\"#697783\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <path class=\"ink trace sp-seatpal-trace bike-trace\" pathLength=\"1\" stroke-width=\"4\" d=\"M365 365 397 339 454 344 468 361M454 344 465 324M404 334 465 326M468 361 490 349 535 281 585 365M535 281 519 275M465 326 487 350\" stroke=\"#34414b\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\n    <path class=\"ink trace sp-seatpal-trace bike-trace\" pathLength=\"1\" stroke-width=\"3\" d=\"M397 299 371 355M410 300 384 357M365 365 455 365M348 385H486M541 280 585 365M404 334 396 356M416 334 408 357M374 366Q365 374 353 375M585 365Q600 374 613 374\" stroke=\"#34414b\" fill=\"none\" stroke-linecap=\"round\" stroke-linejoin=\"round\" />\n    <path id=\"sp-seatpal-tank-fill\" class=\"bike-fill\" d=\"M458 282Q463 262 480 254H514Q530 257 532 274L527 292H478Q463 291 458 282Z\" fill=\"#202a32\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <g id=\"sp-seatpal-bike-decoration\">\n    <path d=\"M468 265H517\" stroke=\"#FF7A24\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    <path class=\"bike-fill\" d=\"M545 244 557 242 575 257V278L558 286 545 279Z\" fill=\"#202a32\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <path d=\"M568 254 575 258V274L568 275Z\" fill=\"#f8fafc\" stroke=\"#aab5be\" stroke-width=\"2\" />\n    <path d=\"M535 257 529 248 542 246M546 244 536 225\" fill=\"none\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    <ellipse cx=\"534\" cy=\"223\" rx=\"6\" ry=\"3.5\" fill=\"#cbd3d9\" stroke=\"#34414b\" stroke-width=\"2\" />\n    </g>\n    <g id=\"sp-seatpal-bike-engine\">\n      <path d=\"M479 309 514 309 520 316 518 347 509 354 480 350 474 341 475 318Z\" fill=\"#b8c2ca\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M480 315H515M478 321H517M478 327H518M478 333H518M480 339H515\" stroke=\"#f8fafc\" stroke-width=\"2\" />\n      <path d=\"M468 348Q473 340 485 342H504Q515 343 516 354L510 370Q505 379 493 379H474Q462 376 462 366Z\" fill=\"#cbd3d9\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M473 352Q487 347 503 353M472 360H507M475 368H500\" fill=\"none\" stroke=\"#f8fafc\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      <path d=\"M346 378Q355 374 365 376L477 379Q487 380 488 386L485 391H361Q348 389 346 384Z\" fill=\"#d6dce1\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M357 382H477\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" />\n      <path d=\"M427 354 421 364\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    </g>\n    <g id=\"sp-seatpal-bike-rear-details\">\n    <path d=\"M353 285 350 275 419 275 426 282M352 278 416 278\" fill=\"none\" stroke=\"#697783\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    <path d=\"M348 280 359 281 359 290 350 289Z\" fill=\"#d87063\" />\n    </g>\n  </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "carBody": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><path id=\"sp-seatpal-car-fill\" d=\"M150 383L149 307Q149 289 168 282L231 267L283 214Q300 196 326 196H521Q546 196 568 215L621 261L787 279Q816 284 829 306L840 365L841 383H758V365C758 333 732 307 700 307S642 333 642 365V383H318V365C318 333 292 307 260 307S202 333 202 365V383Z\" fill=\"#f3f5f7\" /></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "carDecoration": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-car-decoration\">\n    <path d=\"M253 262L294 221Q305 207 327 207H423V262Z\" fill=\"#dce3e8\" />\n    <path d=\"M433 207H520Q539 207 554 224L594 262H433Z\" fill=\"#dce3e8\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "carSmallDetails": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-car-small-details\">\n    <path d=\"M153 316H175L183 321H153Z\" fill=\"#d87063\" stroke=\"#a4afb8\" stroke-width=\"2\" />\n    <path d=\"M819 316H837L841 326H816Z\" fill=\"#f8fafc\" stroke=\"#a4afb8\" stroke-width=\"2\" />\n    <path d=\"M306 322H352M477 322H526\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" />\n    <path d=\"M335 347V354M380 347V354M493 347V354M538 347V354\" fill=\"none\" stroke=\"#b5c0c9\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    <ellipse cx=\"571\" cy=\"281\" rx=\"3\" ry=\"14\" transform=\"rotate(-25 571 281)\" fill=\"none\" stroke=\"#778591\" stroke-width=\"2.5\" />\n    <path d=\"M577 294L594 309M585 275H606L616 286\" fill=\"none\" stroke=\"#a4afb8\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "driverSeat": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-driver-seat\" transform=\"translate(486 326) scale(.76)\">\n      <g transform=\"rotate(-12)\">\n        <path d=\"M-8-122V-109M6-122V-109\" stroke=\"#778591\" stroke-width=\"3.5\" stroke-linecap=\"round\" />\n        <path d=\"M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z\" fill=\"#FF7A24\" />\n        <path d=\"M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z\" fill=\"#26323c\" />\n        <path d=\"M-8-105H3Q9-105 9-98L7-37Q7-25 1-20\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      </g>\n      <path d=\"M-5 27H77\" fill=\"none\" stroke=\"#9aa7b2\" stroke-width=\"4\" stroke-linecap=\"round\" />\n      <path d=\"M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z\" fill=\"#26323c\" />\n      <path d=\"M-5-2H68Q81-2 85 5\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      <circle cx=\"0\" cy=\"3\" r=\"5\" fill=\"#FF7A24\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "carTracePaths": [
+      {
+        "id": "sp-seatpal-car-outline",
+        "className": "ink trace sp-seatpal-trace car-trace",
+        "d": "M150 383L149 307Q149 289 168 282L231 267L283 214Q300 196 326 196H521Q546 196 568 215L621 261L787 279Q816 284 829 306L840 365L841 383H758V365C758 333 732 307 700 307S642 333 642 365V383H318V365C318 333 292 307 260 307S202 333 202 365V383Z",
+        "fill": "none",
+        "stroke": "#34414b",
+        "strokeWidth": "5",
+        "strokeLinecap": "round",
+        "strokeLinejoin": "round"
+      },
+      {
+        "id": null,
+        "className": "ink trace sp-seatpal-trace car-trace",
+        "d": "M253 262L294 221Q305 207 327 207H520Q539 207 554 224L594 262M428 208V262M163 298H184M798 298H820",
+        "fill": "none",
+        "stroke": "#34414b",
+        "strokeWidth": "3",
+        "strokeLinecap": "round",
+        "strokeLinejoin": "round"
+      },
+      {
+        "id": null,
+        "className": "ink trace sp-seatpal-trace car-trace",
+        "d": "M158 322H189M797 322H827M323 375H637",
+        "fill": "none",
+        "stroke": "#34414b",
+        "strokeWidth": "3",
+        "strokeLinecap": "round",
+        "strokeLinejoin": "round"
+      }
+    ],
+    "bikeBody": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-bike-body-fills\"><path class=\"bike-fill\" d=\"M378 309Q394 294 420 294H463L478 306 468 334 450 343H397L380 330Z\" fill=\"#26323c\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" /><path class=\"bike-fill\" d=\"M306 335Q365 283 424 335L428 343Q365 298 302 343Z\" fill=\"#cbd3d9\" stroke=\"#697783\" stroke-width=\"3\" stroke-linejoin=\"round\" /><path class=\"bike-fill\" d=\"M526 335Q585 283 644 335L648 343Q585 298 522 343Z\" fill=\"#cbd3d9\" stroke=\"#697783\" stroke-width=\"3\" stroke-linejoin=\"round\" /></g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "bikeDecoration": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-bike-decoration\">\n    <path d=\"M468 265H517\" stroke=\"#FF7A24\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    <path class=\"bike-fill\" d=\"M545 244 557 242 575 257V278L558 286 545 279Z\" fill=\"#202a32\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n    <path d=\"M568 254 575 258V274L568 275Z\" fill=\"#f8fafc\" stroke=\"#aab5be\" stroke-width=\"2\" />\n    <path d=\"M535 257 529 248 542 246M546 244 536 225\" fill=\"none\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    <ellipse cx=\"534\" cy=\"223\" rx=\"6\" ry=\"3.5\" fill=\"#cbd3d9\" stroke=\"#34414b\" stroke-width=\"2\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "tankFill": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><path id=\"sp-seatpal-tank-fill\" class=\"bike-fill\" d=\"M458 282Q463 262 480 254H514Q530 257 532 274L527 292H478Q463 291 458 282Z\" fill=\"#202a32\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" /></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "bikeEngine": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-bike-engine\">\n      <path d=\"M479 309 514 309 520 316 518 347 509 354 480 350 474 341 475 318Z\" fill=\"#b8c2ca\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M480 315H515M478 321H517M478 327H518M478 333H518M480 339H515\" stroke=\"#f8fafc\" stroke-width=\"2\" />\n      <path d=\"M468 348Q473 340 485 342H504Q515 343 516 354L510 370Q505 379 493 379H474Q462 376 462 366Z\" fill=\"#cbd3d9\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M473 352Q487 347 503 353M472 360H507M475 368H500\" fill=\"none\" stroke=\"#f8fafc\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n      <path d=\"M346 378Q355 374 365 376L477 379Q487 380 488 386L485 391H361Q348 389 346 384Z\" fill=\"#d6dce1\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linejoin=\"round\" />\n      <path d=\"M357 382H477\" stroke=\"#fff\" stroke-width=\"2\" stroke-linecap=\"round\" />\n      <path d=\"M427 354 421 364\" stroke=\"#34414b\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "bikeRearDetails": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-bike-rear-details\">\n    <path d=\"M353 285 350 275 419 275 426 282M352 278 416 278\" fill=\"none\" stroke=\"#697783\" stroke-width=\"3\" stroke-linecap=\"round\" />\n    <path d=\"M348 280 359 281 359 290 350 289Z\" fill=\"#d87063\" />\n    </g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    },
+    "bikeTracePaths": [
+      {
+        "id": null,
+        "className": "ink trace sp-seatpal-trace bike-trace",
+        "d": "M365 365 397 339 454 344 468 361M454 344 465 324M404 334 465 326M468 361 490 349 535 281 585 365M535 281 519 275M465 326 487 350",
+        "fill": "none",
+        "stroke": "#34414b",
+        "strokeWidth": "4",
+        "strokeLinecap": "round",
+        "strokeLinejoin": "round"
+      },
+      {
+        "id": null,
+        "className": "ink trace sp-seatpal-trace bike-trace",
+        "d": "M397 299 371 355M410 300 384 357M365 365 455 365M348 385H486M541 280 585 365M404 334 396 356M416 334 408 357M374 366Q365 374 353 375M585 365Q600 374 613 374",
+        "fill": "none",
+        "stroke": "#34414b",
+        "strokeWidth": "3",
+        "strokeLinecap": "round",
+        "strokeLinejoin": "round"
+      }
+    ],
+    "rearWheel": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-60 -60 120 120\"><g id=\"sp-seatpal-rear-wheel\"><g class=\"wheel-ring\" transform=\"scale(1.25)\">\n    <circle r=\"42\" fill=\"#202a32\" stroke=\"#111820\" stroke-width=\"4\" />\n    <circle r=\"34\" fill=\"#cbd3d9\" stroke=\"#f3f5f7\" stroke-width=\"2\" />\n    <g class=\"spokes\" fill=\"#778591\" stroke=\"#eef1f3\" stroke-width=\"1.2\"><path d=\"M-3-7 -4-31H4L3-7Z\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(72)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(144)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(216)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(288)\" /></g>\n    <circle r=\"8\" fill=\"#697783\" stroke=\"#34414b\" stroke-width=\"2\" />\n  </g></g></svg>",
+      "viewBox": "-60 -60 120 120",
+      "x": -60,
+      "y": -60,
+      "width": 120,
+      "height": 120
+    },
+    "frontWheel": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-60 -60 120 120\"><g id=\"sp-seatpal-front-wheel\"><g class=\"wheel-ring\" transform=\"scale(1.25)\">\n    <circle r=\"42\" fill=\"#202a32\" stroke=\"#111820\" stroke-width=\"4\" />\n    <circle r=\"34\" fill=\"#cbd3d9\" stroke=\"#f3f5f7\" stroke-width=\"2\" />\n    <g class=\"spokes\" fill=\"#778591\" stroke=\"#eef1f3\" stroke-width=\"1.2\"><path d=\"M-3-7 -4-31H4L3-7Z\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(72)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(144)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(216)\" /><path d=\"M-3-7 -4-31H4L3-7Z\" transform=\"rotate(288)\" /></g>\n    <circle r=\"8\" fill=\"#697783\" stroke=\"#34414b\" stroke-width=\"2\" />\n  </g></g></svg>",
+      "viewBox": "-60 -60 120 120",
+      "x": -60,
+      "y": -60,
+      "width": 120,
+      "height": 120
+    },
+    "seatBack": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-150 -180 300 360\"><g id=\"sp-seatpal-seat-back\">\n      <path d=\"M-8-122V-109M6-122V-109\" stroke=\"#778591\" stroke-width=\"3.5\" stroke-linecap=\"round\" />\n      <path d=\"M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z\" fill=\"#FF7A24\" />\n      <path d=\"M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z\" fill=\"#26323c\" />\n      <path d=\"M-8-105H3Q9-105 9-98L7-37Q7-25 1-20\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" />\n    </g></svg>",
+      "viewBox": "-150 -180 300 360",
+      "x": -150,
+      "y": -180,
+      "width": 300,
+      "height": 360
+    },
+    "seatRail": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-150 -180 300 360\"><path id=\"sp-seatpal-seat-rail\" d=\"M-5 27H77\" fill=\"none\" stroke=\"#9aa7b2\" stroke-width=\"4\" stroke-linecap=\"round\" /></svg>",
+      "viewBox": "-150 -180 300 360",
+      "x": -150,
+      "y": -180,
+      "width": 300,
+      "height": 360
+    },
+    "seatBase": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-150 -180 300 360\"><g><path id=\"sp-seatpal-cushion\" d=\"M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z\" fill=\"#26323c\" /><path d=\"M-5-2H68Q81-2 85 5\" fill=\"none\" stroke=\"#9eabb5\" stroke-width=\"2.5\" stroke-linecap=\"round\" /><circle id=\"sp-seatpal-hinge\" cx=\"0\" cy=\"3\" r=\"5\" fill=\"#FF7A24\" /></g></svg>",
+      "viewBox": "-150 -180 300 360",
+      "x": -150,
+      "y": -180,
+      "width": 300,
+      "height": 360
+    },
+    "wordmark": {
+      "xml": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"120 130 740 310\"><g id=\"sp-seatpal-wordmark\"><text x=\"395\" y=\"310\" fill=\"#202a32\" font-size=\"86px\" font-weight=\"700\" font-family=\"Manrope, Segoe UI, sans-serif\" letter-spacing=\"-4px\">SeatPal</text></g></svg>",
+      "viewBox": "120 130 740 310",
+      "x": 120,
+      "y": 130,
+      "width": 740,
+      "height": 310
+    }
+  },
+  "wordmarkClip": {
+    "x": 385,
+    "y": 215,
+    "width": 400,
+    "height": 130
+  }
+}

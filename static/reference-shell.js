@@ -15,6 +15,9 @@ export function renderLogin({ state, t, icon, escAttr, hostedBeta, phoneContent,
     ? state.form.values?.password ?? (hostedBeta() ? '' : 'local-beta-only')
     : hostedBeta() ? '' : 'local-beta-only';
   const privateBeta = state.boot?.flags?.public_registration_enabled === false;
+  const phoneHeading = state.boot?.flags?.public_registration_enabled === true
+    ? t('phoneSignIn')
+    : t('welcomeToSeatPal');
   const loginCopy = ({
     en: { title: 'A shared route. A better journey.', lead: 'Find your way. Share the journey.', signin: 'Sign in', intro: 'Welcome back. Your next journey starts here.' },
     te: { title: 'అదే దారి. కలిసి ప్రయాణం.', lead: 'మీ దారిలో తోడుగా ప్రయాణిద్దాం.', signin: 'సైన్ ఇన్', intro: 'స్వాగతం. మీ తదుపరి ప్రయాణం ఇక్కడే మొదలు.' },
@@ -47,8 +50,8 @@ export function renderLogin({ state, t, icon, escAttr, hostedBeta, phoneContent,
   const authEntry = privateBeta
     ? `<header class="auth-entry-heading">${betaLabel}<h1 class="auth-welcome">${loginCopy.signin}</h1><p class="auth-entry-intro">${loginCopy.intro}</p>${betaNotice}</header>
        <div class="auth-form-wrap">${passwordForm}${languageFallback}${accountFootnote}</div>
-       <section class="auth-phone-secondary" aria-label="${t('phoneSignIn')}"><h2 class="auth-secondary-title">${t('phoneSignIn')}</h2>${phoneContent||''}</section>`
-    : `<header class="auth-entry-heading"><h1 class="auth-welcome">${t('phoneSignIn')}</h1><p class="auth-entry-intro">${loginCopy.intro}</p></header>
+       <section class="auth-phone-secondary" aria-label="${phoneHeading}"><h2 class="auth-secondary-title">${phoneHeading}</h2>${phoneContent||''}</section>`
+    : `<header class="auth-entry-heading"><h1 class="auth-welcome">${phoneHeading}</h1><p class="auth-entry-intro">${loginCopy.intro}</p></header>
        <div class="auth-phone-primary">${phoneContent||''}</div>
        <details id="phone-legacy-signin" class="phone-legacy" ${legacyOpen?'open':''}><summary>${t('phoneLegacySignIn')}</summary><div class="auth-form-wrap">${betaLabel}${betaNotice}${passwordForm}${languageFallback}${accountFootnote}</div></details>`;
 

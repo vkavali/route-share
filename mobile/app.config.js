@@ -51,7 +51,7 @@ module.exports = ({ config }) => {
     },
     plugins: [
       ...(config.plugins || []),
-      ['expo-splash-screen', {image: './assets/seatpal/splash.png', imageWidth: 120, resizeMode: 'contain', backgroundColor: '#F6F5F0'}],
+      ['expo-splash-screen', {image: './assets/seatpal/splash.png', imageWidth: 96, resizeMode: 'contain', backgroundColor: '#F5F5F3'}],
       ['expo-location', {
         locationWhenInUsePermission: 'Use your location to choose a pickup or destination, or share it with the other participant during an accepted booking. Sharing stops when you stop it or arrive.',
         locationAlwaysAndWhenInUsePermission: false,
