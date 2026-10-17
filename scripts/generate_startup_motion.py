@@ -208,6 +208,8 @@ def _frame0_svg(parts: dict) -> str:
 
 
 def _replace_fallback_marker(markup: bytes, fallback: str) -> bytes:
+    # The generated SVG is LF-terminated; normalize the enclosing static preview too.
+    markup = markup.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
     start = b"<!-- seatpal:startup-frame0:start -->"
     end = b"<!-- seatpal:startup-frame0:end -->"
     if markup.count(start) != 1 or markup.count(end) != 1:
