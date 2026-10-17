@@ -34,8 +34,8 @@ function posedSeat(hero, pose) {
   };
   visit(seat); return seat;
 }
-// Startup renders before application scripts: keep the approved static mark canonical too.
-function assertInlineMark(html, brand) {
+// Startup renders before application scripts: validate the exact generated motion frame and provenance.
+function assertInlineStartupFallback(html, motionBytes, motionModule, landingBytes) {
   const start = '<!-- seatpal:canonical-mark:start -->';
   const end = '<!-- seatpal:canonical-mark:end -->';
   if (html.split(start).length !== 2 || html.split(end).length !== 2) {
@@ -44,15 +44,23 @@ function assertInlineMark(html, brand) {
   const startIndex = html.indexOf(start) + start.length;
   const endIndex = html.indexOf(end);
   const region = html.slice(startIndex, endIndex).trim();
-  const match = region.match(/^<svg\b([^>]*)>([\s\S]*)<\/svg>$/);
-  if (endIndex < startIndex || !match || !match[1].includes(`viewBox="${brand.mark.viewBox}"`)) {
-    throw new Error('Startup SeatPal mark viewBox differs from brand.json mark.viewBox.');
+  let motion;
+  try { motion = JSON.parse(motionBytes.toString('utf8')); }
+  catch { throw new Error('Generated startup motion JSON is invalid.'); }
+  const sourcePath = 'app/templates/_seatpal-landing-brand.html';
+  const motionHash = hash(motionBytes);
+  const sourceHash = hash(landingBytes);
+  const hashMatch = motionModule.match(/export const STARTUP_ASSET_HASH = '([a-f0-9]{64})';/);
+  const frameMatch = motionModule.match(/export const STARTUP_FRAME0_SVG = ("(?:\\.|[^"\\])*");/);
+  if (motion.source?.path !== sourcePath || motion.source?.sha256 !== sourceHash) {
+    throw new Error('Generated startup motion source metadata does not match the approved landing source.');
   }
-  const canonical = node => `<${node.tag}${Object.entries(node.attrs || {}).map(([key,value]) => ` ${key}="${escape(value)}"`).join('')}>${(node.children || []).map(canonical).join('')}</${node.tag}>`;
-  const normalize = value => value.trim().replace(/>\s+</g, '><');
-  const expected = brand.mark.nodes.map(canonical).join('');
-  if (normalize(match[2]) !== normalize(expected)) {
-    throw new Error('Startup SeatPal inline mark geometry/colors are stale. Copy the canonical nodes from brand.json.mark; keep vehicle motion in the landing component.');
+  if (!hashMatch || hashMatch[1] !== motionHash || !frameMatch) {
+    throw new Error('Generated startup motion module hash/frame does not match startup-motion.json.');
+  }
+  const expected = JSON.parse(frameMatch[1]);
+  if (endIndex < startIndex || region !== expected || !region.includes('data-seatpal-frame="0"')) {
+    throw new Error('Inline startup frame zero differs from the deterministic generated motion fallback.');
   }
 }
 async function png(svgText, width, opaque) {
@@ -71,7 +79,14 @@ function framed(mark, size, inset, background, viewBox) {
 (async()=>{
   const bytes = await fs.readFile(path.join(root,sourcePath));
   const brand = JSON.parse(bytes);
-  if (check) assertInlineMark(await fs.readFile(path.join(root, 'static/index.html'), 'utf8'), brand);
+  if (check) {
+    assertInlineStartupFallback(
+      await fs.readFile(path.join(root, 'static/index.html'), 'utf8'),
+      await fs.readFile(path.join(root, 'static/assets/seatpal/startup-motion.json')),
+      await fs.readFile(path.join(root, 'static/seatpal-startup-motion.js'), 'utf8'),
+      await fs.readFile(path.join(root, 'app/templates/_seatpal-landing-brand.html')),
+    );
+  }
   const seat = svg(brand.mark.viewBox,brand.mark.nodes);
   const mono = svg(brand.mark.viewBox,brand.mark.nodes.map(n=>recolor(n,brand.colors.forest)));
   const web = 'static/assets/seatpal/';

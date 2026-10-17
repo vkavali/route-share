@@ -192,7 +192,8 @@ def _append_part(root: ET.Element, part: dict, group: ET.Element, transform: str
 def _frame0_svg(parts: dict) -> str:
     svg = ET.Element("svg", {
         "xmlns": "http://www.w3.org/2000/svg", "viewBox": "127 88 740 310",
-        "width": "100%", "height": "100%", "focusable": "false", "aria-hidden": "true",
+        "width": "100%", "height": "100%", "preserveAspectRatio": "xMidYMid meet",
+        "focusable": "false", "aria-hidden": "true",
         "data-seatpal-frame": "0",
     })
     seat = ET.Element("g", {"transform": "translate(466 307) scale(1.1)"})
@@ -207,11 +208,9 @@ def _frame0_svg(parts: dict) -> str:
     return ET.tostring(svg, encoding="unicode", short_empty_elements=True)
 
 
-def _replace_fallback_marker(markup: bytes, fallback: str) -> bytes:
-    # The generated SVG is LF-terminated; normalize the enclosing static preview too.
-    markup = markup.replace(b"\r\n", b"\n").replace(b"\r", b"\n")
-    start = b"<!-- seatpal:startup-frame0:start -->"
-    end = b"<!-- seatpal:startup-frame0:end -->"
+def _replace_fallback_marker(markup: bytes, fallback: str, marker: str) -> bytes:
+    start = f"<!-- seatpal:{marker}:start -->".encode()
+    end = f"<!-- seatpal:{marker}:end -->".encode()
     if markup.count(start) != 1 or markup.count(end) != 1:
         raise ValueError("Preview must contain exactly one startup frame-zero marker pair")
     left, remainder = markup.split(start, 1)
@@ -290,7 +289,9 @@ def generate() -> dict[str, bytes]:
     engine = ENGINE.replace("__STARTUP_ASSET_HASH__", asset_hash)
     js_bytes = (engine + "\nexport const STARTUP_FRAME0_SVG = " + json.dumps(fallback, ensure_ascii=True) + ";\n").encode()
     preview_path = ROOT / "static/seatpal-startup-preview.html"
-    preview_bytes = _replace_fallback_marker(preview_path.read_bytes(), fallback)
+    preview_bytes = _replace_fallback_marker(preview_path.read_bytes(), fallback, "startup-frame0")
+    index_path = ROOT / "static/index.html"
+    index_bytes = _replace_fallback_marker(index_path.read_bytes(), fallback, "canonical-mark")
     return {
         "static/assets/seatpal/startup-motion.json": json_bytes,
         "mobile/assets/seatpal/startup-motion.json": json_bytes,
@@ -298,6 +299,7 @@ def generate() -> dict[str, bytes]:
         "mobile/src/generated/seatpal-startup-motion.js": js_bytes,
         "mobile/src/generated/seatpal-startup-motion.d.ts": DECLARATION.encode(),
         "static/seatpal-startup-preview.html": preview_bytes,
+        "static/index.html": index_bytes,
     }
 
 
