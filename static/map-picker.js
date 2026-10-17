@@ -1,7 +1,7 @@
 import { appIcon } from './icons.js';
+import { busyMark } from './seatpal-busy.js';
 
 const HYDERABAD = [17.385, 78.4867];
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const API_LOCALES = new Set(['en', 'te', 'hi']);
 
 const EN = {
@@ -21,6 +21,7 @@ const EN = {
   mapLocationError: 'Could not get your location. Choose a point on the map or try again.',
   mapLocationBusy: 'Finding your location…',
   mapTilesError: 'Some map tiles could not be loaded. Search and map selection are still available.',
+  mapBoundaryError: 'Official Indian boundaries could not be loaded. Search and map selection are still available.',
   mapPinnedLocation: 'Pinned map location',
   mapCurrentLocation: 'Current location',
   mapMeetingPointNote: 'Choose a clear, public meeting point such as a main entrance.',
@@ -132,6 +133,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     const searchRow = backdrop.querySelector('.map-picker-search-row');
     searchRow.append(gpsButton);
     let map = null;
+    let cleanupBasemap = null;
     let marker = null;
     let accuracyCircle = null;
     let selected = null;
@@ -140,7 +142,6 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     let searchSequence = 0;
     let selectionSequence = 0;
     let gpsSequence = 0;
-    let tileFailed = false;
 
     dialog.querySelector('h2').textContent = title || translation(t, 'mapPickTitle');
     query.setAttribute('aria-label', translation(t, 'mapSearchLabel'));
@@ -168,9 +169,16 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
       label: pointLabel(initial, translation(t, 'mapPinnedLocation'))
     } : null;
 
-    const showStatus = (message, kind = '') => {
+    const showStatus = (message, kind = '', pending = false) => {
       status.textContent = message || '';
-      status.className = `map-picker-status${kind ? ` is-${kind}` : ''}`;
+      if (pending) {
+        status.innerHTML = busyMark();
+        const label = document.createElement('span');
+        label.textContent = message || '';
+        status.append(label);
+      }
+      status.setAttribute('aria-busy', String(pending));
+      status.className = `map-picker-status${pending ? ' seatpal-wait-status' : ''}${kind ? ` is-${kind}` : ''}`;
       status.hidden = !message;
     };
     const updateSelection = (point, source = 'map') => {
@@ -179,6 +187,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
       searchSequence += 1;
       gpsSequence += 1;
       setBusy(false);
+      showStatus('');
       results.replaceChildren();
       results.hidden = true;
       addressButton.disabled = false;
@@ -221,6 +230,8 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     };
     const cleanup = () => {
       if (map) {
+        cleanupBasemap?.();
+        cleanupBasemap = null;
         map.stop?.();
         map.off();
         map.remove();
@@ -332,7 +343,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
       setBusy(true);
       results.hidden = true;
       results.replaceChildren();
-      showStatus(translation(t, 'mapSearchLoading'));
+      showStatus(translation(t, 'mapSearchLoading'), '', true);
       try {
         const url = `/api/places?q=${encodeURIComponent(term)}&lang=${encodeURIComponent(lang || 'en')}`;
         const response = await api(url);
@@ -364,7 +375,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
       setBusy(true);
       results.hidden = true;
       results.replaceChildren();
-      showStatus(translation(t, 'mapLocationBusy'));
+      showStatus(translation(t, 'mapLocationBusy'), '', true);
       navigator.geolocation.getCurrentPosition(position => {
         if (finished || sequence !== gpsSequence) return;
         const { latitude: lat, longitude: lon, accuracy } = position.coords;
@@ -378,9 +389,9 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
           if (accuracyCircle) map.removeLayer(accuracyCircle);
           accuracyCircle = window.L.circle([lat, lon], {
             radius: Math.max(accuracy || 0, 1),
-            color: '#173d34',
+            color: '#0071E3',
             weight: 2,
-            fillColor: '#d6ee7a',
+            fillColor: '#0071E3',
             fillOpacity: .16
           }).addTo(map);
           map.setView([lat, lon], Math.max(map.getZoom(), 15));
@@ -406,7 +417,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
       const point = { ...selected };
       const sequence = selectionSequence;
       addressButton.disabled = true;
-      showStatus(translation(t, 'mapAddressLoading'));
+      showStatus(translation(t, 'mapAddressLoading'), '', true);
       try {
         const response = await api(`/api/places/reverse?lat=${encodeURIComponent(point.lat)}&lon=${encodeURIComponent(point.lon)}&lang=${encodeURIComponent(lang || 'en')}`);
         if (finished || sequence !== selectionSequence) return;
@@ -460,7 +471,7 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
     if (initialPoint) updateSelection(initialPoint, 'initial');
 
     const Leaflet = window.L;
-    if (!Leaflet?.map || !Leaflet?.tileLayer) {
+    if (!Leaflet?.map || !window.RouteShareMapTheme?.mountBasemap) {
       mapElement.textContent = '';
       mapError.textContent = translation(t, 'mapTilesError');
       mapError.hidden = false;
@@ -476,15 +487,20 @@ export function pickLocation({ title, initial, lang = 'en', t, api } = {}) {
           fadeAnimation: false,
           markerZoomAnimation: false
         }).setView(initialPoint ? [initialPoint.lat, initialPoint.lon] : HYDERABAD, initialPoint ? 15 : 12);
-        const tiles = Leaflet.tileLayer(TILE_URL, {
-          maxZoom: 19,
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
-        }).addTo(map);
-        tiles.on('tileerror', () => {
-          if (tileFailed || finished) return;
-          tileFailed = true;
-          mapError.textContent = translation(t, 'mapTilesError');
-          mapError.hidden = false;
+        mapElement.style.backgroundColor = '#F5F4EC';
+        cleanupBasemap = window.RouteShareMapTheme.mountBasemap(Leaflet, map, {
+          lang,
+          onReady: () => { if (!finished) mapError.hidden = true; },
+          onBoundaryUnavailable: () => {
+            if (finished) return;
+            mapError.textContent = translation(t, 'mapBoundaryError');
+            mapError.hidden = false;
+          },
+          onFallback: () => {
+            if (finished) return;
+            mapError.textContent = translation(t, 'mapTilesError');
+            mapError.hidden = false;
+          }
         });
         map.on('click', event => updateSelection({
           lat: event.latlng.lat,
@@ -523,12 +539,31 @@ export function mountJourneyMap(element, { points = [], route, lang = 'en', t } 
     status.textContent = message || '';
     status.hidden = !message;
   };
-  if (!L?.map || !L?.tileLayer) {
+  if (!L?.map || !window.RouteShareMapTheme?.mountBasemap) {
     showStatus(fallback);
     return () => {};
   }
 
   let map;
+  let cleanupBasemap = null;
+  let resizeObserver = null;
+  let resizeFrame = 0;
+  const invalidateAfterLayout = () => {
+    resizeFrame = 0;
+    if (!map || !element.isConnected) return;
+    const bounds = element.getBoundingClientRect();
+    if (bounds.width > 0 && bounds.height > 0) map.invalidateSize({ pan: false });
+  };
+  const scheduleInvalidation = () => {
+    if (resizeFrame || !map) return;
+    resizeFrame = requestAnimationFrame(invalidateAfterLayout);
+  };
+  const stopResizeTracking = () => {
+    resizeObserver?.disconnect();
+    resizeObserver = null;
+    if (resizeFrame) cancelAnimationFrame(resizeFrame);
+    resizeFrame = 0;
+  };
   try {
     const isHomeMap = Boolean(element.closest('.home-map-shell'));
     map = L.map(element, {
@@ -540,15 +575,12 @@ export function mountJourneyMap(element, { points = [], route, lang = 'en', t } 
       fadeAnimation: false,
       markerZoomAnimation: false
     });
-    const tiles = L.tileLayer(TILE_URL, {
-      maxZoom: 19,
-      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer">OpenStreetMap</a> contributors'
-    }).addTo(map);
-    let tileFailed = false;
-    tiles.on('tileerror', () => {
-      if (tileFailed) return;
-      tileFailed = true;
-      showStatus(fallback);
+    element.style.backgroundColor = '#F5F4EC';
+    cleanupBasemap = window.RouteShareMapTheme.mountBasemap(L, map, {
+      lang,
+      onReady: () => showStatus(''),
+      onBoundaryUnavailable: () => showStatus('Official Indian boundaries could not be loaded.'),
+      onFallback: () => showStatus(fallback)
     });
 
     const visiblePoints = points.filter(validPoint).map((point, index) => ({
@@ -564,7 +596,7 @@ export function mountJourneyMap(element, { points = [], route, lang = 'en', t } 
         radius: 8,
         color: '#ffffff',
         weight: 3,
-        fillColor: isPickup ? '#173d34' : '#d6ee7a',
+        fillColor: isPickup ? '#C4410C' : '#FFC13D',
         fillOpacity: 1,
         className: isPickup ? 'journey-map-marker journey-map-marker-pickup' : 'journey-map-marker journey-map-marker-dropoff'
       }).addTo(map);
@@ -577,7 +609,7 @@ export function mountJourneyMap(element, { points = [], route, lang = 'en', t } 
       .filter(validPoint);
     if (line.length >= 2) {
       const routeLine = L.polyline(line.map(point => [point.lat, point.lon]), {
-        color: '#173d34',
+        color: '#C4410C',
         weight: 5,
         opacity: .94,
         lineCap: 'round',
@@ -591,14 +623,27 @@ export function mountJourneyMap(element, { points = [], route, lang = 'en', t } 
     else if (bounds.length === 1) map.setView(bounds[0], 15);
     else map.setView([17.1, 80], 7);
 
-    requestAnimationFrame(() => map?.invalidateSize({ pan: false }));
+    if (typeof ResizeObserver === 'function') {
+      resizeObserver = new ResizeObserver(entries => {
+        if (entries.some(entry => entry.target === element && entry.contentRect.width > 0 && entry.contentRect.height > 0)) {
+          scheduleInvalidation();
+        }
+      });
+      resizeObserver.observe(element);
+    } else {
+      scheduleInvalidation();
+    }
     return () => {
+      stopResizeTracking();
+      cleanupBasemap?.();
+      cleanupBasemap = null;
       map?.stop?.();
       map?.off();
       map?.remove();
       map = null;
     };
   } catch {
+    stopResizeTracking();
     map?.remove();
     showStatus(fallback);
     return () => {};

@@ -1,0 +1,31 @@
+// Shared native presentation tokens. Product state and interactions stay in their screens.
+export const SeatPalTheme = {
+  colors: {
+    text: '#23221F',
+    secondary: '#6C655F',
+    page: '#F5F5F3',
+    surface: '#ffffff',
+    primary: '#C64A12',
+    selected: '#FFF0E5',
+    seat: '#FFC13D',
+    border: '#E5DED8',
+    subtle: '#F3F0ED',
+    onPrimary: '#ffffff',
+    onPrimarySecondary: '#FFE6D6',
+    warning: '#fff2cf',
+    dangerSurface: '#fbedec',
+    danger: '#8a3c2a',
+    scrim: '#23221F33',
+  },
+  spacing: {xs: 4, sm: 8, md: 16, lg: 24, xl: 32, xxl: 48},
+  radius: {control: 14, card: 24, sheet: 28, pill: 999},
+  target: 52,
+  type: {display: 32, title: 28, heading: 24, body: 16, caption: 13},
+  overlayShadow: {
+    shadowColor: '#000000',
+    shadowOffset: {width: 0, height: 4},
+    shadowOpacity: 0.08,
+    shadowRadius: 16,
+    elevation: 4,
+  },
+} as const;

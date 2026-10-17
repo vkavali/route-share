@@ -4,6 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import {T} from './translation';
 import {Icon} from './Icon';
 import {AppText} from './NativeTypography';
+import {SeatPalTheme} from './SeatPalTheme';
 
 const IST = 'Asia/Kolkata';
 const IST_OFFSET_MS = 330 * 60 * 1000;
@@ -102,7 +103,7 @@ export function DateTimeField({label, value, onChange, lang, minimumDate, maximu
     {!compact?<AppText style={styles.zone}>{T(lang, 'timeZoneNote')}</AppText>:null}
     <View style={styles.actions}>
       <Pressable accessibilityRole="button" accessibilityLabel={`${label}, ${dateValue ? formatValue(value, lang) : T(lang, 'dateTimeChoose')}`} onPress={open} style={({pressed}) => [styles.valueButton,compact&&styles.compactValueButton, pressed && styles.pressed]}>
-        <>{compact?<Icon name="calendarBlank" size={19} color="#7B8780"/>:null}<AppText style={[styles.valueText,compact&&styles.compactValueText]}>{dateValue ? formatValue(value, lang) : T(lang, 'dateTimeChoose')}{compact?' · IST':''}</AppText></>
+        <>{compact?<Icon name="calendarBlank" size={19} color={SeatPalTheme.colors.secondary}/>:null}<AppText style={[styles.valueText,compact&&styles.compactValueText]}>{dateValue ? formatValue(value, lang) : T(lang, 'dateTimeChoose')}{compact?' · IST':''}</AppText></>
       </Pressable>
       {dateValue ? <Pressable accessibilityRole="button" onPress={() => onChange('')} style={styles.clearButton}><AppText style={styles.clearText}>{T(lang, 'dateTimeClear')}</AppText></Pressable> : null}
     </View>
@@ -158,27 +159,27 @@ export function DateTimeField({label, value, onChange, lang, minimumDate, maximu
 }
 
 const styles = StyleSheet.create({
-  compactContainer:{marginBottom:0,gap:4,paddingVertical:9,paddingHorizontal:12,borderWidth:1,borderColor:'#E0E3DC',borderRadius:11,backgroundColor:'#FFFFFF'},compactLabel:{fontSize:11,fontWeight:'500',color:'#7B8780'},compactValueButton:{minHeight:34,paddingHorizontal:0,borderWidth:0,flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:8},compactValueText:{flex:1,fontSize:13,fontWeight:'500'},
+  compactContainer:{marginBottom:0,gap:4,paddingVertical:9,paddingHorizontal:12,borderWidth:1,borderColor:SeatPalTheme.colors.border,borderRadius:11,backgroundColor:SeatPalTheme.colors.surface},compactLabel:{fontSize:11,fontWeight:'500',color:SeatPalTheme.colors.secondary},compactValueButton:{minHeight:34,paddingHorizontal:0,borderWidth:0,flexDirection:'row',alignItems:'center',justifyContent:'flex-start',gap:8},compactValueText:{flex:1,fontSize:13,fontWeight:'500'},
   container: {gap: 7, marginBottom: 13},
-  label: {color: '#153C32', fontSize: 15, fontWeight: '700'},
-  zone: {color: '#71857B', fontSize: 12},
+  label: {color: SeatPalTheme.colors.text, fontSize: 15, fontWeight: '700'},
+  zone: {color: SeatPalTheme.colors.secondary, fontSize: 12},
   actions: {flexDirection: 'row', alignItems: 'center', gap: 10},
-  valueButton: {minHeight: 48, flex: 1, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: '#DCE4D8', backgroundColor: '#fff'},
-  valueText: {color: '#153C32', fontSize: 15, fontWeight: '600'},
+  valueButton: {minHeight: 48, flex: 1, justifyContent: 'center', paddingHorizontal: 14, borderRadius: 12, borderWidth: 1, borderColor: SeatPalTheme.colors.border, backgroundColor: SeatPalTheme.colors.surface},
+  valueText: {color: SeatPalTheme.colors.text, fontSize: 15, fontWeight: '600'},
   clearButton: {minHeight: 44, justifyContent: 'center', paddingHorizontal: 8},
-  clearText: {color: '#71857B', fontSize: 13, fontWeight: '600'},
+  clearText: {color: SeatPalTheme.colors.secondary, fontSize: 13, fontWeight: '600'},
   pressed: {opacity: .78},
-  backdrop: {flex: 1, justifyContent: 'center', padding: 16, backgroundColor: 'rgba(12,30,58,.46)'},
-  sheet: {overflow: 'hidden', borderRadius: 20, padding: 18, backgroundColor: '#fff'},
-  sheetTitle: {color: '#153C32', fontSize: 18, fontWeight: '800'},
-  sheetZone: {color: '#71857B', fontSize: 12, marginTop: 4},
+  backdrop: {flex: 1, justifyContent: 'center', padding: 16, backgroundColor: 'rgba(35,34,31,.46)'},
+  sheet: {overflow: 'hidden', borderRadius: 20, padding: 18, backgroundColor: SeatPalTheme.colors.surface},
+  sheetTitle: {color: SeatPalTheme.colors.text, fontSize: 18, fontWeight: '800'},
+  sheetZone: {color: SeatPalTheme.colors.secondary, fontSize: 12, marginTop: 4},
   stageTabs: {flexDirection: 'row', gap: 8, marginTop: 14},
-  stageTab: {flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: '#E9EEE6'},
-  stageTabActive: {backgroundColor: '#D8ED79'},
-  stageTabText: {color: '#153C32', fontWeight: '700'},
+  stageTab: {flex: 1, minHeight: 42, alignItems: 'center', justifyContent: 'center', borderRadius: 10, backgroundColor: SeatPalTheme.colors.subtle},
+  stageTabActive: {backgroundColor: SeatPalTheme.colors.selected},
+  stageTabText: {color: SeatPalTheme.colors.text, fontWeight: '700'},
   sheetActions: {flexDirection: 'row', justifyContent: 'flex-end', gap: 9, marginTop: 10},
-  cancelButton: {minHeight: 46, minWidth: 92, alignItems: 'center', justifyContent: 'center', borderRadius: 11, borderWidth: 1, borderColor: '#DCE4D8'},
-  cancelText: {color: '#71857B', fontWeight: '700'},
-  confirmButton: {minHeight: 46, minWidth: 112, alignItems: 'center', justifyContent: 'center', borderRadius: 11, paddingHorizontal: 14, backgroundColor: '#153C32'},
-  confirmText: {color: '#FFFFFF', fontWeight: '800'},
+  cancelButton: {minHeight: 46, minWidth: 92, alignItems: 'center', justifyContent: 'center', borderRadius: 11, borderWidth: 1, borderColor: SeatPalTheme.colors.border},
+  cancelText: {color: SeatPalTheme.colors.secondary, fontWeight: '700'},
+  confirmButton: {minHeight: 46, minWidth: 112, alignItems: 'center', justifyContent: 'center', borderRadius: 11, paddingHorizontal: 14, backgroundColor: SeatPalTheme.colors.primary},
+  confirmText: {color: SeatPalTheme.colors.onPrimary, fontWeight: '800'},
 });

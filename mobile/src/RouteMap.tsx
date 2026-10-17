@@ -3,6 +3,7 @@ import {Linking, StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
 import {WebView} from 'react-native-webview';
 import type {WebViewMessageEvent, WebViewProps} from 'react-native-webview';
 import {LEAFLET_CSS, LEAFLET_JS} from './generated/leaflet';
+import {SeatPalTheme} from './SeatPalTheme';
 
 type Coordinate = [number, number];
 type LocationPoint = {
@@ -60,7 +61,7 @@ function safeJson(value: unknown): string {
 
 function buildHtml(lang = 'en'): string {
   const center = safeJson(REGIONAL_CENTER);
-  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{width:100%;height:100%;margin:0;background:#F5F4EC;overflow:hidden}#map{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}${LEAFLET_CSS}.leaflet-control-attribution{font-size:10px}.leaflet-control a{color:#153C32}</style></head><body><div id="map" role="application" aria-label="OpenStreetMap route and live locations"></div><script>${LEAFLET_JS}</script><script>
+  return `<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; base-uri 'none'; object-src 'none'; frame-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{width:100%;height:100%;margin:0;background:${SeatPalTheme.colors.page};overflow:hidden}#map{font-family:system-ui,-apple-system,'Segoe UI',sans-serif}${LEAFLET_CSS}.leaflet-control-attribution{font-size:10px}.leaflet-control a{color:${SeatPalTheme.colors.primary}}</style></head><body><div id="map" role="application" aria-label="OpenStreetMap route and live locations"></div><script>${LEAFLET_JS}</script><script>
 (function(){
   var OSM_COPYRIGHT=${safeJson(OSM_COPYRIGHT)};
   var LANGUAGE=${safeJson(lang)};
@@ -84,11 +85,11 @@ function buildHtml(lang = 'en'): string {
     if(points.length<2)points=[];
     if(points.length){
       var latlngs=points.map(function(p){return [p[1],p[0]];});
-      if(!routeLine)routeLine=L.polyline(latlngs,{color:'#153C32',weight:5,opacity:.94,lineCap:'round',lineJoin:'round'}).addTo(map);
+      if(!routeLine)routeLine=L.polyline(latlngs,{color:'${SeatPalTheme.colors.primary}',weight:5,opacity:.94,lineCap:'round',lineJoin:'round'}).addTo(map);
       else routeLine.setLatLngs(latlngs);
-      if(!originMarker)originMarker=L.circleMarker(latlngs[0],{radius:8,color:'#fff',weight:3,fillColor:'#D8ED79',fillOpacity:1}).addTo(map);
+      if(!originMarker)originMarker=L.circleMarker(latlngs[0],{radius:8,color:'${SeatPalTheme.colors.onPrimary}',weight:3,fillColor:'${SeatPalTheme.colors.seat}',fillOpacity:1}).addTo(map);
       else originMarker.setLatLng(latlngs[0]);
-      if(!destinationMarker)destinationMarker=L.circleMarker(latlngs[latlngs.length-1],{radius:8,color:'#fff',weight:3,fillColor:'#153C32',fillOpacity:1}).addTo(map);
+      if(!destinationMarker)destinationMarker=L.circleMarker(latlngs[latlngs.length-1],{radius:8,color:'${SeatPalTheme.colors.onPrimary}',weight:3,fillColor:'${SeatPalTheme.colors.primary}',fillOpacity:1}).addTo(map);
       else destinationMarker.setLatLng(latlngs[latlngs.length-1]);
       if(!hasInitialRouteFit){map.fitBounds(routeLine.getBounds(),{padding:[28,28],maxZoom:15});hasInitialRouteFit=true;}
     }else{
@@ -102,7 +103,7 @@ function buildHtml(lang = 'en'): string {
       var key=typeof point.key==='string'&&point.key?point.key:'location-'+index;
       present.add(key);
       var marker=liveMarkers.get(key);
-      if(!marker){marker=L.circleMarker([point.lat,point.lon],{radius:9,color:'#fff',weight:3,fillColor:'#D8ED79',fillOpacity:.96}).addTo(map);liveMarkers.set(key,marker);}
+      if(!marker){marker=L.circleMarker([point.lat,point.lon],{radius:9,color:'${SeatPalTheme.colors.onPrimary}',weight:3,fillColor:'${SeatPalTheme.colors.seat}',fillOpacity:.96}).addTo(map);liveMarkers.set(key,marker);}
       else marker.setLatLng([point.lat,point.lon]);
       markerPopup(marker,typeof point.name==='string'?point.name.slice(0,80):'');
     });
@@ -113,8 +114,8 @@ function buildHtml(lang = 'en'): string {
       var key=typeof point.key==='string'?point.key:'stop-'+index;
       stopPoints.push([point.lat,point.lon]);
       var marker=stopMarkers.get(key);
-      var color=point.kind==='pickup'?'#D8ED79':'#153C32';
-      if(!marker){marker=L.circleMarker([point.lat,point.lon],{radius:8,color:'#fff',weight:3,fillColor:color,fillOpacity:1}).addTo(map);stopMarkers.set(key,marker);}
+      var color=point.kind==='pickup'?'${SeatPalTheme.colors.seat}':'${SeatPalTheme.colors.primary}';
+      if(!marker){marker=L.circleMarker([point.lat,point.lon],{radius:8,color:'${SeatPalTheme.colors.onPrimary}',weight:3,fillColor:color,fillOpacity:1}).addTo(map);stopMarkers.set(key,marker);}
       else marker.setLatLng([point.lat,point.lon]).setStyle({fillColor:color});
       markerPopup(marker,typeof point.name==='string'?point.name.slice(0,100):'');
     });
@@ -201,4 +202,4 @@ export function RouteMap({coordinates = [], locations = [], stops = [], height =
   </View>;
 }
 
-const styles = StyleSheet.create({wrap: {height: 300, borderRadius: 16, overflow: 'hidden', backgroundColor: '#E9EEE6'}, map: {flex: 1}});
+const styles = StyleSheet.create({wrap: {height: 300, borderRadius: 16, overflow: 'hidden', backgroundColor: SeatPalTheme.colors.subtle}, map: {flex: 1}});

@@ -1,6 +1,5 @@
 import { appIcon } from './icons.js';
 
-const TILE_URL = 'https://tile.openstreetmap.org/{z}/{x}/{y}.png';
 const FRESH_FOR_MS = 15_000;
 const MAX_ACCURACY_M = 200;
 const MIN_SEND_INTERVAL_MS = 5_000;
@@ -53,7 +52,7 @@ function makePointMarker(L, map, point, className) {
     radius: 8,
     color: '#ffffff',
     weight: 3,
-    fillColor: className === 'pickup' ? '#173d34' : '#d6ee7a',
+    fillColor: className === 'pickup' ? '#C4410C' : '#FFC13D',
     fillOpacity: 1,
     className: `live-location-marker live-location-marker-${className}`,
   }).addTo(map);
@@ -70,7 +69,7 @@ function makeDeviceMarker(L, map, location) {
     radius: 7,
     color: '#ffffff',
     weight: 2,
-    fillColor: '#18845b',
+    fillColor: '#30251C',
     fillOpacity: 1,
     className: 'live-location-marker live-location-marker-device',
   }).addTo(map);
@@ -172,16 +171,39 @@ export function mountLiveLocation({
 
   if (hasL && (displayedRoute.length > 1 || pickupPoint || dropoffPoint)) {
     map = window.L.map(mapElement, { scrollWheelZoom: false, zoomControl: true, zoomAnimation: false, fadeAnimation: false, markerZoomAnimation: false });
-    if (window.RouteShareMapTheme?.enabled === true && window.RouteShareMapTheme?.mountBasemap) {
-      cleanupBasemap = window.RouteShareMapTheme.mountBasemap(window.L, map, { lang });
+    mapElement.style.backgroundColor = '#F5F4EC';
+    if (window.RouteShareMapTheme?.mountBasemap) {
+      cleanupBasemap = window.RouteShareMapTheme.mountBasemap(window.L, map, {
+        lang,
+        onReady: () => {
+          if (!cleaned && routeNote.dataset.basemapUnavailable === 'true') {
+            routeNote.hidden = true;
+            delete routeNote.dataset.basemapUnavailable;
+          }
+        },
+        onBoundaryUnavailable: () => {
+          if (cleaned) return;
+          routeNote.dataset.basemapUnavailable = 'true';
+          routeNote.textContent = 'Official Indian boundaries could not be loaded. Route and location markers remain available.';
+          routeNote.hidden = false;
+          routeNote.setAttribute('role', 'status');
+        },
+        onFallback: () => {
+          if (cleaned) return;
+          routeNote.dataset.basemapUnavailable = 'true';
+          routeNote.textContent = t('mapTilesError');
+          routeNote.hidden = false;
+          routeNote.setAttribute('role', 'status');
+        }
+      });
     } else {
-      window.L.tileLayer(TILE_URL, {
-        maxZoom: 19,
-        attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
-      }).addTo(map);
+      routeNote.dataset.basemapUnavailable = 'true';
+      routeNote.textContent = t('mapTilesError');
+      routeNote.hidden = false;
+      routeNote.setAttribute('role', 'status');
     }
     if (displayedRoute.length > 1) {
-      routeLine = window.L.polyline(displayedRoute, { color: '#173d34', weight: 5, opacity: 0.95 }).addTo(map);
+      routeLine = window.L.polyline(displayedRoute, { color: '#C4410C', weight: 5, opacity: 0.95 }).addTo(map);
     }
     const pickupMarker = makePointMarker(window.L, map, pickup, 'pickup');
     const dropoffMarker = makePointMarker(window.L, map, dropoff, 'dropoff');
@@ -261,7 +283,7 @@ export function mountLiveLocation({
         locationMarkers.set(id, marker);
       }
       marker.setLatLng([lat, lon]);
-      marker.setStyle({ fillColor: isStale(location) ? '#77808a' : '#18845b' });
+      marker.setStyle({ fillColor: isStale(location) ? '#77808a' : '#30251C' });
       const tooltip = document.createElement('span');
       tooltip.textContent = String(location.name || '');
       marker.bindTooltip(tooltip, { direction: 'top', offset: [0, -8] });
@@ -411,7 +433,7 @@ export function mountLiveLocation({
       const liveRoute = routePoints({ route: response.route });
       if (map && displayedRoute.length < 2 && liveRoute.length > 1) {
         displayedRoute = liveRoute;
-        routeLine = window.L.polyline(displayedRoute, { color: '#173d34', weight: 5, opacity: 0.95 }).addTo(map);
+        routeLine = window.L.polyline(displayedRoute, { color: '#C4410C', weight: 5, opacity: 0.95 }).addTo(map);
         routeNote.hidden = true;
         const bounds = routeLine.getBounds();
         if (bounds.isValid()) map.fitBounds(bounds.pad(0.12), { maxZoom: 12 });

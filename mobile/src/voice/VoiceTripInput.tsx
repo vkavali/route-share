@@ -1,3 +1,4 @@
+import {SeatPalLoader} from '../SeatPalLoader';
 import React, {useEffect, useRef, useState} from 'react';
 import {AppState, Linking, Pressable, StyleSheet, Switch, TextInput, View} from 'react-native';
 import {randomUUID} from 'expo-crypto';
@@ -129,10 +130,11 @@ export function VoiceTripInput({api, lang, onDraft, onFailure, onSpokenRepliesCh
     <Text style={styles.body}>{copy.hint}</Text>
     <Text style={styles.note}>{copy.privacy}</Text>
     {lang === 'hi' && <Text style={styles.note}>{copy.englishFallback}</Text>}
-    <Text accessibilityLiveRegion="polite" style={styles.note}>{checking ? copy.checking : !nativeAvailable ? copy.unavailable : !capabilities?.available ? copy.serverUnavailable : !capabilities.languages.includes(language) ? copy.unsupported : quotaReached ? copy.dailyLimit : ''}</Text>
+    <Text accessibilityLiveRegion="polite" style={styles.note}>{checking ? '' : !nativeAvailable ? copy.unavailable : !capabilities?.available ? copy.serverUnavailable : !capabilities.languages.includes(language) ? copy.unsupported : quotaReached ? copy.dailyLimit : ''}</Text>
+    {checking&&!busy?<SeatPalLoader label={copy.checking}/>:null}
     {!!quotaReset && <Text style={styles.note}>{quotaReset}</Text>}
     {busy ? <View style={styles.row}>
-      <Text accessibilityLiveRegion="polite" style={styles.body}>{status === 'starting' ? copy.starting : status === 'finishing' ? copy.stopping : copy.listening}</Text>
+      {status==='starting'||status==='finishing'?<SeatPalLoader label={status==='starting'?copy.starting:copy.stopping}/>:<Text accessibilityLiveRegion="polite" style={styles.body}>{copy.listening}</Text>}
       {status === 'recording' && <Action label={copy.stop} onPress={finish} />}
       <Action label={copy.cancel} onPress={cancel} />
     </View> : <Action label={copy.listen} onPress={() => void listen('trip')} disabled={disabled} primary />}

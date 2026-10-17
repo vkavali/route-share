@@ -1,0 +1,25 @@
+{
+  "capture": "Local SeatPal app rendered in installed Chrome; current passenger home screen, no route selection or results",
+  "captured_on": "2026-10-14",
+  "environment": "http://127.0.0.1:5354 local fixture app; passenger fixture authentication; no production or customer data",
+  "viewport_css_px": {
+    "width": 390,
+    "height": 844
+  },
+  "device_scale_factor": 2,
+  "image_px": {
+    "width": 780,
+    "height": 1688
+  },
+  "format_derivative": "PNG screenshot converted to WebP by browser canvas; visual content/layout unchanged",
+  "source_png": "output/design-validation/ultra-app-screen-source.png",
+  "use": "Illustrative screenshot of current app UI. The empty route/home state does not show real trip supply or availability.",
+  "map": "Existing map renderer; no route line selected or fabricated.",
+  "verified_render": {
+    "ride_cta_background": "rgb(0, 113, 227)",
+    "app_background": "rgb(245, 245, 247)",
+    "body_background": "rgb(248, 247, 242)",
+    "loaded_osm_tiles": 6,
+    "javascript_errors": 0
+  }
+}

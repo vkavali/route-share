@@ -1,7 +1,7 @@
 export const messages = {
   en: {
     name:'SeatPal', minutes:'min', beta:'Local test environment', safety:'Development accounts only. Identity, driving licence and vehicle checks are not verified. No payments, live traffic or emergency service.',
-    login:'Sign in for local testing', account:'Development account', password:'Development password', signin:'Continue', development:'Development accounts',
+    login:'Sign in for local testing', account:'Development account', password:'Password', signin:'Continue', development:'Development accounts',
     home:'Your next journey', ride:'I need a ride', drive:"I'm driving", journeys:'My journeys', bookings:'My bookings', inbox:'Requests', operations:'Operations', logout:'Sign out', language:'Language',
     origin:'From', destination:'To', tripDeparture:'Trip departure', detourBudget:'Maximum added driving', departure:'Departure date and time (IST)', seats:'Seats available', detour:'Maximum added driving (minutes)', preview:'Preview route', publish:'Publish this journey', search:'Find a ride', pickupFrom:'Pickup window starts (IST)', pickupUntil:'Pickup window ends (IST)', seatsNeeded:'Seats needed',
     exact:'Choose a point on the map or use a nearby landmark', landmark:'Nearby landmark', custom:'Enter exact location', label:'Place name', latitude:'Latitude', longitude:'Longitude',
@@ -435,7 +435,7 @@ export const messages = {
   },
   hi: {
     name:'SeatPal', minutes:'मिनट', beta:'स्थानीय परीक्षण वातावरण', safety:'केवल विकास खाते। पहचान, ड्राइविंग लाइसेंस और वाहन जाँच सत्यापित नहीं हैं। भुगतान, लाइव ट्रैफ़िक या आपातकालीन सेवा उपलब्ध नहीं है।',
-    login:'स्थानीय परीक्षण के लिए साइन इन करें', account:'विकास खाता', password:'विकास पासवर्ड', signin:'जारी रखें', development:'विकास खाते',
+    login:'स्थानीय परीक्षण के लिए साइन इन करें', account:'विकास खाता', password:'पासवर्ड', signin:'जारी रखें', development:'विकास खाते',
     home:'आपकी अगली यात्रा', ride:'मुझे सवारी चाहिए', drive:'मैं गाड़ी चला रहा हूँ', journeys:'मेरी यात्राएँ', bookings:'मेरी बुकिंग', inbox:'अनुरोध', operations:'ऑपरेशन्स', logout:'साइन आउट', language:'भाषा',
     origin:'कहाँ से', destination:'कहाँ तक', tripDeparture:'यात्रा रवाना होने का समय', detourBudget:'अधिकतम अतिरिक्त ड्राइविंग', departure:'रवाना होने की तारीख और समय (IST)', seats:'उपलब्ध सीटें', detour:'अधिकतम अतिरिक्त ड्राइविंग (मिनट)', preview:'रूट देखें', publish:'यह यात्रा प्रकाशित करें', search:'सवारी खोजें', pickupFrom:'पिकअप समय शुरू (IST)', pickupUntil:'पिकअप समय समाप्त (IST)', seatsNeeded:'ज़रूरी सीटें',
     exact:'लैंडमार्क चुनें या सटीक निर्देशांक भरें', landmark:'नज़दीकी लैंडमार्क', custom:'सटीक जगह भरें', label:'जगह का नाम', latitude:'अक्षांश', longitude:'देशांतर',
@@ -482,6 +482,7 @@ Object.assign(messages.te, {welcomeTitle:"SeatPal‌కు స్వాగతం
 Object.assign(messages.hi, {welcomeTitle:"SeatPal में आपका स्वागत है"});
 
 Object.assign(messages.en, {
+  rideOptions:'Ride options', searchAgain:'Search again', localSampleRides:'Local preview · Sample rides',
   communityProfile:'Profile', communityEditProfile:'Edit profile', communitySaveProfile:'Save profile', communityProfileSaved:'Profile saved',
   communityName:'Name', communityPhone:'Phone', communitySharePhone:'Share phone number', communitySharePhoneHelp:'Choose whether people on your trip can see your phone number.',
   communityVerification:'Verification', communityNotVerified:'Not verified', communityDevelopment:'Test account', communityAccountSummary:'Account details',
@@ -501,6 +502,7 @@ Object.assign(messages.en, {
   communityNewMessage:'New message', communitySaveFailed:'Profile could not be saved.', communityEmptyProfile:'No profile details yet.'
 });
 Object.assign(messages.te, {
+  rideOptions:'రైడ్ ఎంపికలు', searchAgain:'మళ్లీ శోధించండి', localSampleRides:'స్థానిక ప్రివ్యూ · నమూనా రైడ్‌లు',
   communityProfile:'ప్రొఫైల్', communityEditProfile:'ప్రొఫైల్ మార్చండి', communitySaveProfile:'ప్రొఫైల్ సేవ్ చేయండి', communityProfileSaved:'ప్రొఫైల్ సేవ్ అయింది',
   communityName:'పేరు', communityPhone:'ఫోన్', communitySharePhone:'ఫోన్ నంబర్ షేర్ చేయండి', communitySharePhoneHelp:'మీ ప్రయాణంలో ఉన్నవారికి మీ ఫోన్ నంబర్ కనిపించాలా అనేది ఎంచుకోండి.',
   communityVerification:'ధృవీకరణ', communityNotVerified:'ధృవీకరించలేదు', communityDevelopment:'టెస్ట్ అకౌంట్', communityAccountSummary:'అకౌంట్ వివరాలు',
@@ -519,7 +521,20 @@ Object.assign(messages.te, {
   communityCallDisclosure:'మీ ఫోన్ యాప్ తెరుచుకుంటుంది. SeatPal కాల్ చేయదు లేదా రికార్డ్ చేయదు.', communityProfileLoading:'ప్రొఫైల్ లోడ్ అవుతోంది…',
   communityNewMessage:'కొత్త సందేశం', communitySaveFailed:'ప్రొఫైల్ సేవ్ కాలేదు.', communityEmptyProfile:'ప్రొఫైల్ వివరాలు లేవు.'
 });
+Object.assign(messages.en, {
+  phoneConsentRecorded:'Your consent was recorded before requesting the code.', phoneSdkLoading:'Preparing the verification service…', phoneCaptchaReady:'Complete the CAPTCHA, then choose Send code.', phoneCaptchaRequired:'Complete the CAPTCHA before requesting a code.', phoneSdkSending:'Sending code…', phoneSdkFailure:'The verification service did not complete. Try again or restart sign-in.'
+});
+Object.assign(messages.te, {
+  phoneConsentRecorded:'కోడ్ కోరే ముందు మీ అంగీకారం నమోదు అయింది.', phoneSdkLoading:'ధృవీకరణ సేవ సిద్ధమవుతోంది…', phoneCaptchaReady:'CAPTCHA పూర్తి చేసి, కోడ్ పంపండి ఎంచుకోండి.', phoneCaptchaRequired:'కోడ్ కోరే ముందు CAPTCHA పూర్తి చేయండి.', phoneSdkSending:'కోడ్ పంపుతోంది…', phoneSdkFailure:'ధృవీకరణ సేవ పూర్తికాలేదు. మళ్లీ ప్రయత్నించండి లేదా సైన్ ఇన్‌ను తిరిగి ప్రారంభించండి.'
+});
 Object.assign(messages.hi, {
+  phoneConsentRecorded:'कोड माँगने से पहले आपकी सहमति दर्ज की गई।', phoneSdkLoading:'सत्यापन सेवा तैयार हो रही है…', phoneCaptchaReady:'CAPTCHA पूरा करें, फिर कोड भेजें चुनें।', phoneCaptchaRequired:'कोड माँगने से पहले CAPTCHA पूरा करें।', phoneSdkSending:'कोड भेजा जा रहा है…', phoneSdkFailure:'सत्यापन सेवा पूरी नहीं हो सकी। फिर कोशिश करें या साइन इन दोबारा शुरू करें।'
+});
+Object.assign(messages.en, { phoneSdkReady:'The secure verification window is ready.', phoneContinueVerification:'Continue in secure verification' });
+Object.assign(messages.te, { phoneSdkReady:'సురక్షిత ధృవీకరణ విండో సిద్ధంగా ఉంది.', phoneContinueVerification:'సురక్షిత ధృవీకరణ కొనసాగించండి' });
+Object.assign(messages.hi, { phoneSdkReady:'सुरक्षित सत्यापन विंडो तैयार है।', phoneContinueVerification:'सुरक्षित सत्यापन जारी रखें' });
+Object.assign(messages.hi, {
+  rideOptions:'सवारी विकल्प', searchAgain:'फिर खोजें', localSampleRides:'स्थानीय पूर्वावलोकन · नमूना सवारी',
   communityProfile:'प्रोफ़ाइल', communityEditProfile:'प्रोफ़ाइल बदलें', communitySaveProfile:'प्रोफ़ाइल सेव करें', communityProfileSaved:'प्रोफ़ाइल सेव हो गई',
   communityName:'नाम', communityPhone:'फ़ोन', communitySharePhone:'फ़ोन नंबर साझा करें', communitySharePhoneHelp:'चुनें कि आपकी यात्रा के लोग आपका फ़ोन नंबर देख सकें या नहीं।',
   communityVerification:'सत्यापन', communityNotVerified:'सत्यापित नहीं', communityDevelopment:'टेस्ट अकाउंट', communityAccountSummary:'अकाउंट की जानकारी',
@@ -537,6 +552,36 @@ Object.assign(messages.hi, {
   communityCallUnavailable:'साझा किया हुआ फ़ोन नंबर उपलब्ध नहीं है।', communityCallConfirm:'क्या {name} को {phone} पर कॉल करें?',
   communityCallDisclosure:'आपका फ़ोन ऐप खुलेगा। SeatPal कॉल नहीं करता और न ही उसे रिकॉर्ड करता है।', communityProfileLoading:'प्रोफ़ाइल लोड हो रही है…',
   communityNewMessage:'नया संदेश', communitySaveFailed:'प्रोफ़ाइल सेव नहीं हो सकी।', communityEmptyProfile:'अभी प्रोफ़ाइल की जानकारी नहीं है।'
+});
+
+// Optional ride details and server-ranked search choices.
+Object.assign(messages.en, {
+  arriveByOptional:'Arrive by (optional)', arriveByHelp:'We will show the estimated arrival time for each shared segment.', arriveByBeforePickup:'Choose an arrival time at or after your pickup window starts.',
+  baggageDetails:'Available baggage space', smallBags:'Small bags', largeSuitcases:'Large suitcases', baggageNotesOptional:'Extra baggage details (optional)', baggageNotesHint:'For example, one oversized item',
+  rideOptionsOptional:'Price, comfort and baggage (optional)', pricePerSeatOptional:'Flat price per seat (₹)', pricePerSeatHelp:'One amount for any shared segment, including baggage and tolls. Leave blank if not listed. No payment is collected in the app.', airConditioning:'Air conditioning', notSpecified:'Not specified', acDeclaredYes:'Yes, driver declared', acDeclaredNo:'No, driver declared', baggageCapacityKnown:'List available baggage space', spaceAfterDriverBags:'Space remaining after the driver’s bags', driverBaggageNotesOptional:'Baggage notes for passengers (optional)', driverBaggageNotesHint:'For example, limited boot space',
+  rideOptionBest:'Best match', rideOptionFastest:'Fastest', rideOptionCheapest:'Cheapest', rideOptionComfort:'Comfort', bestBasisPrice:'Lowest listed price among rides estimated to arrive by your deadline.', bestBasisArrival:'Earliest estimated arrival; listed prices break ties.', fastestBasis:'Earliest estimated drop-off. Estimate excludes live traffic, boarding and walking.', cheapestBasis:'Driver-listed flat prices only. Rides without a listed price are not included.', comfortBasis:'Only drivers who declared air conditioning are included. Comfort is not independently verified.', legacyRankFallback:'These saved results predate ride ranking; Best and Fastest are ordered by estimated arrival.',
+  priceNotListed:'Price not listed', perSeatDriverListed:'per seat · driver listed', noPaymentCollected:'No payment is collected in the app.', spaceWhenSearched:'Space when searched', bagCapacityUnknown:'Baggage space not listed', baggageCapacityNoSpace:'No space listed for this request', passengerBaggageLabel:'Your bags', passengerBaggageNotesLabel:'Your baggage note', driverBaggageNotesLabel:'Driver baggage note', noBagsRequested:'No bags added', arrivalDeadline:'Arrive by',
+  lastSearched:'Last searched', editSearch:'Edit search', refreshSearch:'Search again', noMatchesGuidance:'No ride meets your route, time and baggage requirements. Edit your search to try again.', emptyPriceOption:'No rides list a price.', emptyComfortOption:'No rides list air conditioning.', viewAllRides:'View all rides', savedSearchExpired:'Requests from this search have expired. Search again to request a seat.', smallBagCount:'{count} small bags', largeSuitcaseCount:'{count} large suitcases', oneSmallBag:'1 small bag', oneLargeSuitcase:'1 large suitcase', searchOptionResults:'{count} rides', searchedSnapshot:'Availability shown is from when you searched.',
+  driverDeclared:'Driver declared', acNotSpecified:'Air conditioning not specified', requestedBags:'Requested baggage', tripBaggageNotes:'Driver baggage notes', priceSnapshot:'Price per seat', publishedOfferDetails:'Published offer details', requestExpired:'This search is older than 20 minutes. Search again before requesting.',
+  cheapestNoPrice:'No listed prices', comfortNoAc:'No driver-declared air conditioning'
+});
+Object.assign(messages.te, {
+  arriveByOptional:'చేరాల్సిన సమయం (ఐచ్ఛికం)', arriveByHelp:'ప్రతి భాగస్వామ్య ప్రయాణానికి అంచనా చేరే సమయాన్ని చూపిస్తాం.', arriveByBeforePickup:'పికప్ ప్రారంభ సమయానికి సమానమైన లేదా తరువాతి చేరే సమయాన్ని ఎంచుకోండి.',
+  baggageDetails:'అందుబాటులోని సామాను స్థలం', smallBags:'చిన్న సంచులు', largeSuitcases:'పెద్ద సూట్‌కేసులు', baggageNotesOptional:'సామాను వివరాలు (ఐచ్ఛికం)', baggageNotesHint:'ఉదా: ఒక పెద్ద వస్తువు',
+  rideOptionsOptional:'ధర, సౌకర్యం, సామాను (ఐచ్ఛికం)', pricePerSeatOptional:'ప్రతి సీటుకు స్థిర ధర (₹)', pricePerSeatHelp:'ఏ భాగస్వామ్య ప్రయాణ భాగానికైనా ఒకే మొత్తం; సామాను, టోల్‌లు సహా. పేర్కొనకపోతే ఖాళీగా ఉంచండి. యాప్‌లో చెల్లింపు తీసుకోము.', airConditioning:'ఎయిర్ కండిషనింగ్', notSpecified:'పేర్కొనలేదు', acDeclaredYes:'ఉంది (డ్రైవర్ తెలిపింది)', acDeclaredNo:'లేదు (డ్రైవర్ తెలిపింది)', baggageCapacityKnown:'అందుబాటులోని సామాను స్థలాన్ని నమోదు చేయండి', spaceAfterDriverBags:'డ్రైవర్ సామాను తర్వాత మిగిలే స్థలం', driverBaggageNotesOptional:'ప్రయాణికుల కోసం సామాను గమనిక (ఐచ్ఛికం)', driverBaggageNotesHint:'ఉదా: డిక్కీలో పరిమిత స్థలం',
+  rideOptionBest:'ఉత్తమ సరిపోలిక', rideOptionFastest:'త్వరగా చేరేది', rideOptionCheapest:'తక్కువ ధర', rideOptionComfort:'సౌకర్యం', bestBasisPrice:'గడువులో చేరుతుందని అంచనా ఉన్న రైడ్‌లలో తక్కువ పేర్కొన్న ధర.', bestBasisArrival:'అత్యంత ముందుగా అంచనా చేరిక; సమానమైతే పేర్కొన్న ధర.', fastestBasis:'అంచనా దిగే సమయం ఆధారంగా. ప్రత్యక్ష ట్రాఫిక్, ఎక్కడం, నడక ఇందులో లేవు.', cheapestBasis:'డ్రైవర్ పేర్కొన్న స్థిర ధరలే. ధర లేని రైడ్‌లు ఇందులో లేవు.', comfortBasis:'ఎయిర్ కండిషనింగ్ ఉందని డ్రైవర్ తెలిపిన రైడ్‌లే. ఇది స్వతంత్రంగా ధృవీకరించలేదు.', legacyRankFallback:'ఈ పాత శోధనలో ర్యాంకింగ్ లేదు; ఉత్తమం, త్వరగా చేరేది అంచనా సమయంతో క్రమబద్ధం.',
+  priceNotListed:'ధర పేర్కొనలేదు', perSeatDriverListed:'ప్రతి సీటుకు · డ్రైవర్ పేర్కొన్నది', noPaymentCollected:'యాప్‌లో చెల్లింపు తీసుకోము.', spaceWhenSearched:'శోధించినప్పుడు ఉన్న స్థలం', bagCapacityUnknown:'సామాను స్థలం పేర్కొనలేదు', baggageCapacityNoSpace:'ఈ అభ్యర్థనకు స్థలం పేర్కొనలేదు', passengerBaggageLabel:'మీ సామాను', passengerBaggageNotesLabel:'మీ సామాను గమనిక', driverBaggageNotesLabel:'డ్రైవర్ సామాను గమనిక', noBagsRequested:'సామాను జోడించలేదు', arrivalDeadline:'చేరాల్సిన సమయం',
+  lastSearched:'చివరి శోధన', editSearch:'శోధన మార్చండి', refreshSearch:'మళ్లీ శోధించండి', noMatchesGuidance:'మీ మార్గం, సమయం, సామాను అవసరాలకు సరిపోయే రైడ్ లేదు. మళ్లీ ప్రయత్నించడానికి శోధనను మార్చండి.', emptyPriceOption:'ధర తెలిపిన రైడ్‌లు లేవు.', emptyComfortOption:'ఎయిర్ కండిషనింగ్ తెలిపిన రైడ్‌లు లేవు.', viewAllRides:'అన్ని రైడ్‌లు చూపండి', savedSearchExpired:'ఈ శోధనలోని అభ్యర్థనల గడువు ముగిసింది. సీటు కోరేందుకు మళ్లీ శోధించండి.', smallBagCount:'{count} చిన్న సంచులు', largeSuitcaseCount:'{count} పెద్ద సూట్‌కేసులు', oneSmallBag:'1 చిన్న సంచి', oneLargeSuitcase:'1 పెద్ద సూట్‌కేసు', searchOptionResults:'{count} రైడ్‌లు', searchedSnapshot:'లభ్యత మీరు శోధించిన సమయానిది.',
+  driverDeclared:'డ్రైవర్ తెలిపింది', acNotSpecified:'ఎయిర్ కండిషనింగ్ పేర్కొనలేదు', requestedBags:'కోరిన సామాను', tripBaggageNotes:'డ్రైవర్ సామాను గమనికలు', priceSnapshot:'ప్రతి సీటుకు ధర', publishedOfferDetails:'ప్రచురించిన ఆఫర్ వివరాలు', requestExpired:'ఈ శోధనకు 20 నిమిషాలకంటే ఎక్కువైంది. సీటు కోరే ముందు మళ్లీ శోధించండి.', cheapestNoPrice:'ధరలు పేర్కొనలేదు', comfortNoAc:'డ్రైవర్ తెలిపిన ఎయిర్ కండిషనింగ్ లేదు'
+});
+Object.assign(messages.hi, {
+  arriveByOptional:'पहुँचने का समय (वैकल्पिक)', arriveByHelp:'हर साझा हिस्से का अनुमानित पहुँचने का समय दिखेगा।', arriveByBeforePickup:'पिकअप विंडो शुरू होने के बराबर या उसके बाद का समय चुनें।',
+  baggageDetails:'उपलब्ध सामान की जगह', smallBags:'छोटे बैग', largeSuitcases:'बड़े सूटकेस', baggageNotesOptional:'सामान की जानकारी (वैकल्पिक)', baggageNotesHint:'जैसे, एक बड़ा सामान',
+  rideOptionsOptional:'किराया, सुविधा और सामान (वैकल्पिक)', pricePerSeatOptional:'प्रति सीट तय कीमत (₹)', pricePerSeatHelp:'किसी भी साझा हिस्से के लिए एक ही रकम, सामान और टोल सहित। न बताना हो तो खाली छोड़ें। ऐप में भुगतान नहीं लिया जाता।', airConditioning:'एयर कंडीशनिंग', notSpecified:'नहीं बताया', acDeclaredYes:'हाँ, ड्राइवर ने बताया', acDeclaredNo:'नहीं, ड्राइवर ने बताया', baggageCapacityKnown:'उपलब्ध सामान की जगह बताएं', spaceAfterDriverBags:'ड्राइवर के सामान के बाद बची जगह', driverBaggageNotesOptional:'यात्रियों के लिए सामान नोट (वैकल्पिक)', driverBaggageNotesHint:'जैसे, डिक्की में सीमित जगह',
+  rideOptionBest:'सबसे उपयुक्त', rideOptionFastest:'सबसे तेज़', rideOptionCheapest:'सबसे सस्ता', rideOptionComfort:'आराम', bestBasisPrice:'समय पर पहुँचने वाले अनुमानित सफ़रों में सबसे कम बताई कीमत।', bestBasisArrival:'सबसे जल्दी अनुमानित पहुँच; बराबरी पर बताई कीमत।', fastestBasis:'अनुमानित उतरने का समय। इसमें लाइव ट्रैफ़िक, चढ़ना और पैदल चलना शामिल नहीं।', cheapestBasis:'केवल ड्राइवर की बताई तय कीमतें। बिना कीमत वाले सफ़र शामिल नहीं।', comfortBasis:'केवल उन ड्राइवरों को शामिल किया है जिन्होंने एयर कंडीशनिंग बताई। सुविधा की स्वतंत्र पुष्टि नहीं हुई।', legacyRankFallback:'ये पुराने नतीजे रैंकिंग से पहले के हैं; उपयुक्त और तेज़ विकल्प अनुमानित समय के अनुसार हैं।',
+  priceNotListed:'कीमत नहीं बताई', perSeatDriverListed:'प्रति सीट · ड्राइवर ने बताई', noPaymentCollected:'ऐप में भुगतान नहीं लिया जाता।', spaceWhenSearched:'खोज के समय जगह', bagCapacityUnknown:'सामान की जगह नहीं बताई', baggageCapacityNoSpace:'इस अनुरोध के लिए जगह नहीं बताई', passengerBaggageLabel:'आपका सामान', passengerBaggageNotesLabel:'आपके सामान का नोट', driverBaggageNotesLabel:'ड्राइवर का सामान नोट', noBagsRequested:'सामान नहीं जोड़ा', arrivalDeadline:'पहुँचने का समय',
+  lastSearched:'आख़िरी खोज', editSearch:'खोज बदलें', refreshSearch:'फिर खोजें', noMatchesGuidance:'आपके रास्ते, समय और सामान की ज़रूरतों से मेल खाती कोई सवारी नहीं है। फिर कोशिश करने के लिए खोज बदलें।', emptyPriceOption:'कीमत बताने वाली सवारी नहीं है।', emptyComfortOption:'एयर कंडीशनिंग बताने वाली सवारी नहीं है।', viewAllRides:'सभी सवारी देखें', savedSearchExpired:'इस खोज से अनुरोध की समय-सीमा खत्म हो गई है। सीट मांगने के लिए फिर खोजें।', smallBagCount:'{count} छोटे बैग', largeSuitcaseCount:'{count} बड़े सूटकेस', oneSmallBag:'1 छोटा बैग', oneLargeSuitcase:'1 बड़ा सूटकेस', searchOptionResults:'{count} सवारी', searchedSnapshot:'उपलब्धता आपकी खोज के समय की है।',
+  driverDeclared:'ड्राइवर ने बताया', acNotSpecified:'एयर कंडीशनिंग नहीं बताई', requestedBags:'मांगा गया सामान', tripBaggageNotes:'ड्राइवर के सामान के नोट', priceSnapshot:'प्रति सीट कीमत', publishedOfferDetails:'प्रकाशित ऑफ़र की जानकारी', requestExpired:'इस खोज को 20 मिनट से अधिक हो गए हैं। सीट मांगने से पहले फिर खोजें।', cheapestNoPrice:'कीमतें नहीं बताई गईं', comfortNoAc:'ड्राइवर ने एयर कंडीशनिंग नहीं बताई'
 });
 
 Object.assign(messages.en, {afEvidenceUnavailable:'Driver document storage is unavailable. Uploads, document viewing, and review submission are disabled. You can still view application status or withdraw consent to remove its documents.'});
@@ -1020,7 +1065,8 @@ Object.assign(messages.en, {
   "phoneConsentAdult": "I confirm that I am 18 or older.",
   "phoneTerms": "Terms of use",
   "phonePrivacy": "Privacy notice",
-  "phoneUnavailable": "Phone sign-in is unavailable right now. Please try again later.",
+  "phoneUnavailable": "Member sign-in and registration are not currently open. Phone verification will appear here when it is available.",
+  "phonePolicyUnavailable": "The terms or privacy information is unavailable right now. Please try again later.",
   "phoneDeliveryNotice": "Delivery can take a moment. If you request a new code, the previous code will stop working.",
   "phoneSentTo": "Code requested for {phone}",
   "phoneNameTitle": "What should we call you?",
@@ -1041,7 +1087,10 @@ Object.assign(messages.en, {
   "phoneSignOutFirst": "Sign out before signing in with another phone number.",
   "phoneNumberChangeHelp": "To change your sign-in number, first save a recovery code in Profile → Account security and deletion. Then sign out and choose “Lost access to your phone?”; you’ll need that code and access to the new number. Sign-in uses phone OTP, so there is no password reset. Phone sharing is optional.",
   "phoneSessionRetry": "You are signed in. Retry loading your account.",
-  "phoneStaffAccount": "Staff account ID"
+  "phoneStaffAccount": "Staff account ID",
+  "staffTestTitle": "Staff and test-account access",
+  "staffTestHelp": "Enter the account ID and password provided for staff or testing. Member sign-in uses phone verification.",
+  "staffTestFootnote": "This access is only for staff and test accounts. It does not create member accounts."
 });
 Object.assign(messages.te, {
   "phoneSignIn": "సైన్ ఇన్ అవ్వండి లేదా అకౌంట్ తెరవండి",
@@ -1059,7 +1108,8 @@ Object.assign(messages.te, {
   "phoneConsentAdult": "నాకు 18 ఏళ్లు లేదా అంతకంటే ఎక్కువ అని నిర్ధారిస్తున్నాను.",
   "phoneTerms": "వినియోగ నిబంధనలు",
   "phonePrivacy": "ప్రైవసీ వివరాలు",
-  "phoneUnavailable": "ఫోన్‌తో సైన్ ఇన్ ఇప్పుడు అందుబాటులో లేదు. తర్వాత మళ్లీ ప్రయత్నించండి.",
+  "phoneUnavailable": "సభ్యుల సైన్ ఇన్, కొత్త అకౌంట్ నమోదు ప్రస్తుతం అందుబాటులో లేవు. అందుబాటులోకి వచ్చినప్పుడు ఫోన్ వెరిఫికేషన్ ఇక్కడ కనిపిస్తుంది.",
+  "phonePolicyUnavailable": "నిబంధనలు లేదా ప్రైవసీ సమాచారం ఇప్పుడు అందుబాటులో లేదు. తర్వాత మళ్లీ ప్రయత్నించండి.",
   "phoneDeliveryNotice": "SMS రావడానికి కొంత సమయం పట్టవచ్చు. కొత్త కోడ్ కోరితే పాత కోడ్ పని చేయదు.",
   "phoneSentTo": "{phone} నంబర్‌కు కోడ్ కోరారు",
   "phoneNameTitle": "మిమ్మల్ని ఏ పేరుతో పిలవాలి?",
@@ -1080,7 +1130,18 @@ Object.assign(messages.te, {
   "phoneSignOutFirst": "మరో ఫోన్ నంబర్‌తో సైన్ ఇన్ అయ్యే ముందు సైన్ అవుట్ అవ్వండి.",
   "phoneNumberChangeHelp": "సైన్ ఇన్ నంబర్ మార్చాలంటే ముందుగా ప్రొఫైల్ → అకౌంట్ భద్రత, తొలగింపు లో రికవరీ కోడ్ సేవ్ చేయండి. తర్వాత సైన్ అవుట్ చేసి “ఫోన్ యాక్సెస్ పోయిందా?” ఎంచుకోండి; ఆ కోడ్, కొత్త నంబర్‌కు యాక్సెస్ అవసరం. సైన్ ఇన్ ఫోన్ OTPతోనే, పాస్‌వర్డ్ రీసెట్ లేదు. ఫోన్ షేర్ చేయడం మీ ఇష్టం.",
   "phoneSessionRetry": "మీరు సైన్ ఇన్ అయ్యారు. అకౌంట్ లోడ్ చేయడానికి మళ్లీ ప్రయత్నించండి.",
-  "phoneStaffAccount": "స్టాఫ్ అకౌంట్ ID"
+  "phoneStaffAccount": "స్టాఫ్ అకౌంట్ ID",
+  "staffTestTitle": "స్టాఫ్, టెస్ట్ అకౌంట్ యాక్సెస్",
+  "staffTestHelp": "స్టాఫ్ లేదా టెస్టింగ్ కోసం ఇచ్చిన అకౌంట్ ID, పాస్‌వర్డ్ నమోదు చేయండి. సభ్యుల సైన్ ఇన్ ఫోన్ వెరిఫికేషన్‌తో జరుగుతుంది.",
+  "staffTestFootnote": "ఈ యాక్సెస్ స్టాఫ్, టెస్ట్ అకౌంట్ల కోసం మాత్రమే. దీనితో సభ్యుల అకౌంట్ సృష్టించబడదు."
+});
+
+Object.assign(messages.hi, {
+  "phoneUnavailable": "सदस्य साइन-इन और पंजीकरण अभी उपलब्ध नहीं हैं। उपलब्ध होने पर फोन सत्यापन यहां दिखेगा।",
+  "phonePolicyUnavailable": "नियम या गोपनीयता जानकारी अभी उपलब्ध नहीं है। बाद में फिर कोशिश करें।",
+  "staffTestTitle": "स्टाफ और टेस्ट अकाउंट का प्रवेश",
+  "staffTestHelp": "स्टाफ या परीक्षण के लिए दिए गए अकाउंट ID और पासवर्ड दर्ज करें। सदस्य साइन-इन फोन सत्यापन से होता है।",
+  "staffTestFootnote": "यह प्रवेश केवल स्टाफ और टेस्ट अकाउंट के लिए है। इससे सदस्य अकाउंट नहीं बनता।"
 });
 
 Object.assign(messages.en,{phoneRestart:'Start a new sign-in attempt'});
@@ -1239,4 +1300,26 @@ Object.assign(messages.hi, {
   phoneNumberChangeHelp: 'साइन-इन नंबर बदलने के लिए पहले प्रोफ़ाइल → अकाउंट सुरक्षा और हटाना में रिकवरी कोड सेव करें। फिर साइन आउट करके “क्या आपने फ़ोन का ऐक्सेस खो दिया?” चुनें; इसके लिए कोड और नए नंबर तक पहुँच चाहिए। साइन-इन फ़ोन OTP से होता है, पासवर्ड रीसेट नहीं है। फ़ोन शेयर करना आपकी पसंद है।',
   lcNoRecoveryKey: 'फ़ोन का ऐक्सेस खोने पर रिकवरी के लिए पहले प्रोफ़ाइल → अकाउंट सुरक्षा और हटाना में कोड सेव करना ज़रूरी है। नए नंबर तक पहुँच भी चाहिए। सेव किया कोड और पुराना फ़ोन, दोनों न हों तो अपने-आप रिकवरी नहीं हो सकती।',
   afApplicationStatusHelp: 'पहचान समीक्षा यात्रियों और ड्राइवरों, दोनों के लिए है। ड्राइवरों के लिए अलग ड्राइवर सत्यापन प्रक्रिया भी है.'
+});
+
+// Per-passenger route fare copy; quote amounts remain server-authoritative.
+Object.assign(messages.en, {
+  ratePerSeatKm:'Rate per passenger seat per route km (₹)', ratePerPassengerRouteKm:'Driver rate per passenger route km', rateIncludes:'Rate includes tolls and declared baggage.', localPreviewNoPayment:'Local preview only. No payment is collected.', invalidRate:'Enter a rate with at most two decimal places.',
+  fareDetails:'Fare details', fareUnavailable:'Fare unavailable', fareUnavailableHelp:'This ride has no current upfront quote. Ask the driver to update the route rate, then search again.', legacyFixedFare:'Legacy fixed fare', legacyFareExplanation:'This older quote is a fixed per-seat amount. No route-based breakdown is available.', totalPerSeat:'Total per seat', roadDistance:'Quoted road distance', routeDistanceRate:'Road distance × rate', fareFormula:'Fare formula', fare:'Fare', seatpalFee:'SeatPal fee', additionalTaxes:'Additional taxes', driverNet:'Net to driver', tollsAndBagsIncluded:'Tolls and declared baggage are included in the fare.', passengerRoute:'passenger route', quotedRoadDistance:'Quoted road distance', reviewFareAndRide:'Review fare and ride', sendSeatRequest:'Send seat request', reviewFareFirst:'Review the fare before sending a seat request.'
+});
+Object.assign(messages.te, {
+  ratePerSeatKm:'ప్రయాణికుడి సీటుకు, రూట్ కిలోమీటర్‌కు రేటు (₹)', ratePerPassengerRouteKm:'ప్రయాణికుడి రూట్ కిలోమీటర్‌కు డ్రైవర్ రేటు', rateIncludes:'టోల్‌లు, డ్రైవర్ తెలిపిన సామాను ఈ రేటులో ఉన్నాయి.', localPreviewNoPayment:'లోకల్ ప్రివ్యూ మాత్రమే. చెల్లింపు తీసుకోము.', invalidRate:'గరిష్ఠంగా రెండు దశాంశ స్థానాల రేటు నమోదు చేయండి.',
+  fareDetails:'ధర వివరాలు', fareUnavailable:'ధర అందుబాటులో లేదు', fareUnavailableHelp:'ఈ రైడ్‌కు ప్రస్తుతం ముందస్తు ధర లేదు. డ్రైవర్‌ను రూట్ రేటు అప్‌డేట్ చేయమని అడిగి మళ్లీ వెతకండి.', legacyFixedFare:'పాత స్థిర ధర', legacyFareExplanation:'ఈ పాత ధర ప్రతి సీటుకు స్థిర మొత్తం. రూట్ ఆధారిత లెక్క అందుబాటులో లేదు.', totalPerSeat:'ప్రతి సీటుకు మొత్తం', roadDistance:'లెక్కించిన రోడ్డు దూరం', routeDistanceRate:'రోడ్డు దూరం × రేటు', fareFormula:'ధర లెక్క', fare:'ధర', seatpalFee:'SeatPal రుసుము', additionalTaxes:'అదనపు పన్నులు', driverNet:'డ్రైవర్‌కు మిగిలేది', tollsAndBagsIncluded:'టోల్‌లు, డ్రైవర్ తెలిపిన సామాను ధరలో ఉన్నాయి.', passengerRoute:'ప్రయాణికుడి రూట్', quotedRoadDistance:'లెక్కించిన రోడ్డు దూరం', reviewFareAndRide:'ధర, రైడ్ వివరాలు చూడండి', sendSeatRequest:'సీటు అభ్యర్థన పంపండి', reviewFareFirst:'సీటు అభ్యర్థన పంపే ముందు ధరను చూడండి.'
+});
+Object.assign(messages.hi, {
+  ratePerSeatKm:'प्रति यात्री सीट, प्रति रूट किमी दर (₹)', ratePerPassengerRouteKm:'प्रति यात्री रूट किमी ड्राइवर की दर', rateIncludes:'टोल और ड्राइवर द्वारा बताया गया सामान इस दर में शामिल है।', localPreviewNoPayment:'सिर्फ स्थानीय पूर्वावलोकन। कोई भुगतान नहीं लिया जाता।', invalidRate:'अधिकतम दो दशमलव स्थान वाली दर लिखें।',
+  fareDetails:'किराये का विवरण', fareUnavailable:'किराया उपलब्ध नहीं', fareUnavailableHelp:'इस सवारी का अभी कोई अग्रिम किराया नहीं है। ड्राइवर से रूट दर अपडेट करने को कहें, फिर दोबारा खोजें।', legacyFixedFare:'पुराना तय किराया', legacyFareExplanation:'यह पुराना किराया प्रति सीट की तय राशि है। रूट के आधार पर हिसाब उपलब्ध नहीं है।', totalPerSeat:'प्रति सीट कुल', roadDistance:'बताई गई सड़क दूरी', routeDistanceRate:'सड़क दूरी × दर', fareFormula:'किराये का हिसाब', fare:'किराया', seatpalFee:'SeatPal शुल्क', additionalTaxes:'अतिरिक्त कर', driverNet:'ड्राइवर को मिलने वाली राशि', tollsAndBagsIncluded:'टोल और ड्राइवर द्वारा बताया गया सामान किराये में शामिल है।', passengerRoute:'यात्री का रूट', quotedRoadDistance:'बताई गई सड़क दूरी', reviewFareAndRide:'किराया और सवारी देखें', sendSeatRequest:'सीट अनुरोध भेजें', reviewFareFirst:'सीट अनुरोध भेजने से पहले किराया देखें।'
+});
+
+// Verified backup email is optional; delivery and account recovery remain server-authoritative.
+Object.assign(messages.en, {
+  beVerificationInvalid:'This verification expired or changed. Start again.', beTitle:'Backup email', beDescription:'Verify an email you can access to recover your account if you lose your phone. Adding, changing or removing it requires a code sent to your current phone.', beEmail:'Email address', beAdd:'Add backup email', beChange:'Change backup email', beVerify:'Verify code', beRemove:'Remove backup email', beSendCode:'Send code', beResend:'Resend code', beCode:'Email verification code', beVerified:'Backup email verified', beMissing:'No verified backup email', beRemoved:'Backup email removed', beRecoveryTitle:'Recover with backup email', beRecoveryDescription:'Use a backup email you verified earlier or a saved offline recovery code. You will also need access to your new phone number.', beRecoveryEmail:'Use verified backup email', beRecoveryOffline:'Use saved recovery code', beNewPhone:'New phone number', beRecoveryFinish:'Verify phone and recover account', beUnavailable:'Backup email recovery is currently unavailable.', beInvalidEmail:'Enter a valid email address.', beCodeSent:'A verification code was sent to', beRecoverySent:'If this email is eligible for recovery, a code has been sent. Enter that code to continue.', beExpired:'This code or recovery session expired. Start again or request another code.', beNetworkError:'The request could not finish. Your details are still here; retry.', beBack:'Back to recovery options', beCancel:'Cancel', beBusy:'Please wait…', beRemoveConfirm:'Removing this email disables recovery through it. Your saved offline recovery code still works if configured.', beRemoveAck:'I want to remove my backup email.'
+});
+Object.assign(messages.te, {
+  beVerificationInvalid:'ఈ ధృవీకరణ గడువు ముగిసింది లేదా మారింది. మళ్లీ ప్రారంభించండి.', beTitle:'బ్యాకప్ ఇమెయిల్', beDescription:'మీ ఫోన్ అందుబాటులో లేకపోతే ఖాతాను తిరిగి పొందడానికి, మీరు తెరవగల ఇమెయిల్‌ను ధృవీకరించండి. దీన్ని జోడించడానికి, మార్చడానికి లేదా తొలగించడానికి ప్రస్తుత ఫోన్‌కు పంపిన కోడ్ అవసరం.', beEmail:'ఇమెయిల్ చిరునామా', beAdd:'బ్యాకప్ ఇమెయిల్ జోడించండి', beChange:'బ్యాకప్ ఇమెయిల్ మార్చండి', beVerify:'కోడ్ ధృవీకరించండి', beRemove:'బ్యాకప్ ఇమెయిల్ తొలగించండి', beSendCode:'కోడ్ పంపండి', beResend:'కోడ్ మళ్లీ పంపండి', beCode:'ఇమెయిల్ ధృవీకరణ కోడ్', beVerified:'బ్యాకప్ ఇమెయిల్ ధృవీకరించబడింది', beMissing:'ధృవీకరించిన బ్యాకప్ ఇమెయిల్ లేదు', beRemoved:'బ్యాకప్ ఇమెయిల్ తొలగించబడింది', beRecoveryTitle:'బ్యాకప్ ఇమెయిల్‌తో ఖాతాను తిరిగి పొందండి', beRecoveryDescription:'ముందుగా ధృవీకరించిన బ్యాకప్ ఇమెయిల్ లేదా సేవ్ చేసిన ఆఫ్‌లైన్ రికవరీ కోడ్ ఉపయోగించండి. మీ కొత్త ఫోన్ నంబర్ కూడా అందుబాటులో ఉండాలి.', beRecoveryEmail:'ధృవీకరించిన బ్యాకప్ ఇమెయిల్ ఉపయోగించండి', beRecoveryOffline:'సేవ్ చేసిన రికవరీ కోడ్ ఉపయోగించండి', beNewPhone:'కొత్త ఫోన్ నంబర్', beRecoveryFinish:'ఫోన్ ధృవీకరించి ఖాతాను తిరిగి పొందండి', beUnavailable:'బ్యాకప్ ఇమెయిల్ రికవరీ ప్రస్తుతం అందుబాటులో లేదు.', beInvalidEmail:'చెల్లుబాటు అయ్యే ఇమెయిల్ చిరునామా నమోదు చేయండి.', beCodeSent:'ధృవీకరణ కోడ్ పంపబడింది:', beRecoverySent:'ఈ ఇమెయిల్‌తో ఖాతాను తిరిగి పొందగలిగితే కోడ్ పంపబడుతుంది. కొనసాగడానికి ఆ కోడ్ నమోదు చేయండి.', beExpired:'ఈ కోడ్ లేదా రికవరీ సెషన్ గడువు ముగిసింది. మళ్లీ ప్రారంభించండి లేదా మరో కోడ్ కోరండి.', beNetworkError:'అభ్యర్థన పూర్తికాలేదు. మీ వివరాలు ఇక్కడే ఉన్నాయి; మళ్లీ ప్రయత్నించండి.', beBack:'రికవరీ ఎంపికలకు తిరిగి వెళ్లండి', beCancel:'రద్దు చేయండి', beBusy:'దయచేసి వేచి ఉండండి…', beRemoveConfirm:'ఈ ఇమెయిల్‌ను తొలగిస్తే దాని ద్వారా ఖాతాను తిరిగి పొందలేరు. సేవ్ చేసిన ఆఫ్‌లైన్ రికవరీ కోడ్ ఉంటే అది పనిచేస్తుంది.', beRemoveAck:'నా బ్యాకప్ ఇమెయిల్‌ను తొలగించాలనుకుంటున్నాను.'
 });

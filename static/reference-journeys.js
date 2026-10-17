@@ -1,4 +1,5 @@
 // @ts-nocheck
+import { rankedRides, rideOptionCount } from './ride-options.js';
 /**
  * Reference-led renderers for the saved route-sharing data views.
  *
@@ -26,6 +27,7 @@ export function makeJourneyViews(context) {
     ? t('unknown')
     : new Intl.NumberFormat(locale(), { maximumFractionDigits: digits }).format(Number(value));
   const km = (metres) => metres == null ? t('unknown') : `${number(Number(metres) / 1000)} ${t('km')}`;
+  const quotedKm = metres => metres == null ? t('unknown') : `${number(Number(metres)/1000,3)} ${t('km')}`;
   const routeBounds = (route) => route?.coordinates?.length ? route : null;
   const pointLabel = (point) => point ? labelOf(point) : t('unknown');
   /** @param {{route:any,tripId:any,points?:any[],label:string,compact?:boolean}} options */
@@ -62,56 +64,66 @@ export function makeJourneyViews(context) {
   const minutes = value => value == null || !Number.isFinite(Number(value)) ? t('unknown') : minText(value);
   const emptyArt = () => `<img class="rj-empty-illustration" src="/static/assets/higgsfield/empty-journeys.webp" alt="" width="960" height="576">`;
 
-  // Sorting only reorders the rendered real matches; the server's recommended
-  // order remains the default and no match is added or removed locally.
-  if (typeof document !== 'undefined' && state && !state.__rjSortBound) {
-    state.__rjSortBound = true;
-    document.addEventListener('change', (event) => {
-      const select = event.target?.closest?.('[data-rj-sort]');
-      if (!select) return;
-      const list = select.closest('.rj-sheet')?.querySelector('.rj-card-list');
-      if (!list) return;
-      const cards = [...list.querySelectorAll('.rj-match-card')];
-      cards.forEach((card,index)=>{if(card.dataset.rjOriginalOrder==null)card.dataset.rjOriginalOrder=String(index)});
-      const numeric = (card, key) => {
-        const value = Number(card.dataset[key]);
-        return Number.isFinite(value) && card.dataset[key] !== '' ? value : null;
-      };
-      const order = select.value;
-      cards.sort((a, b) => {
-        if (order === 'soonest') return (numeric(a, 'rjPickup') ?? Infinity) - (numeric(b, 'rjPickup') ?? Infinity);
-        if (order === 'least-driving') return (numeric(a, 'rjDetour') ?? Infinity) - (numeric(b, 'rjDetour') ?? Infinity);
-        if (order === 'best-rated') {
-          const ar = numeric(a, 'rjRating'); const br = numeric(b, 'rjRating');
-          if (ar == null || br == null) return ar == null ? (br == null ? 0 : 1) : -1;
-          return br - ar || (numeric(b, 'rjRatingCount') ?? 0) - (numeric(a, 'rjRatingCount') ?? 0);
-        }
-        return Number(a.dataset.rjOriginalOrder)-Number(b.dataset.rjOriginalOrder);
-      });
-      for (const card of cards) list.append(card);
-    });
-  }
+  const money = paise => Number.isInteger(paise) && paise >= 0
+    ? new Intl.NumberFormat(locale(), {style:'currency',currency:'INR',minimumFractionDigits:2,maximumFractionDigits:2}).format(paise/100)
+    : t('unknown');
+  const isV2Quote = quote => quote?.version===2 && quote?.basis==='passenger_route_per_seat' && Number.isInteger(quote.amount_paise);
+  const isLegacyQuote = quote => quote?.version===1 && quote?.basis==='flat_per_seat' && Number.isInteger(quote.amount_paise);
+  const hasKnownQuote = quote => isV2Quote(quote) || isLegacyQuote(quote);
+  const tripHasKnownFare = trip => (Number.isInteger(trip?.seat_rate_paise_per_km) && trip.seat_rate_paise_per_km>=0) || (Number.isInteger(trip?.seat_price_paise) && trip.seat_price_paise>=0);
+  const quoteText = quote => hasKnownQuote(quote) ? money(quote.amount_paise) : t('priceNotListed');
+  const fareBreakdown = (quote, {driver=false, match=null}={}) => {
+    if (!hasKnownQuote(quote)) return `<section class="rj-fare-breakdown rj-fare-breakdown--unavailable" aria-label="${escAttr(t('fareDetails'))}"><strong>${t('fareUnavailable')}</strong><p>${t('fareUnavailableHelp')}</p></section>`;
+    if (isLegacyQuote(quote)) return `<section class="rj-fare-breakdown" aria-label="${escAttr(t('fareDetails'))}"><div class="rj-fare-total"><span>${t('legacyFixedFare')}</span><strong>${money(quote.amount_paise)}</strong></div><p>${t('legacyFareExplanation')}</p><small>${t('noPaymentCollected')}</small></section>`;
+    const distanceM = Number.isInteger(quote.distance_m) ? quote.distance_m : (Number.isInteger(match?.passenger_route_distance_m) ? match.passenger_route_distance_m : null);
+    const rate = Number.isInteger(quote.rate_paise_per_km) ? quote.rate_paise_per_km : null;
+    const kmText = distanceM == null ? t('unknown') : `${new Intl.NumberFormat(locale(), {maximumFractionDigits:3}).format(distanceM/1000)} ${t('km')}`;
+    const rateText = rate == null ? t('unknown') : `${money(rate)} / ${t('km')}`;
+    const formula = distanceM != null && rate != null ? `${kmText} × ${rateText} = ${money(quote.fare_paise)}` : t('unknown');
+    return `<section class="rj-fare-breakdown" aria-label="${escAttr(t('fareDetails'))}"><div class="rj-fare-total"><span>${t('totalPerSeat')}</span><strong>${money(quote.amount_paise)}</strong></div><div class="rj-fare-lines"><div><span>${t('roadDistance')}</span><strong>${kmText}</strong></div><div><span>${t('fareFormula')}</span><strong>${formula}</strong></div><div><span>${t('seatpalFee')}</span><strong>${money(quote.platform_fee_paise)}</strong></div><div><span>${t('additionalTaxes')}</span><strong>${money(quote.tax_paise)}</strong></div>${driver?`<div class="rj-driver-net"><span>${t('driverNet')}</span><strong>${money(quote.driver_net_paise)}</strong></div>`:''}</div><p>${t('tollsAndBagsIncluded')}</p><small>${t('localPreviewNoPayment')}</small></section>`;
+  };
+  const bagCount = (count, one, many) => Number(count)===1 ? t(one) : t(many).replace('{count}',number(count,0));
+  const bagCounts = bags => {
+    if (!bags || (!Number(bags.small_bags) && !Number(bags.large_suitcases))) return t('noBagsRequested');
+    return [Number(bags.small_bags)>0?bagCount(bags.small_bags,'oneSmallBag','smallBagCount'):'',Number(bags.large_suitcases)>0?bagCount(bags.large_suitcases,'oneLargeSuitcase','largeSuitcaseCount'):''].filter(Boolean).join(' · ');
+  };
+  const remainingText = remaining => remaining==null ? t('bagCapacityUnknown') : `${t('spaceWhenSearched')}: ${bagCount(remaining.small_bags,'oneSmallBag','smallBagCount')} · ${bagCount(remaining.large_suitcases,'oneLargeSuitcase','largeSuitcaseCount')}`;
+  const comfortText = comfort => comfort?.air_conditioning==='yes' ? t('acDeclaredYes') : comfort?.air_conditioning==='no' ? t('acDeclaredNo') : t('acNotSpecified');
+  const savedSearchExpired = results => {const saved=Date.parse(results?.saved_at||results?.request?.created_at||'');return Number.isFinite(saved)&&Date.now()-saved>20*60*1000};
+  const requestBags = match => match.passenger_baggage || state.results?.request?.baggage || {small_bags:0,large_suitcases:0};
+  const driverNotes = match => match.trip_baggage_notes || match.baggage_notes || '';
 
   function matchCard(match) {
     const trip = tripFor(match.trip_id);
     const driver = match.driver_summary || {name: match.driver_name, verification: match.verification};
     const ratingCount = Number(driver.rating_count) || 0;
     const pickupTimestamp = Date.parse(match.pickup_at || '');
-    const blocked = state.busy || state.results?.metrics?.complete === false;
+    const blocked = state.busy || state.results?.metrics?.complete === false || savedSearchExpired(state.results);
+    const quote = match.price_quote;
+    const quoteAvailable = hasKnownQuote(quote);
+    const bags = requestBags(match);
+    const remaining = match.baggage_remaining;
+    const notes = driverNotes(match);
     return `<article class="rj-card rj-match-card" data-rj-pickup="${Number.isFinite(pickupTimestamp) ? pickupTimestamp : ''}" data-rj-detour="${match.incremental_detour_minutes == null ? '' : Number(match.incremental_detour_minutes)}" data-rj-rating="${ratingCount && Number.isFinite(Number(driver.rating_average)) ? Number(driver.rating_average) : ''}" data-rj-rating-count="${ratingCount}">
       <div class="rj-card-topline"><h2 class="rj-departure">${dateLine(match.pickup_at)}</h2><span class="rj-chip rj-chip--accent">${number(match.available_seats, 0)} ${t('available')}</span></div>
+      <div class="rj-booking-times rj-match-times">${fact('dropoff',dateLine(match.dropoff_at))}${state.results?.request?.arrive_by?fact('arrivalDeadline',dateLine(state.results.request.arrive_by)):''}</div>
+      <div class="rj-offer-facts"><div><small>${isV2Quote(quote)?t('totalPerSeat'):isLegacyQuote(quote)?t('legacyFixedFare'):t('priceSnapshot')}</small><strong>${esc(quoteText(quote))}</strong>${isV2Quote(quote)?`<small>${quote.distance_m==null?t('unknown'):`${number(quote.distance_m/1000,3)} ${t('km')}`} · ${t('passengerRoute')}</small>`:''}</div><div><small>${t('airConditioning')}</small><strong>${esc(comfortText(match.comfort))}</strong></div><div><small>${t('baggageDetails')}</small><strong>${esc(remainingText(remaining))}</strong></div></div>
       ${publicPerson(driver)}${match.driver_id?`<a class="af-driver-link" href="#/driver/${encodeURIComponent(match.driver_id)}">${t('afViewDriver')} ${icon('arrowRight',18)}</a>`:''}
-      <div class="rj-match-route">${pointsSummary(match.routed_pickup || match.pickup, match.routed_dropoff || match.dropoff)}<div class="rj-route-stat">${fact('sharedSegmentEstimate', km(segmentMeters(match)))}${fact('incrementalDetour', minutes(match.incremental_detour_minutes))}</div></div>
-      <details class="rj-review"><summary class="rj-primary rj-review-trigger">${t('reviewRide')} ${icon('arrowRight', 20)}</summary><div class="rj-review-content">
+      <div class="rj-match-route">${pointsSummary(match.routed_pickup || match.pickup, match.routed_dropoff || match.dropoff)}<div class="rj-route-stat">${fact(isV2Quote(quote)?'quotedRoadDistance':'sharedSegmentEstimate', isV2Quote(quote)?quotedKm(quote.distance_m):km(segmentMeters(match)))}${fact('incrementalDetour', minutes(match.incremental_detour_minutes))}</div></div>
+      <details class="rj-review" data-fare-review="${escAttr(match.id)}" ${state.fareReviewId===match.id?'open':''}><summary class="rj-primary rj-review-trigger">${t('reviewFareAndRide')} ${icon('arrowRight', 20)}</summary><div class="rj-review-content">
         <header class="rj-review-heading"><p class="rj-eyebrow">${t('bookingReviewTitle')}</p><h3>${esc(pointLabel(match.pickup))} → ${esc(pointLabel(match.dropoff))}</h3></header>
-        <div class="rj-booking-times">${fact('pickup', dateLine(match.pickup_at))}${fact('dropoff', dateLine(match.dropoff_at))}${fact('seatsNeeded', number(state.results?.request?.seats || 1, 0))}</div>
+        <div class="rj-booking-times">${fact('pickup', dateLine(match.pickup_at))}${fact('dropoff', dateLine(match.dropoff_at))}${fact('seatsNeeded', number(state.results?.request?.seats || 1, 0))}${state.results?.request?.arrive_by ? fact('arrivalDeadline',dateLine(state.results.request.arrive_by)) : ''}</div>
+        <div class="rj-bag-facts">${fact('requestedBags',esc(bagCounts(bags)))}${match.passenger_baggage_notes?fact('passengerBaggageNotesLabel',esc(match.passenger_baggage_notes)):''}${notes?fact('tripBaggageNotes',esc(notes)):''}<small>${t('searchedSnapshot')}</small></div>
+        ${fareBreakdown(quote,{match})}
         <div class="rj-meeting-points">${roadNote('roadPickup', match.routed_pickup, match.pickup_snap_m)}${roadNote('roadDropoff', match.routed_dropoff, match.dropoff_snap_m)}</div>
         <p class="rj-vehicle">${icon('car', 20)} ${esc(vehicleText(match.vehicle))}</p>
         <details class="rj-more"><summary>${t('totalDetour')}: ${minutes(match.total_driver_detour_minutes)} ${icon('arrowRight',18)}</summary><div class="rj-detour-block">${fact('pickupDetour', minutes(match.pickup_detour_minutes))}${fact('dropoffDetour', minutes(match.dropoff_detour_minutes))}${fact('totalDetour', minutes(match.total_driver_detour_minutes))}${trip?.max_detour_minutes != null ? fact('detourBudget', minutes(trip.max_detour_minutes)) : ''}</div>
         <p class="rj-estimate-note">${t('detourEstimate')}</p></details>
         <details class="rj-checks"><summary>${t('checks')}</summary>${checks(match.verification)}</details>
-        <p class="rj-contribution-note">${t('noPayment')}</p>
-        <button class="primary rj-primary" type="button" data-action="request-seat" data-id="${escAttr(match.id)}" ${blocked ? 'disabled' : ''}>${t('requestSeat')} ${icon('arrowRight', 20)}</button>
+        ${quoteAvailable?`<p class="rj-contribution-note">${t('localPreviewNoPayment')}</p>`:''}
+        ${!quoteAvailable?`<p class="rj-expiry-note">${t('fareUnavailableHelp')}</p>`:''}
+        ${blocked&&savedSearchExpired(state.results)?`<p class="rj-expiry-note">${t('requestExpired')}</p>`:''}
+        <button class="primary rj-primary" type="button" data-action="request-seat" data-id="${escAttr(match.id)}" ${blocked || !quoteAvailable ? 'disabled' : ''}>${t('sendSeatRequest')} ${icon('arrowRight', 20)}</button>
       </div></details>
     </article>`;
   }
@@ -121,24 +133,31 @@ export function makeJourneyViews(context) {
     if (!results) return `<section class="rj-page"><div class="rj-empty"><h1>${t('searchTitle')}</h1><p>${t('noMatches')}</p><a class="primary" href="#/search-form">${t('ride')}</a></div></section>`;
     /** @type {any[]} */
     const matches = results.matches || [];
+    const mode = ['best','fastest','cheapest','comfort'].includes(state.resultsMode) ? state.resultsMode : 'best';
+    const ranked = rankedRides(matches, mode);
+    const visibleMatches = ranked.items;
     const incomplete = results.metrics?.complete === false;
     const request = results.request || {};
-    const first = matches[0];
+    const first = visibleMatches[0];
     const firstRoute = first ? matchRoute(first) : null;
     const firstTripId = first?.trip_id || '';
     const summary = `<div class="rj-search-summary">
         <div><small>${t('origin')}</small><strong>${esc(pointLabel(request.origin))}</strong></div><span aria-hidden="true">${icon('arrowRight', 19)}</span>
       <div><small>${t('destination')}</small><strong>${esc(pointLabel(request.destination))}</strong></div>
-      <a class="rj-search-edit" href="#/search-form" aria-label="${escAttr(t('rideTitle'))}">${icon('path', 20)}</a><div class="rj-search-time"><small>${t('date')}</small><strong>${dateLine(request.window_start)}</strong>${request.window_end ? `<small>${t('pickupUntil')}: ${dateLine(request.window_end)}</small>` : ''}${request.seats != null ? `<small>${t('seatsNeeded')}: ${number(request.seats, 0)}</small>` : ''}</div>
+      <button class="rj-search-edit" type="button" data-results-action="edit-search" aria-label="${escAttr(t('editSearch'))}">${icon('path', 20)}</button><div class="rj-search-time"><small>${t('date')}</small><strong>${dateLine(request.window_start)}</strong>${request.window_end ? `<small>${t('pickupUntil')}: ${dateLine(request.window_end)}</small>` : ''}${request.arrive_by ? `<small>${t('arrivalDeadline')}: ${dateLine(request.arrive_by)}</small>` : ''}${request.seats != null ? `<small>${t('seatsNeeded')}: ${number(request.seats, 0)}</small>` : ''}<small>${t('requestedBags')}: ${esc(bagCounts(request.baggage))}</small>${request.baggage_notes?`<small>${t('passengerBaggageNotesLabel')}: ${esc(request.baggage_notes)}</small>`:''}</div>
     </div>`;
     return `<section class="rj-page rj-results-page">
       ${summary}
-      ${mapPanel({ route: firstRoute, tripId: firstTripId, points: first ? [first.routed_pickup || first.pickup, first.routed_dropoff || first.dropoff] : [request.origin, request.destination].filter(Boolean), label: t('routeAria'), caption: firstRoute ? `${t('estimatedRoutePreview')} · ${first.driver_summary?.name || first.driver_name || t('unknown')}` : '' })}
+      ${state.user?.development===true?`<div class="rj-saved-search rj-sample-notice" role="status">${t('localSampleRides')}</div>`:''}
       <section class="rj-sheet">
         <div class="rj-sheet-handle" aria-hidden="true"></div>
-        <header class="rj-page-heading"><div><h1>${t('tripsAlongRoute')}</h1><p>${number(matches.length, 0)} ${t('matches')}</p></div><select class="rj-edit-link" data-rj-sort aria-label="${escAttr(t('sortResults'))}"><option value="recommended">${t('sortRecommended')}</option><option value="soonest">${t('sortSoonest')}</option><option value="least-driving">${t('sortLeastDriving')}</option><option value="best-rated">${t('sortBestRated')}</option></select></header>
+        <header class="rj-page-heading"><div><h1>${t('tripsAlongRoute')}</h1><p>${number(matches.length, 0)} ${t('matches')}</p></div><div class="rj-search-actions"><small>${t('lastSearched')}: ${dateLine(results.saved_at||request.created_at)}</small><button type="button" class="rj-edit-link" data-results-action="search-again" ${state.busy?'disabled':''}>${t('refreshSearch')}</button></div></header>
+        <nav class="rj-option-tabs" aria-label="${escAttr(t('rideOptions'))}" role="group">${[['best','rideOptionBest'],['fastest','rideOptionFastest'],['cheapest','rideOptionCheapest'],['comfort','rideOptionComfort']].map(([key,label])=>`<button type="button" class="rj-option-button ${mode===key?'is-selected':''}" data-ride-option="${key}" aria-pressed="${mode===key}"><span>${t(label)}</span><small class="rj-option-count">${number(rideOptionCount(matches,key),0)}</small></button>`).join('')}</nav>
+        <p class="rj-option-explanation" role="status" aria-live="polite">${ranked.legacyFallback?t('legacyRankFallback'):t(mode==='best'?(results.ranking_context?.best_basis==='lowest_price_before_deadline'?'bestBasisPrice':'bestBasisArrival'):mode==='fastest'?'fastestBasis':mode==='cheapest'?'cheapestBasis':'comfortBasis')}</p>
+        ${savedSearchExpired(results)?`<div class="alert warning" role="status"><p>${t('savedSearchExpired')}</p><button type="button" class="secondary" data-results-action="search-again">${t('searchAgain')}</button></div>`:''}
         ${incomplete ? `<div class="alert warning" role="status"><p>${t('incomplete')}</p><a class="secondary" href="#/search-form">${t('retry')}</a></div>` : ''}
-        ${matches.length ? `<div class="rj-card-list">${matches.map(matchCard).join('')}</div>` : incomplete ? '' : `<div class="rj-empty rj-empty--search">${emptyArt()}<h2>${t('noMatches')}</h2><p>${t('tryWidenSearch')}</p><div class="rj-empty-actions"><a class="primary" href="#/search-form">${t('searchTitle')}</a></div></div>`}
+        ${visibleMatches.length ? `<div class="rj-card-list">${visibleMatches.map(matchCard).join('')}</div>` : matches.length ? `<div class="rj-empty-option" role="status"><p>${t(mode==='cheapest'?'emptyPriceOption':'emptyComfortOption')}</p><button type="button" class="secondary" data-ride-option="best">${t('viewAllRides')}</button></div>` : incomplete ? '' : `<div class="rj-empty rj-empty--search">${emptyArt()}<h2>${t('noMatches')}</h2><p>${t('noMatchesGuidance')}</p><div class="rj-empty-actions"><a class="primary" href="#/search-form">${t('editSearch')}</a></div></div>`}
+        ${mapPanel({ route: firstRoute, tripId: firstTripId, points: first ? [first.routed_pickup || first.pickup, first.routed_dropoff || first.dropoff] : [request.origin, request.destination].filter(Boolean), label: t('routeAria'), caption: firstRoute ? `${t('estimatedRoutePreview')} · ${first.driver_summary?.name || first.driver_name || t('unknown')}` : '' })}
       </section>
     </section>`;
   }
@@ -154,7 +173,7 @@ export function makeJourneyViews(context) {
       <div class="rj-trip-stats">${fact('seats', number(trip.seats, 0))}${fact('accepted', number(accepted, 0))}${fact('pendingCount', number(pending, 0))}</div>
       ${pending ? `<a class="primary rj-primary rj-link-button" href="#/inbox">${t('reviewRideRequest')} · ${number(pending, 0)} ${icon('arrowRight', 20)}</a>` : ''}
       <a class="secondary rj-secondary rj-link-button" href="#/trip/${encodeURIComponent(trip.id)}">${t('journeyDetail')} ${icon('arrowRight', 20)}</a>
-      ${trip.driver_id===state.user?.id&&state.user?.access?.can_drive===true?`<a class="secondary rj-secondary rj-link-button" href="#/trip-budget/${encodeURIComponent(trip.id)}">${t('afTripBudget')} ${icon('arrowRight',20)}</a>`:''}
+      ${trip.driver_id===state.user?.id&&state.user?.access?.can_drive===true&&!tripHasKnownFare(trip)?`<a class="secondary rj-secondary rj-link-button" href="#/trip-budget/${encodeURIComponent(trip.id)}">${t('afTripBudget')} ${icon('arrowRight',20)}</a>`:''}
     </article>`;
   }
 
@@ -187,6 +206,10 @@ export function makeJourneyViews(context) {
     const contactAllowed = booking.status === 'accepted' && ['published', 'started'].includes(currentTripStatus);
     const chatAllowed = booking.status === 'accepted' || booking.status === 'segment_completed';
     const ownRating = (state.data.ratings || []).find((rating) => rating.booking_id === booking.id && rating.author_id === state.user?.id);
+    const bookedBags = booking.baggage || match.passenger_baggage || request?.baggage || {small_bags:0,large_suitcases:0};
+    const bookedQuote = Object.prototype.hasOwnProperty.call(booking,'price_quote') ? booking.price_quote : (match.price_quote ?? null);
+    const bookingBagNotes = booking.baggage_notes || match.passenger_baggage_notes || request?.baggage_notes || '';
+    const bookingTripNotes = booking.trip_baggage_notes || match.trip_baggage_notes || match.baggage_notes || '';
     const bookedRouteKm = route?.distance_m ? km(route.distance_m) : t('unknown');
     const statusClass = `rj-status--${escAttr(booking.status || 'unknown')}`;
     const requestHeader = isDriver && booking.status === 'pending' ? t('inbox') : t('bookingDetail');
@@ -221,13 +244,15 @@ export function makeJourneyViews(context) {
       <header class="rj-booking-header"><div><p class="rj-eyebrow">${isDriver && booking.status === 'pending' ? t('reviewRideRequest') : requestHeader}</p><h2>${esc(pointLabel(booking.pickup || match.pickup))} → ${esc(pointLabel(booking.dropoff || match.dropoff))}</h2></div><span class="rj-chip ${statusClass}">${statusName(booking.status)}</span></header>
       ${publicPerson(counterpart || {name:isDriver ? booking.passenger_name : booking.driver_name})}${!isDriver?`<a class="af-driver-link" href="#/driver/${encodeURIComponent(booking.driver_id)}">${t('afViewDriver')} ${icon('arrowRight',18)}</a>`:''}
       <div class="rj-booking-times">${fact('pickup',dateLine(match.pickup_at || booking.trip_departure || trip?.departure))}${fact('dropoff',dateLine(match.dropoff_at))}${fact('seatsNeeded',number(booking.seats || 1,0))}</div>
+      <div class="rj-bag-facts rj-booking-snapshot">${fact('requestedBags',esc(bagCounts(bookedBags)))}</div>
+      ${fareBreakdown(bookedQuote,{driver:isDriver,match})}
       <div class="rj-booking-route">${pointsSummary(match.routed_pickup || booking.pickup || match.pickup,match.routed_dropoff || booking.dropoff || match.dropoff)}</div>
       <div class="rj-meeting-points">${roadNote('roadPickup', match.routed_pickup, match.pickup_snap_m)}${roadNote('roadDropoff', match.routed_dropoff, match.dropoff_snap_m)}</div>
       ${isDriver ? `<div class="rj-detour-block">${fact('incrementalDetour',minutes(match.incremental_detour_minutes))}${fact('totalDetour',minutes(match.total_driver_detour_minutes))}</div><p class="rj-estimate-note">${t('detourEstimate')}</p>` : ''}
-      <p class="rj-contribution-note">${t('afDirectPaymentHelp')}</p>
+      ${hasKnownQuote(bookedQuote)?`<p class="rj-contribution-note">${t('localPreviewNoPayment')}</p>`:`<p class="rj-contribution-note">${t('afDirectPaymentHelp')}</p>`}
       ${booking.reason ? `<p class="rj-user-note"><small>${t('reason')}</small>${esc(booking.reason)}</p>` : ''}
-      <div class="rj-booking-actions">${controls.join('')}<a class="secondary rj-secondary" href="#/payment/${encodeURIComponent(booking.id)}">${t('afContribution')}</a></div>
-      <details class="rj-more"><summary>${t('journeyDetail')} ${icon('arrowRight',18)}</summary><div class="rj-booking-facts">${fact('sharedSegmentEstimate',km(segmentMeters(booking)))}${fact('tripDeparture',dateLine(booking.trip_departure || trip?.departure))}${fact('pickupDetour',minutes(match.pickup_detour_minutes))}${fact('dropoffDetour',minutes(match.dropoff_detour_minutes))}</div>${match.verification ? `<details class="rj-checks"><summary>${t('checks')}</summary>${checks(match.verification)}</details>` : ''}</details>
+      <div class="rj-booking-actions">${controls.join('')}${hasKnownQuote(bookedQuote)?'':`<a class="secondary rj-secondary" href="#/payment/${encodeURIComponent(booking.id)}">${t('afContribution')}</a>`}</div>
+      <details class="rj-more"><summary>${t('journeyDetail')} ${icon('arrowRight',18)}</summary><div class="rj-booking-facts">${fact(isV2Quote(bookedQuote)?'quotedRoadDistance':'sharedSegmentEstimate',isV2Quote(bookedQuote)?quotedKm(bookedQuote.distance_m):km(segmentMeters(booking)))}${fact('tripDeparture',dateLine(booking.trip_departure || trip?.departure))}${fact('pickupDetour',minutes(match.pickup_detour_minutes))}${fact('dropoffDetour',minutes(match.dropoff_detour_minutes))}${booking.arrive_by||request?.arrive_by?fact('arrivalDeadline',dateLine(booking.arrive_by||request.arrive_by)):''}</div><div class="rj-bag-facts">${fact('requestedBags',esc(bagCounts(bookedBags)))}${bookingBagNotes?fact('passengerBaggageNotesLabel',esc(bookingBagNotes)):''}${fact('priceSnapshot',esc(quoteText(bookedQuote)))}${bookingTripNotes?fact('tripBaggageNotes',esc(bookingTripNotes)):''}<small>${t('searchedSnapshot')}</small></div>${match.verification ? `<details class="rj-checks"><summary>${t('checks')}</summary>${checks(match.verification)}</details>` : ''}</details>
       ${contactAllowed && !booking.live_location_ended_reason ? `<div class="trip-share-host" data-trip-sharing data-booking-id="${escAttr(booking.id)}"></div>` : ''}
     </article>`;
   }

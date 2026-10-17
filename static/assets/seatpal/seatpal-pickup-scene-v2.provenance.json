@@ -1,0 +1,12 @@
+{
+  "source": "image_gen built-in with targeted edit for parking geometry",
+  "original_path": "C:\\Users\\vkava\\.codex\\generated_images\\01a13b82-6c69-75b3-8fc7-0693a79cd2b3\\exec-e7be2249-8b8e-4d5a-8cdf-484782019ece.png",
+  "source_sha256": "361615b5ce4cc4337827fe13ec5d74eeb1574a8c2624d16a5a1d04cb19d65e0d",
+  "prompt_summary": "Premium 3D-style Hyderabad pickup scene: one continuous road, white compact car parked at the curb, two adult travelers with an orange bag, Charminar in the background, soft white and gray palette with minimal orange detail; no green. Exact prompt is preserved in outputs/seatpal-illustration-generation.md.",
+  "dimensions_px": {
+    "height": 1024,
+    "width": 1536
+  },
+  "delivery_webp": "seatpal-pickup-scene-v2.webp",
+  "webp_mode": "1536x1024 WebP quality 88, method 6; source PNG preserved unchanged in project and outputs"
+}

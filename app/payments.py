@@ -25,11 +25,14 @@ class PaymentError(Exception):
 KEY = re.compile(r"^[A-Za-z0-9_-]{1,80}$")
 UPI = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{1,255}@[A-Za-z][A-Za-z0-9.-]{1,63}$")
 MAX_PAISE = 10_000_000  # Input bound, not a fare, provider limit, or approved price.
-RECONCILIATION = {"dispute", "request_refund", "report_refund", "confirm_refund", "void_unpaid"}
+RECONCILIATION = {"report_paid", "confirm_received", "dispute", "request_refund", "report_refund", "confirm_refund", "void_unpaid"}
 TRANSITIONS = {
     "void_unpaid": ({"agreed"}, "driver", "voided_unpaid"),
     "agree": ({"proposed"}, "passenger", "agreed"),
-    "report_paid": ({"agreed"}, "passenger", "passenger_reported"),
+    # An owner's unpaid claim cannot erase a transfer made before cancellation.
+    # Reopening restores the reserved amount and blocks further collection when
+    # the cap is exceeded; it never initiates a new transfer.
+    "report_paid": ({"agreed", "voided_unpaid"}, "passenger", "passenger_reported"),
     "confirm_received": ({"passenger_reported"}, "driver", "owner_confirmed"),
     "dispute": ({"agreed", "passenger_reported", "owner_confirmed", "refund_requested", "refund_reported"}, "either", "disputed"),
     "request_refund": ({"passenger_reported", "owner_confirmed", "disputed"}, "passenger", "refund_requested"),
@@ -132,10 +135,27 @@ class PaymentService:
     def _collectible(self, tx, booking):
         return self._collection_identity_reason(tx, booking) is None
 
+    @staticmethod
+    def _quote_matches(booking, amount):
+        quote = booking.get("price_quote")
+        if quote is None:
+            return True  # Legacy expense agreements have no advertised fare.
+        return (isinstance(quote, dict) and quote.get("currency") == "INR"
+                and type(quote.get("amount_paise")) is int
+                and quote["amount_paise"] >= 0 and quote["amount_paise"] == amount)
+
+    @classmethod
+    def _require_booking_quote(cls, booking, amount):
+        if not cls._quote_matches(booking, amount):
+            raise PaymentError("The payment total must match the fare saved with this booking.",
+                               409, "booking_price_mismatch")
+
     def _collection_eligibility(self, tx, booking, payment):
         reason = "payments_disabled" if not self.enabled else self._collection_identity_reason(tx, booking)
         if reason is None and payment["status"] in {"voided_unpaid", "refunded"}:
             reason = "payment_closed"
+        if reason is None and payment.get("agreed_at") and not self._quote_matches(booking, payment.get("amount_paise")):
+            reason = "booking_price_mismatch"
         if reason is None and not tx.get("trip_expense_budgets", booking["trip_id"]):
             reason = "trip_budget_required"
         if reason is None and not self._budget_available(tx, booking["trip_id"]):
@@ -387,6 +407,7 @@ class PaymentService:
             stamp = datetime.now(timezone.utc).isoformat()
             if action == "propose":
                 amount = _integer(payload.get("amount_paise"), "amount_paise", 1)
+                self._require_booking_quote(booking, amount)
                 breakdown = payload.get("breakdown")
                 if not isinstance(breakdown, dict) or set(breakdown) != {"fuel_paise", "toll_paise"}:
                     raise PaymentError("Specify fuel_paise and toll_paise only.")
@@ -409,6 +430,7 @@ class PaymentService:
                 if action == "void_unpaid":
                     record["void_reason"] = _text(payload.get("reason"), "reason", 240, True)
                 if action == "agree":
+                    self._require_booking_quote(booking, record["amount_paise"])
                     budget = tx.get("trip_expense_budgets", booking["trip_id"])
                     record["budget_at_agreement"] = {k: budget[k] for k in
                         ("version", "fuel_paise", "toll_paise", "owner_share_paise", "passenger_cap_paise", "declaration")}

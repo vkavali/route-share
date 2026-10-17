@@ -1,9 +1,10 @@
 import React, {createContext, useContext, useState} from 'react';
-import {Pressable, StyleSheet, Text as NativeText, View} from 'react-native';
+import {Platform, Pressable, StyleSheet, Text as NativeText, View} from 'react-native';
 import {useFonts} from 'expo-font';
 import {T} from './translation';
 import {SeatPalLoader} from './SeatPalLoader';
 import {revealNativeFrame} from './startupSplash';
+import {SeatPalTheme} from './SeatPalTheme';
 
 const fontAssets = {
   Manrope400: require('../assets/fonts/Manrope-400.ttf'),
@@ -43,22 +44,32 @@ export function AppText({style, lang: scriptLang, ...props}: React.ComponentProp
   const contextLang = useContext(LanguageContext);
   const lang = scriptLang || contextLang;
   const textStyle = StyleSheet.flatten(style) || {};
-  const requested = String(textStyle.fontWeight || '500');
-  const weight = requested === '500' || requested === '600' || requested === '700'
-    ? requested
-    : requested === 'bold' || requested === '800' || requested === '900' ? '700' : '400';
-  const family = textStyle.fontFamily || `${lang === 'te' ? 'AnekTelugu' : 'Manrope'}${weight}`;
-  const teluguLineHeight = lang === 'te'
-    ? Math.max(Number(textStyle.lineHeight || 0), Math.ceil(Number(textStyle.fontSize || 16) * 1.5))
-    : undefined;
+  const bodyAlias = /^(?:Manrope|AnekTelugu)(400|500|600|700)$/.exec(textStyle.fontFamily || '');
+  const customFont = Boolean(textStyle.fontFamily && !bodyAlias && !['System', 'sans-serif'].includes(textStyle.fontFamily));
+  // Leave explicit icon, monospace, and other custom families exactly as requested.
+  if (customFont) return <NativeText {...props} style={style} />;
+  const requested = String(textStyle.fontWeight || bodyAlias?.[1] || '400');
+  const weight = requested === 'normal' ? '400' : requested === 'bold' ? '700' : requested;
+  const teluguWeight = ['500', '600', '700'].includes(weight)
+    ? weight : ['800', '900'].includes(weight) ? '700' : '400';
+  const family = lang === 'te' ? `AnekTelugu${teluguWeight}` : Platform.OS === 'ios' ? 'System' : 'sans-serif';
+  const size = Number(textStyle.fontSize || SeatPalTheme.type.body);
+  const lineHeight = lang === 'te'
+    ? Math.max(Number(textStyle.lineHeight || 0), Math.ceil(size * 1.5))
+    : textStyle.lineHeight || Math.ceil(size * 1.4);
 
-  return <NativeText {...props} style={[style, {fontFamily: family, fontWeight: 'normal', lineHeight: teluguLineHeight || textStyle.lineHeight, letterSpacing: lang === 'te' ? 0 : textStyle.letterSpacing}]} />;
+  return <NativeText {...props} style={[
+    {color: SeatPalTheme.colors.text, fontSize: SeatPalTheme.type.body},
+    style,
+    {fontFamily: family, fontWeight: lang === 'te' ? 'normal' : weight as '400' | '500' | '600' | '700' | '800' | '900',
+      lineHeight, letterSpacing: lang === 'te' ? 0 : textStyle.letterSpacing},
+  ]} />;
 }
 
 const styles = StyleSheet.create({
-  loading: {flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: '#F6F5F0'},
-  failure: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, backgroundColor: '#F6F5F0'},
-  failureText: {maxWidth: 330, textAlign: 'center', color: '#153C32', fontSize: 16, lineHeight: 25},
-  retry: {minHeight: 46, justifyContent: 'center', paddingHorizontal: 20, borderRadius: 14, backgroundColor: '#153C32'},
-  retryText: {color: '#fff', fontSize: 15, fontWeight: '700'},
+  loading: {flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: SeatPalTheme.colors.page},
+  failure: {flex: 1, alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, backgroundColor: SeatPalTheme.colors.page},
+  failureText: {maxWidth: 330, textAlign: 'center', color: SeatPalTheme.colors.text, fontSize: 16, lineHeight: 25},
+  retry: {minHeight: SeatPalTheme.target, justifyContent: 'center', paddingHorizontal: 20, borderRadius: SeatPalTheme.radius.control, backgroundColor: SeatPalTheme.colors.primary},
+  retryText: {color: SeatPalTheme.colors.onPrimary, fontSize: 15, fontWeight: '700'},
 });

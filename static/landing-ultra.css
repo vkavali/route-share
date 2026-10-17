@@ -1,0 +1,142 @@
+/* Latest public landing only. The logo animation and dock are owned by seatpal-landing-brand.css. */
+.public-landing {
+  --paper: #FAFAF9;
+  --white: #FFFFFF;
+  --ink: #24272B;
+  --muted: #666A70;
+  --line: #E6E7E8;
+  --accent: #C4410C;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: Manrope, "Anek Telugu", system-ui, sans-serif;
+  font-weight: 400;
+}
+.public-landing .wrap { width: min(1120px, calc(100% - 64px)); margin-inline: auto; }
+.public-landing :is(h1, h2, h3, h4) { margin: 0; color: var(--ink); font-weight: 650; letter-spacing: -.035em; line-height: 1.2; }
+.public-landing p { color: var(--muted); }
+.public-landing .site-header { min-height: 76px; padding-block: 14px; gap: 28px; border-color: var(--line); }
+.public-landing .wordmark { color: var(--ink); font-size: 27px; font-weight: 700; letter-spacing: -.045em; }
+.public-landing .site-nav { gap: 22px; }
+.public-landing .site-nav a { color: var(--ink); font-size: 14px; font-weight: 550; }
+.public-landing .header-actions { gap: 12px; }
+.public-landing .language-switch a { color: var(--ink); }
+.public-landing .language-switch a[aria-current] { background: #F0F1F1; }
+.public-landing .button { min-height: 48px; padding: 12px 21px; border-radius: 10px; font-size: 14px; font-weight: 650; box-shadow: none; }
+.public-landing .primary { border-color: var(--accent); background: var(--accent); color: var(--white); }
+.public-landing .primary:hover { background: #A9360A; border-color: #A9360A; }
+.public-landing .secondary { border-color: var(--line); background: var(--white); color: var(--ink); }
+.public-landing .header-cta { display: inline-flex; min-height: 44px; padding-inline: 16px; }
+.public-landing .text-link { color: var(--accent); font-size: 14px; font-weight: 650; }
+.public-landing :is(a, button, input, summary):focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; }
+
+.public-landing .combined-opening {
+  display: grid;
+  grid-template-columns: minmax(0, .95fr) minmax(0, 1.05fr);
+  align-items: center;
+  gap: clamp(24px, 5vw, 64px);
+  width: min(1120px, calc(100% - 64px));
+  margin-inline: auto;
+  padding-block: 58px 64px;
+  border-bottom: 1px solid var(--line);
+  overflow-anchor: none;
+}
+.public-landing .combined-opening-content.wrap { width: 100%; max-width: 520px; margin: 0; padding: 0; min-width: 0; }
+.public-landing .combined-opening h1 { max-width: 560px; font-size: clamp(36px, 5vw, 56px); line-height: 1.08; letter-spacing: -.045em; }
+.public-landing .combined-subtitle { margin: 14px 0 0; color: var(--muted); font-size: 18px; line-height: 1.55; }
+.public-landing .landing-capability-note { display: inline-block; margin: 16px 0 -8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 7px; background: var(--white); font-size: 12px; line-height: 1.5; }
+.public-landing .combined-search { display: grid; gap: 8px; margin-top: 23px; }
+.public-landing .route-fields { --route-input-height: 52px; --route-field-gap: 12px; --route-marker-offset: calc((var(--route-input-height) + var(--route-field-gap)) / 2); position: relative; display: grid; gap: var(--route-field-gap); padding-left: 24px; }
+.public-landing .route-field { position: relative; z-index: 1; display: grid; gap: 7px; }
+.public-landing .combined-search label { color: var(--ink); font-size: 14px; font-weight: 600; white-space: nowrap; }
+.public-landing .combined-search input { box-sizing: border-box; width: 100%; min-width: 0; height: var(--route-input-height); min-height: var(--route-input-height); padding: 11px 13px; border: 1px solid #C9CDD0; border-radius: 8px; background: var(--white); color: var(--ink); font: inherit; font-size: 16px; }
+.public-landing .combined-search input::placeholder { color: var(--muted); opacity: 1; }
+.public-landing .route-input { position: relative; }
+.public-landing .route-marker { position: absolute; top: 50%; left: -19px; width: 9px; height: 9px; border: 1px solid var(--accent); background: var(--paper); transform: translateY(-50%); }
+.public-landing .route-marker.route-origin { border-radius: 50%; }
+.public-landing .route-marker.route-destination { border-radius: 2px; }
+.public-landing .route-connector { position: absolute; z-index: 0; top: calc(50% - var(--route-marker-offset)); bottom: calc(var(--route-input-height) / 2); left: 9px; width: 1px; background: var(--line); pointer-events: none; }
+.public-landing .combined-search .button { width: 100%; min-height: 48px; margin-top: 10px; }
+.public-landing .combined-search .button > span { margin-left: auto; font-size: 18px; }
+.public-landing .combined-form-note { margin: 0; font-size: 13px; line-height: 1.6; }
+.public-landing .combined-form-error { margin: 0; padding: 10px 12px; border-left: 3px solid var(--accent); background: #F8EDE8; color: #762C10; font-size: 14px; }
+.public-landing .combined-offer-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 13px 0 0; color: var(--ink); font-size: 14px; }
+.public-landing .combined-offer-row .button { min-height: 44px; padding: 10px 15px; white-space: nowrap; }
+.public-landing .combined-nojs { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 20px; }
+.public-landing .combined-nojs p { margin: 0; font-size: 13px; }
+.public-landing .landing-illustration { min-width: 0; }
+.public-landing .landing-brand-row { width: 100%; }
+
+.public-landing .how-section { display: grid; grid-template-columns: minmax(220px, .8fr) minmax(0, 1.2fr); gap: 56px; padding-block: 72px; scroll-margin-top: 24px; }
+.public-landing .section-intro .eyebrow { margin: 0 0 10px; color: var(--accent); font-size: 13px; font-weight: 650; }
+.public-landing .section-intro h2 { max-width: 440px; font-size: clamp(28px, 3.2vw, 36px); }
+.public-landing .section-intro > p:last-child { max-width: 420px; margin: 14px 0 0; font-size: 16px; line-height: 1.65; }
+.public-landing .how-steps { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 22px; margin: 0; padding: 0; list-style: none; }
+.public-landing .how-steps li { padding-top: 15px; border-top: 1px solid var(--line); }
+.public-landing .how-steps li > span { display: block; margin-bottom: 17px; color: var(--accent); font-size: 13px; font-weight: 650; }
+.public-landing .how-steps h3 { font-size: 17px; letter-spacing: -.02em; }
+.public-landing .how-steps p { margin: 8px 0 0; font-size: 14px; line-height: 1.65; }
+.public-landing .how-note { grid-column: 1 / -1; max-width: 900px; margin: -18px 0 0; padding-top: 16px; border-top: 1px solid var(--line); font-size: 13px; line-height: 1.65; }
+.public-landing .availability-status { display: grid; grid-template-columns: minmax(180px, .8fr) minmax(0, 1.2fr); gap: 56px; padding-block: 25px; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+.public-landing .availability-status h2 { font-size: 19px; letter-spacing: -.02em; }
+.public-landing .availability-status p { margin: 0; font-size: 14px; line-height: 1.65; }
+.public-landing .availability-status p + p { margin-top: 6px; }
+.public-landing .landing-final { display: flex; align-items: center; justify-content: space-between; gap: 28px; padding-block: 64px 72px; }
+.public-landing .landing-final h2 { font-size: clamp(28px, 3.2vw, 36px); }
+.public-landing .landing-final p { max-width: 650px; margin: 12px 0 0; font-size: 16px; line-height: 1.65; }
+.public-landing .support-section { padding-block: 32px; gap: 40px; border-top: 1px solid var(--line); }
+.public-landing .support-section h2 { font-size: 22px; }
+.public-landing .support-section p { font-size: 14px; }
+.public-landing .site-footer { padding-top: 25px; border-color: var(--line); }
+.public-landing .site-footer p { color: var(--muted); }
+.public-landing .site-footer nav a { font-size: 13px; }
+
+html[lang="te"] .public-landing { font-family: "Anek Telugu", Manrope, system-ui, sans-serif; line-height: 1.8; }
+html[lang="te"] .public-landing :is(h1, h2, h3, h4) { line-height: 1.45; letter-spacing: 0; }
+@media (max-width: 900px) {
+  .public-landing .wrap { width: calc(100% - 48px); }
+  .public-landing .combined-opening { width: calc(100% - 48px); gap: 28px; }
+  .public-landing .how-section { grid-template-columns: 1fr; gap: 28px; padding-block: 52px; }
+  .public-landing .availability-status { gap: 28px; }
+}
+@media (max-width: 700px) {
+  .public-landing .wrap { width: calc(100% - 40px); }
+  .public-landing .site-header { display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand auth" "nav lang"; gap: 6px 8px; min-height: 0; padding-block: 10px; }
+  .public-landing .wordmark { grid-area: brand; min-width: 0; font-size: 24px; }
+  .public-landing .site-nav { grid-area: nav; display: flex; gap: 12px; width: auto; margin: 0; padding: 0; }
+  .public-landing .site-nav a { min-height: 44px; font-size: 13px; }
+  .public-landing .header-actions { display: contents; }
+  .public-landing .header-cta { grid-area: auth; justify-self: end; min-height: 42px; padding-inline: 12px; font-size: 13px; white-space: nowrap; }
+  .public-landing .language-switch { grid-area: lang; justify-self: end; }
+  .public-landing .language-switch a { min-width: 44px; min-height: 44px; padding-inline: 5px; font-size: 12px; }
+  .public-landing .combined-opening { grid-template-columns: minmax(0, 1fr); gap: 28px; width: calc(100% - 40px); padding-block: 40px 44px; }
+  .public-landing .combined-opening-content.wrap { width: 100%; }
+  .public-landing .combined-opening h1 { font-size: clamp(36px, 10vw, 48px); }
+  .public-landing .combined-subtitle { font-size: 17px; }
+  .public-landing .landing-illustration { min-height: 0; }
+  .public-landing .how-section { padding-block: 42px; }
+  .public-landing .how-steps { grid-template-columns: 1fr; gap: 20px; }
+  .public-landing .how-steps li { display: grid; grid-template-columns: 34px minmax(0, 1fr); gap: 12px; padding-top: 13px; }
+  .public-landing .how-steps li > span { margin: 2px 0 0; }
+  .public-landing .how-steps p { font-size: 15px; }
+  .public-landing .availability-status { grid-template-columns: 1fr; gap: 12px; padding-block: 22px; }
+  .public-landing .landing-final { align-items: flex-start; flex-direction: column; padding-block: 42px 48px; }
+  .public-landing .support-section { padding-block: 30px; }
+  .public-landing .site-footer { padding-top: 22px; }
+}
+@media (max-width: 360px) {
+  .public-landing .wrap, .public-landing .combined-opening { width: calc(100% - 32px); }
+  .public-landing[data-seatpal-brand-page="true"] header.site-header.wrap { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "brand auth" "nav lang"; grid-template-rows: auto auto; gap: 8px; padding-inline: 0; }
+  .public-landing[data-seatpal-brand-page="true"] header.site-header.wrap > .header-actions { display: contents; grid-area: auto; justify-self: auto; }
+  .public-landing[data-seatpal-brand-page="true"] header.site-header.wrap > .site-nav { grid-area: nav; justify-self: start; }
+  .public-landing[data-seatpal-brand-page="true"] header.site-header.wrap > .sp-seatpal-header-dock { grid-area: brand; min-width: 0; }
+  .public-landing[data-seatpal-brand-page="true"] .header-cta { grid-area: auth; justify-self: end; }
+  .public-landing[data-seatpal-brand-page="true"] .language-switch { grid-area: lang; justify-self: end; }
+  .public-landing .wordmark { font-size: 21px; }
+  .public-landing .header-cta { min-height: 40px; padding-inline: 9px; font-size: 12px; }
+  .public-landing .site-nav { gap: 6px; }
+  .public-landing .site-nav a { font-size: 12px; }
+  .public-landing .combined-opening h1 { font-size: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .public-landing :is(a, button) { transition: none !important; }
+}

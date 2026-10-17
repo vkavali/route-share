@@ -27,15 +27,27 @@ def test_variants_language_links_assets_and_no_session(public_app, path, lang):
         assert '/static/landing-layered.css' in html and '/static/landing-latest.css' not in html
     else:
         assert f'href="/welcome/previous?lang={lang}"' in html
-        assert 'data-seatpal-brand' in html and 'data-ride-story' in html
-        assert '/static/seatpal-landing-brand.css' in html
-        assert '/static/seatpal-landing-brand.js' in html
-        assert html.count('data-journey-stage=') == 5
-        for key in ('plan', 'offer', 'driver', 'request', 'chat', 'live', 'costs', 'reviews', 'account'):
-            assert f'id="feature-{key}"' in html
+        assert 'class="sp-seatpal-brand"' in html and 'data-seatpal-brand' in html
+        assert html.count('<div class="sp-seatpal-brand" data-seatpal-brand') == 1
+        assert '/static/seatpal-landing-brand.css' in html and '/static/seatpal-landing-brand.js' in html
+        assert 'data-landing-search' in html
+        assert 'id="landing-pickup"' in html and 'id="landing-destination"' in html
+        assert 'data-landing-offer' in html
+        assert html.count('href="#how-it-works"') == 1
+        assert html.count('id="how-it-works"') == 1
+        assert html.count('class="how-steps"') == 1
+        assert html.count('<li>') == 3
+        assert html.count('class="availability-status wrap"') == 1
+        assert 'class="combined-story"' in html
         assert '/static/assets/seatpal/seatpal-mark.svg' in html
-        assert '/static/landing-latest.css' in html and '/static/journey-scenes-latest.js' in html
-        assert 'seatpal-seat.svg' not in html
+        assert '/static/landing-ultra.css' in html and '/static/landing-ultra.js' in html
+        assert '/static/landing-latest.css' not in html
+        disabled_signup = public_site_latest_context(
+            page='landing', language=lang, app_name='SeatPal', registration_enabled=False,
+            payments_enabled=False, support_email='', operator_configured=False,
+        )['copy']['combined']
+        assert disabled_signup['auth_signin'] in html
+        assert disabled_signup['auth_signup'] not in html
     for asset in set(re.findall(r'(?:src|href)="(/static/[^"?#]+)', html)):
         fetched = client.get(asset)
         assert fetched.status_code == 200, asset
@@ -63,6 +75,8 @@ def test_latest_uses_runtime_capabilities_and_escapes_brand(public_app, tmp_path
         assert 'Phone sign-up is enabled.' in html and 'Direct UPI is available after' in html
         assert 'mailto:support@example.test' in html
         assert 'Set-Cookie' not in response.headers
+        if path != '/welcome/previous':
+            assert 'Create account' in html
 
 
 def test_latest_context_isolation_and_shared_faq(public_app):
@@ -75,3 +89,35 @@ def test_latest_context_isolation_and_shared_faq(public_app):
     faq = public_app.test_client().get('/faq?lang=te').get_data(as_text=True)
     assert '/static/public-site.js' in faq and 'journey-scenes-latest.js' not in faq
     assert 'data-five-stage-journey' not in faq
+
+@pytest.mark.parametrize('lang', ['en', 'te'])
+def test_latest_has_one_explanation_brand_and_availability_block(public_app, lang):
+    """The combined landing keeps one route explanation and one animated brand root."""
+    from html.parser import HTMLParser
+
+    class LandingStructure(HTMLParser):
+        def __init__(self):
+            super().__init__()
+            self.ids = []
+            self.tags_by_class = {}
+            self.attrs = []
+
+        def handle_starttag(self, tag, attrs):
+            node = dict(attrs)
+            if node.get('id'):
+                self.ids.append(node['id'])
+            self.attrs.append((tag, node))
+            for class_name in node.get('class', '').split():
+                self.tags_by_class.setdefault(class_name, []).append(tag)
+
+    tree = LandingStructure()
+    tree.feed(public_app.test_client().get(f'/welcome/latest?lang={lang}').get_data(as_text=True))
+    assert len(tree.ids) == len(set(tree.ids))
+    assert tree.ids.count('how-it-works') == 1
+    assert tree.tags_by_class.get('how-steps') == ['ol']
+    assert len([1 for tag, _ in tree.attrs if tag == 'li']) == 3
+    assert tree.tags_by_class.get('availability-status') == ['section']
+    assert tree.tags_by_class.get('combined-story') == ['div']
+    assert len([1 for tag, attrs in tree.attrs if tag == 'div' and 'data-seatpal-brand' in attrs]) == 1
+    assert len([1 for tag, attrs in tree.attrs if tag == 'form' and 'data-landing-search' in attrs]) == 1
+    assert len([1 for tag, attrs in tree.attrs if 'data-landing-offer' in attrs]) == 1

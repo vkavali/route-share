@@ -12,22 +12,25 @@
   let frame = 0;
   let needsMeasure = true;
   let active = -1;
-  // One bounded brand sequence. All contexts share the same highlighted cushion.
-  const seatBrand = journey.querySelector('[data-seat-brand]');
-  if (seatBrand && typeof Element.prototype.animate === 'function') {
+  // Approved brand geometry, gently looped while visible. Each instance owns its controls.
+  for (const seatBrand of document.querySelectorAll('[data-seat-brand]')) {
+    if (typeof Element.prototype.animate !== 'function') continue;
     const car = seatBrand.querySelector('[data-seat-car]');
     const bike = seatBrand.querySelector('[data-seat-bike]');
     const back = seatBrand.querySelector('[data-seat-back]');
     const base = seatBrand.querySelector('[data-seat-base]');
     const replay = seatBrand.querySelector('[data-seat-replay]');
-    let animations = [], started = false, visible = false;
+    let animations = [], started = false, visible = false, manuallyPaused = false;
     const cancel = () => { animations.forEach(a => a.cancel()); animations = []; };
     const play = () => {
       cancel();
       if (reduced.matches || document.hidden) return;
       started = true;
-      const options = { duration: 4400, fill: 'none', easing: 'linear' };
+      const looping = Boolean(replay.dataset.pauseLabel);
+      const options = { duration: looping ? 6400 : 4400, iterations: looping ? Infinity : 1, fill: 'none', easing: 'linear' };
       const run = (node, frames) => { const animation = node.animate(frames, options); animations.push(animation); return animation; };
+      const headerMark = document.querySelector('[data-seat-header]');
+      if (looping && headerMark) run(headerMark, [{transform:'none',offset:0},{transform:'translateY(-1.5px) rotate(-3deg)',offset:.3},{transform:'none',offset:.55},{transform:'translateY(-1px)',offset:.8},{transform:'none',offset:1}]);
       run(car, [{opacity:0,offset:0},{opacity:0,offset:.05},{opacity:1,offset:.17},{opacity:1,offset:.34},{opacity:0,offset:.45},{opacity:0,offset:1}]);
       run(bike, [{opacity:0,offset:0},{opacity:0,offset:.39},{opacity:1,offset:.53},{opacity:1,offset:.74},{opacity:0,offset:.86},{opacity:0,offset:1}]);
       run(back, [{transform:'none',offset:0},{transform:'scaleY(.55)',offset:.18},{transform:'scaleY(.55)',offset:.34},{transform:'rotate(-72deg) scale(.3)',offset:.53},{transform:'rotate(-72deg) scale(.3)',offset:.74},{transform:'none',offset:.94},{transform:'none',offset:1}]);
@@ -41,18 +44,26 @@
     };
     const sync = () => {
       replay.hidden = reduced.matches;
-      if (reduced.matches) { cancel(); return; }
+      if (reduced.matches) { cancel(); started = false; return; }
+      if (visible && !started) play();
       for (const a of animations) {
-        if (document.hidden || !visible) { if (a.playState === 'running') a.pause(); }
+        if (document.hidden || !visible || manuallyPaused) { if (a.playState === 'running') a.pause(); }
         else if (a.playState === 'paused') a.play();
       }
     };
-    replay.addEventListener('click', play);
+    replay.addEventListener('click', () => {
+      if (!replay.dataset.pauseLabel) { play(); return; }
+      manuallyPaused = !manuallyPaused;
+      replay.setAttribute('aria-pressed', String(manuallyPaused));
+      replay.setAttribute('aria-label', manuallyPaused ? replay.dataset.playLabel : replay.dataset.pauseLabel);
+      replay.querySelector('[data-seat-control-icon]').textContent = manuallyPaused ? '▶' : 'Ⅱ';
+      sync();
+    });
     reduced.addEventListener('change', sync);
     document.addEventListener('visibilitychange', sync);
     if ('IntersectionObserver' in window) {
       new IntersectionObserver(entries => { visible = entries[0].isIntersecting; if (visible && !started && !reduced.matches) play(); sync(); }, {threshold:.45}).observe(seatBrand);
-    } else { visible = true; }
+    } else { visible = true; play(); }
     sync();
   }
 

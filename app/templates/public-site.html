@@ -9,6 +9,7 @@
   <title>{{ copy.hero.title if page == 'landing' else copy.faq_title }} · {{ app_name }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='public-site.css') }}">
   {% if page == 'landing' %}<link rel="stylesheet" href="{{ url_for('static', filename='landing-layered.css') }}">{% endif %}
+  {% if page == 'faq' %}<link rel="stylesheet" href="{{ url_for('static', filename='seatpal-design.css') }}"><link rel="stylesheet" href="{{ url_for('static', filename='landing-clean.css') }}">{% endif %}
   <script src="{{ url_for('static', filename='public-site.js') }}" defer></script>
 </head>
 <body class="public-site public-{{ page }}">
@@ -101,7 +102,7 @@
       </div>
     </div>
   {% endif %}
-    <section class="support-section wrap" aria-labelledby="support-title"><h2 id="support-title">{{ copy.support_title }}</h2><div>{% if operator_configured and support_email %}<p>{{ copy.support_body }}</p><a class="text-link" href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}<p class="muted">{{ copy.support_unavailable }}</p>{% endif %}</div></section>
+    <section class="support-section wrap" aria-labelledby="support-title"><h2 id="support-title">{{ copy.support_title }}</h2><div>{% if support_email %}<p>{{ copy.support_body }}</p><a class="text-link" href="mailto:{{ support_email }}">{{ support_email }}</a>{% else %}<p class="muted">{{ copy.support_unavailable }}</p>{% endif %}</div></section>
   </main>
   <footer class="site-footer wrap"><div><a class="wordmark" href="{{ links.landing }}"><img src="{{ url_for('static', filename='assets/seatpal/seat.svg') }}" width="44" height="44" alt=""><span>{{ app_name }}</span></a><p>{{ copy.footer_note }}</p></div><nav aria-label="{{ copy.terms_label }}"><a href="{{ links.faq }}">{{ copy.nav_faq }}</a><a href="{{ links.terms }}">{{ copy.terms_label }}</a><a href="{{ links.privacy }}">{{ copy.privacy_label }}</a><a href="{{ links.app }}#/login">{{ copy.nav_app }}</a>{% if comparison_url %}<a href="{{ comparison_url }}">{{ comparison_label }}</a>{% endif %}</nav></footer>
 </body>

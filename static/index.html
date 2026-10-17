@@ -3,7 +3,8 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#F6F5F0">
+  <script src="/static/root-entry.js"></script>
+  <meta name="theme-color" content="#C4410C">
   <meta name="description" content="SeatPal · Share a planned journey. · Local development beta for intercity route sharing.">
   <link rel="preload" href="/static/fonts/Manrope-Variable.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/static/fonts/AnekTelugu-Variable.woff2" as="font" type="font/woff2" crossorigin>
@@ -20,6 +21,8 @@
   <link rel="stylesheet" href="/static/identity-flows.css">
   <link rel="stylesheet" href="/static/phone-auth.css">
   <link rel="stylesheet" href="/static/startup.css">
+  <link rel="stylesheet" href="/static/seatpal-design.css">
+  <link rel="stylesheet" href="/static/app-clean.css">
   <title>SeatPal · Local beta</title>
 </head>
 <body>
@@ -27,9 +30,9 @@
     <main class="startup" aria-labelledby="startup-status">
       <div class="startup-card" role="status" aria-busy="true">
         <div class="seatpal-startup-sequence" data-seatpal-startup aria-hidden="true">
-          <!-- seatpal:canonical-hero:start -->
-          <svg viewBox="0 0 520 300" width="208" height="120" focusable="false" aria-hidden="true"><g class="seat-envelope seat-car" data-seat-car="" fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><path data-envelope-line="" pathLength="1" d="M78 207v-35q0-10 12-12l32-8 24-44q6-11 20-11h134q17 0 29 12l43 43 57 11q24 5 24 28v16h-36m-53 0H177m-51 0H78M143 152h206M270 102v50M102 176h16m300 4h19"></path><circle cx="151" cy="211" r="27"></circle><circle cx="391" cy="211" r="27"></circle><path d="m294 146 11 36h28m-29-2v14h30" stroke="#8da093" stroke-width="6"></path></g><g class="seat-envelope seat-bike" data-seat-bike="" fill="none" stroke="#456655" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"><g stroke="#284b3c" stroke-width="8"><circle cx="184" cy="231" r="31"></circle><circle cx="386" cy="231" r="31"></circle></g><g stroke-width="1.5"><circle cx="184" cy="231" r="20"></circle><circle cx="386" cy="231" r="20"></circle></g><path data-envelope-line="" pathLength="1" d="m184 231 44-36 51 1-22 35h-73m74 0 38-4 48-48-16-14m25-16 33 82M340 146l13-8h18m-171 47-30-1m108 62h59q11 0 18-9"></path><path d="M301 164q17-16 34-3l16 16-25 15h-32z" fill="#b2c5af" stroke="#355d47"></path><path d="M273 187h28" stroke="#174539" stroke-width="11"></path><path d="m278 202 29-1 14 14-6 20h-39l-8-15z" fill="#527064" stroke="#174539"></path><path d="M280 210h25m-24 7h25m-24 7h20" stroke="#e4ecd9" stroke-width="2.5"></path><path d="m343 161 8 15 10-5-5-14z" fill="#d8eb9e" stroke="#174539"></path><path d="m357 179 27 51m-1-35q18-1 28 12" stroke-width="5"></path><path d="M244 237h99l10-5" stroke="#355d47" stroke-width="8"></path></g><g class="seat-core" fill="#174539"><g data-seat-back=""><path data-seat-headrest="" d="M176 71h15q8 0 10 8l4 13h-29l-4-12q-2-9 4-9Z"></path><path d="M179 101h29l26 79h-27z"></path></g><path data-seat-base="" d="M209 181h62v17q0 8-8 8h-43q-9 0-12-9l-5-14z"></path><path class="seat-cushion" stroke="#174539" stroke-width="2.5" d="M218 177h46q10 0 10 10v5h-53q-11 0-13-9-1-6 10-6Z" fill="#D8EB9E"></path></g></svg>
-          <!-- seatpal:canonical-hero:end -->
+          <!-- seatpal:canonical-mark:start -->
+          <svg viewBox="-45 -151 150 190" width="95" height="120" focusable="false" aria-hidden="true"><path d="M-5 27H77" fill="none" stroke="#9aa7b2" stroke-width="4" stroke-linecap="round"></path><g transform="rotate(-8)"><path d="M-8-122V-109M6-122V-109" fill="none" stroke="#778591" stroke-width="3.5" stroke-linecap="round"></path><path d="M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z" fill="#FF7A24"></path><path d="M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z" fill="#26323c"></path><path d="M-8-105H3Q9-105 9-98L7-37Q7-25 1-20" fill="none" stroke="#9eabb5" stroke-width="2.5" stroke-linecap="round"></path></g><path d="M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z" fill="#26323c"></path><path d="M-5-2H68Q81-2 85 5" fill="none" stroke="#9eabb5" stroke-width="2.5" stroke-linecap="round"></path><circle cx="0" cy="3" r="5" fill="#FF7A24"></circle></svg>
+          <!-- seatpal:canonical-mark:end -->
         </div>
         <p id="startup-status" data-startup-status>Loading SeatPal…</p>
         <a href="/welcome?lang=en" data-startup-link>About the app</a>

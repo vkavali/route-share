@@ -3,20 +3,22 @@
 from __future__ import annotations
 
 import hashlib
+import hmac
+import ipaddress
 import secrets
 import threading
 import time
-from collections import defaultdict, deque
 from datetime import datetime, timedelta, timezone
 
 from werkzeug.security import check_password_hash
 
-from .auth import is_active_account, auth_epoch
+from .auth import current_actor_matches, is_active_account, auth_epoch
 from .user_projection import account_user
 
 
 MOBILE_SESSION_SECONDS = 8 * 60 * 60
 LOGIN_ATTEMPTS_PER_MINUTE = 10
+MAX_PASSWORD_LOGIN_SCOPES = 4096
 
 
 class MobileAuthError(Exception):
@@ -29,12 +31,15 @@ class MobileAuthError(Exception):
 class MobileAuthenticator:
     """Stores only token hashes; bearer requests are serialized per token stripe."""
 
-    def __init__(self, store, *, clock=None, demo_password_enabled=True):
+    def __init__(self, store, *, clock=None, demo_password_enabled=True, rate_limit_key=None):
         self.store = store
         self.demo_password_enabled = demo_password_enabled
         self.clock = clock or time.time
-        self._lock = threading.Lock()
-        self._attempts: dict[tuple[str, str], deque[float]] = defaultdict(deque)
+        # Production callers pass Flask's persistent SECRET_KEY. The fallback
+        # keeps standalone/test instances usable; it is intentionally not
+        # suitable for sharing rate-limit state across processes.
+        self._rate_limit_key = (rate_limit_key.encode("utf-8") if isinstance(rate_limit_key, str)
+                                else rate_limit_key or secrets.token_bytes(32))
         self._token_locks = tuple(threading.RLock() for _ in range(64))
 
     @staticmethod
@@ -46,20 +51,43 @@ class MobileAuthenticator:
 
     def _rate_limit(self, ip: str, account: str | None = None) -> None:
         now = self.clock()
-        # One shared per-IP bucket prevents cycling account names to evade the
-        # prototype limiter. Both web and mobile login call this path.
-        key = (ip[:96], "*")
-        with self._lock:
-            attempts = self._attempts[key]
-            while attempts and attempts[0] <= now - 60:
-                attempts.popleft()
-            if len(attempts) >= LOGIN_ATTEMPTS_PER_MINUTE:
-                raise MobileAuthError("Too many sign-in attempts. Wait a minute and try again.", 429, "rate_limited")
-            attempts.append(now)
-            if len(self._attempts) > 4096:
-                for stale_key in list(self._attempts):
-                    if not self._attempts[stale_key] or self._attempts[stale_key][0] <= now - 60:
-                        del self._attempts[stale_key]
+        try:
+            normalized_ip = ipaddress.ip_address(str(ip).strip()).compressed
+        except ValueError:
+            normalized_ip = "unknown"
+        scope = hmac.new(self._rate_limit_key, b"password-login-ip-v1\0" + normalized_ip.encode("ascii"),
+                         hashlib.sha256).hexdigest()
+        limited = False
+        cutoff = now - 60
+        # Store.transaction uses SQLite BEGIN IMMEDIATE, making check-and-add
+        # atomic across web/mobile callers, restarts, and worker processes.
+        with self.store.transaction() as tx:
+            # Store only HMAC keys and timestamps, never raw addresses/accounts.
+            active_scopes = []
+            for stale in tx.list("password_login_attempts"):
+                expiry = stale.get("expires_at")
+                if isinstance(expiry, (int, float)) and expiry > now:
+                    active_scopes.append(stale)
+                else:
+                    tx.delete("password_login_attempts", stale["id"])
+            state = tx.get("password_login_attempts", scope)
+            attempts = [stamp for stamp in (state or {}).get("attempts", [])
+                        if isinstance(stamp, (int, float)) and stamp > cutoff]
+            if state is None and len(active_scopes) >= MAX_PASSWORD_LOGIN_SCOPES:
+                # Never evict a live scope to admit a new source.
+                limited = True
+            elif len(attempts) >= LOGIN_ATTEMPTS_PER_MINUTE:
+                limited = True
+                if state is not None and attempts != state.get("attempts"):
+                    state.update(attempts=attempts, expires_at=max(attempts) + 60)
+                    tx.put("password_login_attempts", scope, state)
+            else:
+                attempts.append(now)
+                tx.put("password_login_attempts", scope, {
+                    "id": scope, "attempts": attempts, "expires_at": max(attempts) + 60,
+                })
+        if limited:
+            raise MobileAuthError("Too many sign-in attempts. Wait a minute and try again.", 429, "rate_limited")
 
     def verify_credentials(self, account: str, password: str, ip: str) -> dict | None:
         if not isinstance(account, str) or not account or len(account) > 128 or not isinstance(password, str) or len(password) > 1024:
@@ -78,7 +106,8 @@ class MobileAuthenticator:
             raise MobileAuthError("Invalid account or password.", 401, "invalid_credentials")
         with self.store.transaction() as tx:
             current = tx.get("users", user["id"])
-            if not is_active_account(current):
+            if (not is_active_account(current) or not current_actor_matches(current, user)
+                    or current.get("password_hash") != user.get("password_hash")):
                 raise MobileAuthError("Invalid account or password.", 401, "invalid_credentials")
             return self.issue_in(tx, current)
 

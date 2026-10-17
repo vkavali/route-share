@@ -300,12 +300,12 @@ def public_site_context(*, page, language, app_name, registration_enabled, payme
             stop['status'] = registration
     email = support_email if isinstance(support_email, str) and len(support_email) <= 254 and re.fullmatch(
         r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}", support_email) else ''
-    if not operator_configured or not email:
+    if not email:
         copy['support_body'] = copy['support_unavailable']
     current = '/faq' if page == 'faq' else '/welcome'
     return {'page': page, 'lang': lang, 'copy': copy, 'app_name': str(app_name)[:80],
             'registration_enabled': bool(registration_enabled), 'payments_enabled': bool(payments_enabled),
-            'operator_configured': bool(operator_configured), 'support_email': email if operator_configured else '',
+            'operator_configured': bool(operator_configured), 'support_email': email,
             'links': {**{key: path + '?lang=' + lang for key, path in
                         [('landing', '/welcome'), ('faq', '/faq'), ('app', '/'), ('terms', '/terms'), ('privacy', '/privacy')]},
                       'en': current + '?lang=en', 'te': current + '?lang=te'}}

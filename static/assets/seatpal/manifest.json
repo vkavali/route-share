@@ -1,17 +1,25 @@
 {
   "version": 1,
   "source": "static/assets/seatpal/brand.json",
-  "sourceSha256": "0041f3bafd4712ec85180b88d37bc93ffa0c4fc5e31b100b3e0db9be74cf3141",
+  "sourceSha256": "dd4ea2c929fc77c7fc157e9f7465a66bf05b81985c023c828d0fe800b3029568",
   "approvedSource": {
-    "approvedGeneration": "seatpal-motion-20261013-r3",
-    "markSha256": "b791a90f6f4056fa8434236c8d793b88a45fe24c6c7380c61a4a42f724db6e7a",
-    "templateSha256": "985743f205e9d13ba4e989fe4a3f1898696e5aad953832882b705b2f53dd5712"
+    "approvedGeneration": "seatpal-orange-mark-20261015-v1",
+    "markSourcePath": "static/assets/seatpal/seatpal-mark.svg",
+    "markSha256": "939d0c4ca22a0b37e329a37c65569518f9cfe4e72e3b2814cb1f74804e4f5efb",
+    "legacyVehicleAssets": "brand.json.hero is retained for generated legacy car/motorcycle illustrations; current landing animation source is app/templates/_seatpal-landing-brand.html and static/seatpal-landing-brand.js."
   },
   "colors": {
-    "forest": "#174539",
-    "ivory": "#F6F5F0",
-    "lime": "#D8EB9E",
-    "outline": "#456655"
+    "forest": "#23221F",
+    "ivory": "#F5F5F3",
+    "lime": "#FFC13D",
+    "outline": "#6C655F",
+    "ink": "#23221F",
+    "muted": "#6C655F",
+    "accent": "#C4410C",
+    "accentVivid": "#FF7A24",
+    "saffron": "#FFC13D",
+    "soft": "#FFF0E5",
+    "surface": "#FFFFFF"
   },
   "generator": "mobile/scripts/generate-brand-assets.cjs",
   "renderer": {
@@ -19,76 +27,77 @@
     "vips": "8.18.7"
   },
   "nativeHandoff": {
-    "splashAndMarkSameViewBox": true,
+    "splashAndMarkSameViewBox": false,
+    "splashUsesCenteredMarkFrame": true,
     "splashImageWidthRecommended": 120,
-    "adaptiveBackground": "#F6F5F0",
+    "adaptiveBackground": "#F5F5F3",
     "iosOpaque": true
   },
   "files": [
     {
       "path": "static/assets/seatpal/seat.svg",
-      "bytes": 334,
-      "sha256": "b2ef9f377b38833fe51d4f1ad78118da3dedeaa53dddd3dbef754f8a355f1afc"
+      "bytes": 909,
+      "sha256": "6c1ae84428391831d51083f8514c1908f93e74a97e78619aaea502ea2b197b98"
     },
     {
       "path": "mobile/assets/seatpal/seat.svg",
-      "bytes": 334,
-      "sha256": "b2ef9f377b38833fe51d4f1ad78118da3dedeaa53dddd3dbef754f8a355f1afc"
+      "bytes": 909,
+      "sha256": "6c1ae84428391831d51083f8514c1908f93e74a97e78619aaea502ea2b197b98"
     },
     {
       "path": "static/assets/seatpal/seat-mono.svg",
-      "bytes": 334,
-      "sha256": "1c3447c9ccd4124f146e5a7547e22c3018418fef6244e9854a04602e029747ec"
+      "bytes": 909,
+      "sha256": "f12ec3ead39410be42615a23ae0f6f779bc0d3e4eed5b4d448bda514018de9b7"
     },
     {
       "path": "mobile/assets/seatpal/seat-mono.svg",
-      "bytes": 334,
-      "sha256": "1c3447c9ccd4124f146e5a7547e22c3018418fef6244e9854a04602e029747ec"
+      "bytes": 909,
+      "sha256": "f12ec3ead39410be42615a23ae0f6f779bc0d3e4eed5b4d448bda514018de9b7"
     },
     {
       "path": "static/assets/seatpal/core.svg",
       "bytes": 379,
-      "sha256": "509f38950c02552164ec773297992dccf7ead5d3e0668f5ec4d5be7213a7f018"
+      "sha256": "f02ecf9d75c7926862cbb1f8cb5d6e19f5f03f82f71b20bd31cfb53b0868ce5a"
     },
     {
       "path": "mobile/assets/seatpal/core.svg",
       "bytes": 379,
-      "sha256": "509f38950c02552164ec773297992dccf7ead5d3e0668f5ec4d5be7213a7f018"
+      "sha256": "f02ecf9d75c7926862cbb1f8cb5d6e19f5f03f82f71b20bd31cfb53b0868ce5a"
     },
     {
       "path": "static/assets/seatpal/car.svg",
       "bytes": 905,
-      "sha256": "ca31321d802733872e7e128ae23b8d701bc23d95d44672194075a2d7406ca4f7"
+      "sha256": "305e8053ca6633edd76fa125a7eb14941d6ad10263163d129cef181eda354608"
     },
     {
       "path": "mobile/assets/seatpal/car.svg",
       "bytes": 905,
-      "sha256": "ca31321d802733872e7e128ae23b8d701bc23d95d44672194075a2d7406ca4f7"
+      "sha256": "305e8053ca6633edd76fa125a7eb14941d6ad10263163d129cef181eda354608"
     },
     {
       "path": "static/assets/seatpal/motorcycle.svg",
       "bytes": 1536,
-      "sha256": "13d936f413df54c48ade2bb9239f2ac754af8bf2d5bb3bbe4bae73fb415ebbca"
+      "sha256": "2238022de7cb33a6bde0337ccbd82e45c952be531654086917c6104d02b2af92"
     },
     {
       "path": "mobile/assets/seatpal/motorcycle.svg",
       "bytes": 1536,
-      "sha256": "13d936f413df54c48ade2bb9239f2ac754af8bf2d5bb3bbe4bae73fb415ebbca"
+      "sha256": "2238022de7cb33a6bde0337ccbd82e45c952be531654086917c6104d02b2af92"
     },
     {
       "path": "static/icon.svg",
-      "bytes": 334,
-      "sha256": "b2ef9f377b38833fe51d4f1ad78118da3dedeaa53dddd3dbef754f8a355f1afc"
+      "bytes": 909,
+      "sha256": "6c1ae84428391831d51083f8514c1908f93e74a97e78619aaea502ea2b197b98"
     },
     {
       "path": "mobile/assets/seatpal/brand.json",
-      "bytes": 7377,
-      "sha256": "0041f3bafd4712ec85180b88d37bc93ffa0c4fc5e31b100b3e0db9be74cf3141"
+      "bytes": 9184,
+      "sha256": "dd4ea2c929fc77c7fc157e9f7465a66bf05b81985c023c828d0fe800b3029568"
     },
     {
       "path": "mobile/assets/seatpal/icon-ios.png",
-      "bytes": 14488,
-      "sha256": "d8ad74f20855a3947c26500298c63bdf8ed4599215915cc084f8a45f9596f77d",
+      "bytes": 23184,
+      "sha256": "83af2dd44c7e3996390b6d849bb1650362617a36a9354e641ad5a764a90f0c94",
       "width": 1024,
       "height": 1024,
       "channels": 3,
@@ -103,67 +112,67 @@
     },
     {
       "path": "mobile/assets/seatpal/adaptive-foreground.png",
-      "bytes": 11779,
-      "sha256": "721585bcf0c9e1947436b964264665d8479017a4efb37cd544eefc0acf9765e6",
+      "bytes": 18425,
+      "sha256": "fe36bc394a529aa7147699ca88e44343807c14e022015506cea5f86c31c5c889",
       "width": 1024,
       "height": 1024,
       "channels": 4,
       "hasAlpha": true,
       "alphaBounds": [
-        302,
-        269,
-        755,
-        729
+        312,
+        249,
+        714,
+        770
       ],
-      "transparentPixels": 953276
+      "transparentPixels": 972289
     },
     {
       "path": "mobile/assets/seatpal/adaptive-monochrome.png",
-      "bytes": 8736,
-      "sha256": "122009718eddabc34f726631fafabffe5498040de5956a6712b942195457d6c4",
+      "bytes": 10270,
+      "sha256": "d04252f7195554fa1de5fbac41e9128f1b7a562065231cb91a5103982ac51631",
       "width": 1024,
       "height": 1024,
       "channels": 4,
       "hasAlpha": true,
       "alphaBounds": [
-        302,
-        269,
-        755,
-        729
+        312,
+        249,
+        714,
+        770
       ],
-      "transparentPixels": 953276
+      "transparentPixels": 972289
     },
     {
       "path": "mobile/assets/seatpal/splash.png",
-      "bytes": 22458,
-      "sha256": "07889f3979601925e73fa2595a735d18e817cc470314753173e0c185e2cedb55",
+      "bytes": 35830,
+      "sha256": "f1b04d2bb5b5373c69eaa18c52bbe9ca47983a01a5a4df00934ab8ab975966a4",
       "width": 1200,
       "height": 1200,
       "channels": 4,
       "hasAlpha": true,
       "alphaBounds": [
-        163,
-        93,
-        1107,
-        1051
+        183,
+        52,
+        1021,
+        1137
       ],
-      "transparentPixels": 1027089
+      "transparentPixels": 1111533
     },
     {
       "path": "mobile/assets/seatpal/mark.png",
-      "bytes": 2915,
-      "sha256": "8dfc6a5510b8ef45b19df84ab913208a319815dd7dd210fb3693ce27ad5768dd",
+      "bytes": 5780,
+      "sha256": "5673dc53774fbc42e7470d213b6abc09a7753ed7ae9a4e241cdbb938bb166701",
       "width": 256,
       "height": 256,
       "channels": 4,
       "hasAlpha": true,
       "alphaBounds": [
-        34,
-        20,
-        236,
-        224
+        39,
+        11,
+        218,
+        243
       ],
-      "transparentPixels": 46575
+      "transparentPixels": 50244
     }
   ]
 }

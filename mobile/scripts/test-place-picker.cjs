@@ -11,6 +11,7 @@ const load = (code, requireMock) => { const mod = {exports: {}}; vm.runInNewCont
   module: mod, exports: mod.exports, require: requireMock, setTimeout, clearTimeout, Error
 }); return mod.exports; };
 const selection = load(compile('placeSelection.ts'), () => ({}));
+const theme = load(compile('SeatPalTheme.ts'), () => ({}));
 const pickerCode = compile('MapPicker.tsx');
 const flush = () => new Promise(setImmediate);
 const deferred = () => {let resolve, reject; const promise = new Promise((a,b) => {resolve=a;reject=b;});return {promise,resolve,reject};};
@@ -33,7 +34,8 @@ function harness(extra={}) {
       Accuracy:{High:1},requestForegroundPermissionsAsync:async()=>({granted:true}),
       getCurrentPositionAsync:()=>{const d=deferred();gps.push(d);return d.promise;}
     }:name==='./placeSelection'?selection:name==='./translation'?{T:(_,key)=>key}:
-      name==='./NativeTypography'?{AppText:'Text'}:{LEAFLET_CSS:'',LEAFLET_JS:''}).MapPicker;
+      name==='./SeatPalLoader'?{SeatPalLoader:'SeatPalLoader'}:name==='./NativeTypography'?{AppText:'Text'}:
+      name==='./SeatPalTheme'?theme:{LEAFLET_CSS:'',LEAFLET_JS:''}).MapPicker;
   const props={lang:'en',api:{request:url=>{const d=deferred();requests.push({url,...d});return d.promise;}},
     onChoose:p=>chosen.push(p),onCancel:()=>{},onFailure:e=>errors.push(e),...extra};
   const nodes=(node,type)=>!node||typeof node!=='object'?[]:[...(node.type===type?[node]:[]),...(node.children||[]).flat(Infinity).flatMap(n=>nodes(n,type))];
@@ -46,6 +48,7 @@ function harness(extra={}) {
     press:label=>{const button=nodes(tree,'Button').find(n=>text(n)===label);assert.ok(button,`button ${label}`);assert.ok(!button.props.disabled,`${label} enabled`);button.props.onPress();render();},
     confirmDisabled:()=>Boolean(nodes(tree,'Button').find(n=>text(n)==='mapUsePoint').props.disabled),
     texts:()=>nodes(tree,'Text').map(text),
+    loaders:()=>nodes(tree,'SeatPalLoader'),
     resultLabels:()=>nodes(tree,'Button').filter(n=>n.props.accessibilityState).map(text),
     map:message=>{nodes(tree,'Map')[0].props.onMessage({nativeEvent:{data:JSON.stringify(message)}});render();},
     loadEnd:()=>{nodes(tree,'Map')[0].props.onLoadEnd();render();},
@@ -57,7 +60,7 @@ function harness(extra={}) {
  const h=harness({initialPoint:place('Old pickup')});
  h.input('Hyderabad');assert.ok(h.confirmDisabled());assert.equal(h.requests.length,0);checks+=2;
  h.search();h.search();assert.equal(h.requests.length,1);checks++;
- assert.ok(h.texts().includes('mapSearchLoading'));assert.ok(!h.texts().includes('mapLocationBusy'));checks++;
+ assert.equal(h.loaders().length,1);assert.equal(h.loaders()[0].props.label,'mapSearchLoading');assert.ok(!h.texts().includes('mapLocationBusy'));checks++;
  h.input('Vijayawada');h.search();h.requests[1].resolve({places:[place('Vijayawada')]});await flush();h.render();
  h.requests[0].resolve({places:[place('Hyderabad')]});await flush();h.render();
  assert.ok(h.resultLabels()[0].startsWith('Vijayawada'));assert.ok(h.confirmDisabled());checks+=2;
@@ -79,9 +82,9 @@ function harness(extra={}) {
  d.requests[0].resolve({place:place('Nearby stop',14.1,77.1)});await flush();d.render();d.press('mapUsePoint');
  assert.equal(d.chosen[0].lat,14);assert.equal(d.chosen[0].lon,77);assert.equal(d.chosen[0].name,'Nearby stop');checks+=3;
  const e=harness();e.input('Empty query');e.search();e.requests[0].resolve({places:[]});await flush();e.render();
- assert.ok(e.texts().includes('mapSearchEmpty'));assert.ok(e.confirmDisabled());checks+=2;
+ assert.equal(e.loaders().length,0);assert.ok(e.texts().includes('mapSearchEmpty'));assert.ok(e.confirmDisabled());checks+=2;
  const f=harness();f.input('Failing query');f.search();f.requests[0].reject(new Error('offline'));await flush();f.render();
- assert.ok(f.texts().includes('mapSearchError'));assert.ok(f.confirmDisabled());checks+=2;
+ assert.equal(f.loaders().length,0);assert.ok(f.texts().includes('mapSearchError'));assert.ok(f.confirmDisabled());checks+=2;
  const g=harness();g.input('Leaving picker');g.search();g.dispose();const before=g.writes();
  g.requests[0].resolve({places:[place('Late result')]});await flush();assert.equal(g.writes(),before);checks++;
  const k=harness({initialPoint:place('Old',17,78)});k.map({type:'candidate',lat:16,lon:80});k.map({type:'ready'});k.loadEnd();

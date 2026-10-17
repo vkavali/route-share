@@ -25,7 +25,7 @@ function mount(options={}){
   finish:async()=>{log.push(['stop',serial]);return{uri:`file:///fixture-${serial}.m4a`,size:1000,durationMs:1000};},dispose:async()=>{log.push(['delete',serial]);}};}};
  const native={AppState:{addEventListener:(_,fn)=>{listeners.add(fn);return{remove:()=>listeners.delete(fn)};}},Linking:{openSettings:async()=>{}},StyleSheet:{create:x=>x}};
  for(const name of ['Pressable','Switch','TextInput','View'])native[name]=name;
- const imports={react:React,'react-native':native,'expo-crypto':{randomUUID:()=>`fixture-${operations.length}`},'./parser':parser,'./speech':speech,'./capture':capture,'./recordingSession':recording,'./transport':transport,'./copy':copyModule,'../NativeTypography':{AppText:'Text'}};
+ const imports={react:React,'react-native':native,'expo-crypto':{randomUUID:()=>`fixture-${operations.length}`},'./parser':parser,'./speech':speech,'./capture':capture,'./recordingSession':recording,'./transport':transport,'./copy':copyModule,'../SeatPalLoader':{SeatPalLoader:'SeatPalLoader'},'../NativeTypography':{AppText:'Text'}};
  const Component=load('VoiceTripInput.tsx',name=>{assert.ok(imports[name],`unexpected import ${name}; no legacy recognizer allowed`);return imports[name];}).VoiceTripInput;
  const props={api,lang:options.lang||'en',onDraft:d=>drafts.push(d),onFailure:e=>failures.push(e)};
  const nodes=(n,type)=>!n||typeof n!=='object'?[]:[...(n.type===type?[n]:[]),...(n.children||[]).flat(Infinity).flatMap(c=>nodes(c,type))];
@@ -36,7 +36,7 @@ function mount(options={}){
  const press=key=>{const n=nodes(tree,'Pressable').find(n=>text(n)===copy()[key]);assert.ok(n,`button ${key}`);assert.ok(!n.props.disabled,`${key} enabled`);n.props.onPress();render();};
  const input=()=>nodes(tree,'TextInput').find(n=>n.props.accessibilityLabel===copy().transcript);
  render();
- return{api,operations,drafts,failures,log,settle,press,copy,render,visibleText:()=>text(tree),setDailyRemaining:value=>{dailyRemaining=value;},
+ return{api,operations,drafts,failures,log,settle,press,copy,render,visibleText:()=>text(tree),loaders:()=>nodes(tree,'SeatPalLoader'),setDailyRemaining:value=>{dailyRemaining=value;},
   edit:value=>{assert.ok(input().props.editable!==false);input().props.onChangeText(value);render();},transcript:()=>input().props.value,
   disabled:key=>Boolean(nodes(tree,'Pressable').find(n=>text(n)===copy()[key])?.props.disabled),
   setAvailable:value=>{config=value;},permission:value=>{permission=value;},setCapError:value=>{capError=value;},
@@ -50,9 +50,9 @@ function mount(options={}){
 async function exerciseServerVoice(){
  const deps=JSON.parse(fs.readFileSync(path.join(__dirname,'../package.json'),'utf8')).dependencies;assert.ok(!deps['expo-speech-recognition'],'legacy recognizer is not a runtime dependency');
  const exports=fs.readFileSync(path.join(__dirname,'../src/voice/index.ts'),'utf8');assert.ok(!exports.includes("from './native'"),'public voice exports do not load old native recognizer');
- const h=mount();await h.settle();await h.start();assert.ok(h.log.some(x=>x[0]==='record'));assert.equal(h.drafts.length,0);
- await h.stop();assert.ok(h.log.some(x=>x[0]==='transcribe'));assert.equal(h.drafts.length,0);
- h.resolve('Hyderabad to Vijayawada tomorrow at nine am for two people');await h.settle();assert.ok(h.transcript().includes('Hyderabad'));assert.equal(h.drafts.length,0,'transcription never triggers review or search');
+ const h=mount();assert.equal(h.loaders().length,1);assert.equal(h.loaders()[0].props.label,h.copy().checking);await h.settle();assert.equal(h.loaders().length,0);await h.start();assert.equal(h.loaders().length,0,'actual recording has listening status, not pending logo');assert.ok(h.log.some(x=>x[0]==='record'));assert.equal(h.drafts.length,0);
+ await h.stop();assert.equal(h.loaders().length,1);assert.equal(h.loaders()[0].props.label,h.copy().stopping);assert.ok(h.log.some(x=>x[0]==='transcribe'));assert.equal(h.drafts.length,0);
+ h.resolve('Hyderabad to Vijayawada tomorrow at nine am for two people');await h.settle();assert.equal(h.loaders().length,0);assert.ok(h.transcript().includes('Hyderabad'));assert.equal(h.drafts.length,0,'transcription never triggers review or search');
  h.edit('Place A to Place B tomorrow morning for two people');h.press('review');await h.settle();assert.equal(h.drafts.length,1);assert.equal(h.drafts[0].fromQuery,'Place A');assert.equal(h.drafts[0].toQuery,'Place B');assert.equal(h.drafts[0].seats,2);assert.equal(h.drafts[0].time,undefined);const integratedDraft=h.drafts[0];
  await h.start();await h.stop();h.resolve('Kondapur to Eluru tomorrow morning for one person');await h.settle();assert.ok(h.transcript().includes('Kondapur'),'repeat voice replaces only editable transcript');assert.equal(h.drafts.length,1);h.dispose();
  for(const event of ['cancel','background','language','logout','dispose']){

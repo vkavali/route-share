@@ -1,0 +1,70 @@
+import React,{useEffect,useRef,useState} from 'react';
+import {BackHandler,Pressable,ScrollView,StyleSheet,TextInput,View} from 'react-native';
+import * as Crypto from 'expo-crypto';
+import {Api} from './api';
+import {AppText} from './NativeTypography';
+import {T} from './translation';
+import {newFlow} from './PhoneAuthScreen';
+import {SeatPalLoader} from './SeatPalLoader';
+import {SeatPalTheme} from './SeatPalTheme';
+
+type Props={api:Api;lang:string;recovery?:boolean;onBack:()=>void;onRecovered:(session:any)=>Promise<void>;onError:(error:unknown)=>void};
+type Stage='status'|'reauth'|'email'|'email_code'|'phone'|'phone_code'|'finished';
+// Email, OTP, flow credential, and proof remain only in this mounted screen.
+export function BackupEmailScreen({api,lang,recovery=false,onBack,onRecovered,onError}:Props){
+ const t=(key:string)=>T(lang,key);
+ const [stage,setStage]=useState<Stage>(recovery?'email':'status'),[status,setStatus]=useState<any>(null),[loading,setLoading]=useState(true),[enabled,setEnabled]=useState(false),[busy,setBusy]=useState(false),[error,setError]=useState(''),[notice,setNotice]=useState(''),[email,setEmail]=useState(''),[phone,setPhone]=useState(''),[code,setCode]=useState(''),[challenge,setChallenge]=useState<any>(null),[proof,setProof]=useState<any>(null),[recoveryProof,setRecoveryProof]=useState<any>(null),[remove,setRemove]=useState(false),[now,setNow]=useState(Date.now());
+ const alive=useRef(true),generation=useRef(0),flight=useRef(false),flow=useRef(''),attempt=useRef<{fingerprint:string;id:string}|null>(null),capturedToken=useRef(api.token),session=useRef<any>(null);
+ const current=(id:number)=>alive.current&&generation.current===id&&api.token===capturedToken.current;
+ const clear=()=>{generation.current++;flight.current=false;flow.current='';attempt.current=null;session.current=null;setBusy(false);setEmail('');setPhone('');setCode('');setChallenge(null);setProof(null);setRecoveryProof(null);setRemove(false);setError('');setNotice('');};
+ const exit=()=>{clear();onBack();};
+ const reset=()=>{clear();setStage(recovery?'email':'status');};
+ const seconds=(date:string)=>{const time=Date.parse(date);return Number.isFinite(time)?Math.max(0,Math.ceil((time-now)/1000)):0;};
+ const expiry=challenge?seconds(challenge.expires_at):0,cooldown=challenge?seconds(challenge.resend_at):0,proofValid=proof&&seconds(proof.expires_at)>0,recoveryValid=recoveryProof&&seconds(recoveryProof.expires_at)>0;
+ const fail=(e:any)=>{const key:Record<string,string>={invalid_email:'beInvalidEmail',email_verification_invalid:'beExpired',email_invalid_code:'phoneInvalidCode',email_busy:'phoneBusy',email_rate_limited:'phoneLimited',backup_email_unavailable:'beUnavailable',email_delivery_unavailable:'beUnavailable',recovery_unavailable:'beUnavailable',backup_email_expired:'beExpired',email_auth_expired:'beExpired',email_recovery_expired:'beExpired',invalid_recovery_token:'beExpired',reauth_expired:'lcReauthExpired',invalid_action_proof:'lcReauthExpired',reauth_required:'lcReauthExpired',phone_auth_expired:'phoneExpired',phone_auth_invalid_code:'phoneInvalidCode',phone_auth_rate_limited:'phoneLimited',phone_auth_busy:'phoneBusy',phone_auth_unavailable:'phoneUnavailable',invalid_phone:'phoneInvalidNumber',invalid_phone_flow:'phoneFlowInvalid'};setError(key[e?.code]||(e?.status===503?'beUnavailable':e?.code==='ETIMEDOUT'?'requestTimeout':e?.code?.includes('invalid_code')?'phoneInvalidCode':'beNetworkError'));if(e?.status===401&&!['reauth_required','invalid_action_proof','reauth_expired'].includes(e?.code))onError(e);};
+ const load=async()=>{if(flight.current)return;const id=generation.current;setLoading(true);setError('');try{const result=recovery?await api.phoneCapabilities():await api.accountLifecycle();if(current(id)){setStatus(recovery?null:result.backup_email);setEnabled(recovery?result.backup_email_enabled===true:result.backup_email?.enabled===true);}}catch(e){if(current(id))fail(e);}finally{if(current(id))setLoading(false);}};
+ useEffect(()=>{alive.current=true;void load();const back=BackHandler.addEventListener('hardwareBackPress',()=>{exit();return true;});return()=>{alive.current=false;generation.current++;flow.current='';attempt.current=null;session.current=null;back.remove();};},[]);
+ useEffect(()=>{if(!challenge&&!proof&&!recoveryProof)return;const timer=setInterval(()=>setNow(Date.now()),1000);return()=>clearInterval(timer);},[challenge?.challenge_id,proof?.action_token,recoveryProof?.recovery_token]);
+ const begin=(removing=false)=>{clear();setRemove(removing);setStage('reauth');};
+ const requestId=(fingerprint:string)=>{if(attempt.current?.fingerprint!==fingerprint)attempt.current={fingerprint,id:Crypto.randomUUID()};return attempt.current.id;};
+ const send=async(resend=false)=>{
+  if(flight.current||(!enabled&&!(remove&&!recovery&&stage==='reauth'))||(resend&&(!challenge||cooldown>0)))return;
+  if(stage==='email'||stage==='email_code'){if(!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())||email.trim().length>254){setError('beInvalidEmail');return;}if(!recovery&&!proofValid){setError('lcReauthExpired');return;}}
+  if(stage==='phone'||stage==='phone_code'){if(!recoveryValid){setError('beExpired');return;}if(!/^(?:\+91)?[6-9]\d{9}$/.test(phone.replace(/[\s()-]/g,''))){setError('phoneInvalidNumber');return;}}
+  flight.current=true;setBusy(true);setError('');const id=generation.current;
+  try{if(!flow.current){const value=await newFlow();if(!current(id))return;flow.current=value;}const payload={flow_token:flow.current,request_id:requestId(JSON.stringify([stage,resend?challenge?.challenge_id:'first']))};let result:any;
+   if(stage==='reauth')result=await api.accountReauthStart({...payload,purpose:'backup_email'});
+   else if(stage==='email'||stage==='email_code')result=recovery?await api.recoverEmailStart({...payload,email:email.trim()}):await api.backupEmailStart({...payload,email:email.trim(),action_token:proof.action_token});
+   else result=await api.recoverEmailPhoneStart({...payload,new_phone:phone.replace(/[\s()-]/g,''),recovery_token:recoveryProof.recovery_token});
+   if(!current(id))return;attempt.current=null;setChallenge(result);setCode('');setNow(Date.now());if(stage==='email')setStage('email_code');if(stage==='phone')setStage('phone_code');if(recovery&&(stage==='email'||stage==='email_code'))setNotice('beRecoverySent');
+  }catch(e){if(current(id))fail(e);}finally{if(current(id)){flight.current=false;setBusy(false);}}
+ };
+ const verify=async()=>{if(flight.current||!challenge||expiry<=0||!/^\d{6}$/.test(code)||(!enabled&&!(remove&&!recovery&&stage==='reauth')))return;if(stage==='phone_code'&&!recoveryValid){setError('beExpired');return;}flight.current=true;setBusy(true);setError('');const id=generation.current;
+  try{const payload={challenge_id:challenge.challenge_id,flow_token:flow.current,code};
+   if(stage==='reauth'){const result=await api.accountReauthVerify(payload);if(!current(id))return;if(result.purpose!=='backup_email'||!result.action_token)throw{code:'invalid_action_proof'};setProof(result);setChallenge(null);setStage(remove?'reauth':'email');setNow(Date.now());}
+   else if(stage==='email_code'){const result=recovery?await api.recoverEmailVerify(payload):await api.backupEmailVerify(payload);if(!current(id))return;setEmail('');setChallenge(null);setNotice('');if(recovery){if(!result.recovery_token)throw{code:'invalid_recovery_token'};setRecoveryProof(result);setStage('phone');setNow(Date.now());}else{setStatus(result.backup_email);flow.current='';setProof(null);setStage('status');setNotice('beVerified');}}
+   else if(stage==='phone_code'){const result=await api.recoverEmailPhoneVerify({...payload,recovery_token:recoveryProof.recovery_token});if(!current(id))return;session.current=result;flow.current='';setEmail('');setPhone('');setCode('');setChallenge(null);setProof(null);setRecoveryProof(null);setStage('finished');await onRecovered(result);}
+  }catch(e){if(current(id))fail(e);}finally{if(current(id)){setCode('');flight.current=false;setBusy(false);}}
+ };
+ const removeEmail=async()=>{if(flight.current||!remove||!proofValid||proof.purpose!=='backup_email')return;flight.current=true;setBusy(true);setError('');const id=generation.current;try{const result=await api.backupEmailRemove({action_token:proof.action_token});if(!current(id))return;clear();setStatus(result.backup_email);setStage('status');}catch(e){if(current(id))fail(e);}finally{if(current(id)){flight.current=false;setBusy(false);}}};
+ const button=(key:string,fn:()=>void,disabled=false,secondary=false,cancel=false)=><Pressable accessibilityRole="button" accessibilityState={{disabled:disabled||(!cancel&&busy)}} disabled={disabled||(!cancel&&busy)} onPress={fn} style={[styles.button,secondary&&styles.secondary,(disabled||(!cancel&&busy))&&styles.disabled]}><AppText style={[styles.buttonText,secondary&&styles.secondaryText]}>{t(key)}</AppText></Pressable>;
+ const field=(key:string,value:string,change:(v:string)=>void,options:any={})=><View style={styles.field}><AppText style={styles.label}>{t(key)}</AppText><TextInput accessibilityLabel={t(key)} value={value} onChangeText={change} editable={!busy} style={[styles.input,{fontFamily:lang==='te'?'AnekTelugu400':'Manrope400'}]} {...options}/></View>;
+ const codeKey=stage==='reauth'||stage==='phone_code'?'phoneCode':'beCode';
+ const expiredProof=(stage==='email'||stage==='email_code')&&!recovery&&!proofValid,expiredRecovery=(stage==='phone'||stage==='phone_code')&&!recoveryValid;
+ return <View style={styles.page}><View style={styles.header}>{button(recovery?'beBack':'back',exit,false,true,true)}<AppText style={styles.heading}>{t(recovery?'beRecoveryTitle':'beTitle')}</AppText></View>{busy?<SeatPalLoader label={t('beBusy')} style={styles.pending}/>:null}<ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
+  {loading?<SeatPalLoader label={t('loading')}/>:null}{error?<AppText accessibilityRole="alert" accessibilityLiveRegion="polite" style={styles.error}>{t(error)}</AppText>:null}{notice?<AppText accessibilityRole="alert" style={styles.notice}>{t(notice)}</AppText>:null}
+  {!loading&&!enabled?<View style={styles.card}><AppText>{t('beUnavailable')}</AppText>{button('retry',()=>void load(),false,true)}</View>:null}
+  {!loading&&(enabled||(!recovery&&status?.configured))?<View style={styles.card}><AppText style={styles.muted}>{t(recovery?'beRecoveryDescription':'beDescription')}</AppText>
+   {stage==='status'?<><AppText>{status?.configured?status.masked_email:t('beMissing')}</AppText>{button(status?.configured?'beChange':'beAdd',()=>begin(),!enabled)}{status?.configured?button('beRemove',()=>begin(true),false,true):null}</>:null}
+   {expiredProof||expiredRecovery?<><AppText style={styles.error}>{t(expiredProof?'lcReauthExpired':'beExpired')}</AppText>{button('phoneRestart',reset,false,true)}</>:stage==='reauth'&&proof?<><AppText>{t('beRemoveConfirm')}</AppText>{button('beRemove',()=>void removeEmail(),!proofValid)}</>:<>
+    {stage==='reauth'&&!challenge?<><AppText>{t('lcReauthHelp')}</AppText>{button('lcSendCurrentCode',()=>void send())}</>:null}
+    {stage==='email'?<>{field('beEmail',email,v=>{setEmail(v);attempt.current=null;},{autoCapitalize:'none',autoCorrect:false,keyboardType:'email-address',textContentType:'emailAddress',autoComplete:'email',maxLength:254})}{button('beSendCode',()=>void send())}</>:null}
+    {stage==='phone'?<>{field('beNewPhone',phone,v=>{setPhone(v);attempt.current=null;},{keyboardType:'phone-pad',textContentType:'telephoneNumber',autoComplete:'tel',maxLength:16})}{button('phoneSendCode',()=>void send())}</>:null}
+    {challenge?<>{challenge.masked_email||challenge.masked_phone?<AppText>{challenge.masked_email||challenge.masked_phone}</AppText>:null}<AppText style={styles.muted}>{expiry>0?t('phoneExpiresIn').replace('{seconds}',String(expiry)):t('beExpired')}</AppText>{field(codeKey,code,v=>setCode(v.replace(/\D/g,'')),{maxLength:6,keyboardType:'number-pad',textContentType:'oneTimeCode',autoComplete:stage==='email_code'?'off':'sms-otp',editable:!busy&&expiry>0})}{button(stage==='phone_code'?'beRecoveryFinish':'beVerify',()=>void verify(),expiry<=0||code.length!==6)}{button('beResend',()=>void send(true),cooldown>0,true)}{cooldown>0?<AppText>{t('phoneResendIn').replace('{seconds}',String(cooldown))}</AppText>:null}</>:null}
+    {stage==='finished'?<><AppText>{t('phoneVerified')}</AppText>{button('retry',()=>{if(flight.current||!session.current)return;flight.current=true;setBusy(true);const id=generation.current;void onRecovered(session.current).catch(e=>{if(current(id))fail(e);}).finally(()=>{if(current(id)){flight.current=false;setBusy(false);}});})}</>:null}
+   </>}
+   {stage!=='status'?button('beCancel',reset,false,true,true):null}
+  </View>:null}
+ </ScrollView></View>;
+}
+const styles=StyleSheet.create({page:{flex:1,backgroundColor:SeatPalTheme.colors.page},header:{flexDirection:'row',alignItems:'center',gap:15,padding:16},pending:{alignSelf:'center',flexDirection:'row',padding:8,gap:8,maxWidth:'100%'},body:{padding:18,gap:18,paddingBottom:32},card:{backgroundColor:SeatPalTheme.colors.surface,borderRadius:22,borderWidth:1,borderColor:SeatPalTheme.colors.border,padding:18,gap:15},heading:{fontSize:20,fontWeight:'700',color:SeatPalTheme.colors.text,flexShrink:1},muted:{fontSize:14,lineHeight:23,color:SeatPalTheme.colors.secondary},button:{backgroundColor:SeatPalTheme.colors.primary,borderRadius:15,padding:15,minHeight:48,alignItems:'center'},buttonText:{color:SeatPalTheme.colors.onPrimary,fontSize:15,fontWeight:'700',textAlign:'center'},secondary:{backgroundColor:SeatPalTheme.colors.selected},secondaryText:{color:SeatPalTheme.colors.text},disabled:{opacity:.45},field:{gap:8},label:{color:SeatPalTheme.colors.text,fontWeight:'600'},input:{borderWidth:1,borderColor:SeatPalTheme.colors.border,borderRadius:12,minHeight:52,padding:13,fontSize:17,color:SeatPalTheme.colors.text},error:{color:SeatPalTheme.colors.danger,lineHeight:23},notice:{color:SeatPalTheme.colors.secondary,lineHeight:23}});

@@ -1,0 +1,10 @@
+{
+  "generator": "built-in image_gen",
+  "reference_image": "/mnt/c/Users/vkava/.codex/generated_images/01a111c4-905e-7c52-a5af-7f803111e276/exec-0e451077-52fe-4480-89e3-da3ee8667c02.png",
+  "generated_original": "/mnt/c/Users/vkava/.codex/generated_images/01a138de-f482-7a91-afee-baa0b5a4806b/exec-64f17f6f-3579-4867-aec1-04ff12ac43a0.png",
+  "workspace_original": "static/assets/seatpal/combined-seat-pair-original.png",
+  "webp": "static/assets/seatpal/combined-seat-pair.webp",
+  "webp_dimensions": "1200x900",
+  "webp_bytes": 39028,
+  "prompt": "Use case: product-mockup\nAsset type: standalone 4:3 landing-page product image, 1200x900 pixels.\nInput image: The approved SeatPal mockup is a reference for the seat shapes only; extract no UI or text.\nScene/backdrop: pure bright white seamless studio background.\nSubject: exactly two sculptural passenger seats, one deep forest-green seat with a restrained muted-lime cushion beside one frosted translucent milky-white seat.\nStyle/medium: premium photorealistic product photography; sculpted molded forms, soft beveled edges, subtle pebbled upholstery texture.\nComposition/framing: complete pair in three-quarter view, centered toward the right side of the 4:3 canvas with generous empty white space on the left; both full seat silhouettes visible.\nLighting: bright soft studio light with restrained highlights and natural soft contact shadows under the seats.\nConstraints: preserve the recognizable curved backrest, seat base, and separate cushion silhouette shown in the reference. Pure white seamless background, no other objects.\nAvoid: page layout, interface, text, letters, logos, header, buttons, frames, symbols, watermark, room, plants, landscape, colored backdrop, gradients, hard shadows, clipped seats."
+}

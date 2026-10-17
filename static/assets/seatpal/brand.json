@@ -2,31 +2,73 @@
   "version": 1,
   "name": "SeatPal",
   "colors": {
-    "forest": "#174539",
-    "ivory": "#F6F5F0",
-    "lime": "#D8EB9E",
-    "outline": "#456655"
+    "forest": "#23221F",
+    "ivory": "#F5F5F3",
+    "lime": "#FFC13D",
+    "outline": "#6C655F",
+    "ink": "#23221F",
+    "muted": "#6C655F",
+    "accent": "#C4410C",
+    "accentVivid": "#FF7A24",
+    "saffron": "#FFC13D",
+    "soft": "#FFF0E5",
+    "surface": "#FFFFFF"
   },
   "mark": {
-    "viewBox": "0 0 64 64",
+    "viewBox": "-45 -151 150 190",
     "nodes": [
+      {
+        "tag": "path",
+        "attrs": {
+          "d": "M-5 27H77",
+          "fill": "none",
+          "stroke": "#9aa7b2",
+          "stroke-width": "4",
+          "stroke-linecap": "round"
+        },
+        "children": []
+      },
       {
         "tag": "g",
         "attrs": {
-          "fill": "#174539"
+          "transform": "rotate(-8)"
         },
         "children": [
           {
             "tag": "path",
             "attrs": {
-              "d": "M11 5h8a5 5 0 0 1 5 4l2 7H11L9 10a4 4 0 0 1 2-5Z"
+              "d": "M-8-122V-109M6-122V-109",
+              "fill": "none",
+              "stroke": "#778591",
+              "stroke-width": "3.5",
+              "stroke-linecap": "round"
             },
             "children": []
           },
           {
             "tag": "path",
             "attrs": {
-              "d": "M12 20h15l6 17h19a7 7 0 0 1 7 7v5a7 7 0 0 1-7 7H29a10 10 0 0 1-10-7Z"
+              "d": "M-17-136Q-17-143-10-143H7Q15-143 15-136V-125Q15-118 8-118H-10Q-17-118-17-125Z",
+              "fill": "#FF7A24"
+            },
+            "children": []
+          },
+          {
+            "tag": "path",
+            "attrs": {
+              "d": "M-19-101Q-20-115-7-116H7Q18-115 20-101L18-31Q18-15 5-6L-7-5Q-18-10-19-25Z",
+              "fill": "#26323c"
+            },
+            "children": []
+          },
+          {
+            "tag": "path",
+            "attrs": {
+              "d": "M-8-105H3Q9-105 9-98L7-37Q7-25 1-20",
+              "fill": "none",
+              "stroke": "#9eabb5",
+              "stroke-width": "2.5",
+              "stroke-linecap": "round"
             },
             "children": []
           }
@@ -35,8 +77,29 @@
       {
         "tag": "path",
         "attrs": {
-          "fill": "#D8EB9E",
-          "d": "M33 39h18a5 5 0 0 1 5 5v3H34a5 5 0 0 1-5-4v-1a3 3 0 0 1 4-3Z"
+          "d": "M-14-4Q-10-12 1-12H69Q84-12 91-3L96 5Q99 18 86 18H-6Q-19 18-19 7Z",
+          "fill": "#26323c"
+        },
+        "children": []
+      },
+      {
+        "tag": "path",
+        "attrs": {
+          "d": "M-5-2H68Q81-2 85 5",
+          "fill": "none",
+          "stroke": "#9eabb5",
+          "stroke-width": "2.5",
+          "stroke-linecap": "round"
+        },
+        "children": []
+      },
+      {
+        "tag": "circle",
+        "attrs": {
+          "cx": "0",
+          "cy": "3",
+          "r": "5",
+          "fill": "#FF7A24"
         },
         "children": []
       }
@@ -50,7 +113,7 @@
         "class": "seat-envelope seat-car",
         "data-seat-car": "",
         "fill": "none",
-        "stroke": "#456655",
+        "stroke": "#6C655F",
         "stroke-width": "4",
         "stroke-linecap": "round",
         "stroke-linejoin": "round"
@@ -87,7 +150,7 @@
           "tag": "path",
           "attrs": {
             "d": "m294 146 11 36h28m-29-2v14h30",
-            "stroke": "#8da093",
+            "stroke": "#A69B90",
             "stroke-width": "6"
           },
           "children": []
@@ -100,7 +163,7 @@
         "class": "seat-envelope seat-bike",
         "data-seat-bike": "",
         "fill": "none",
-        "stroke": "#456655",
+        "stroke": "#6C655F",
         "stroke-width": "4",
         "stroke-linecap": "round",
         "stroke-linejoin": "round"
@@ -109,7 +172,7 @@
         {
           "tag": "g",
           "attrs": {
-            "stroke": "#284b3c",
+            "stroke": "#5A514A",
             "stroke-width": "8"
           },
           "children": [
@@ -172,8 +235,8 @@
           "tag": "path",
           "attrs": {
             "d": "M301 164q17-16 34-3l16 16-25 15h-32z",
-            "fill": "#b2c5af",
-            "stroke": "#355d47"
+            "fill": "#D6D1CA",
+            "stroke": "#6C655F"
           },
           "children": []
         },
@@ -181,7 +244,7 @@
           "tag": "path",
           "attrs": {
             "d": "M273 187h28",
-            "stroke": "#174539",
+            "stroke": "#23221F",
             "stroke-width": "11"
           },
           "children": []
@@ -190,8 +253,8 @@
           "tag": "path",
           "attrs": {
             "d": "m278 202 29-1 14 14-6 20h-39l-8-15z",
-            "fill": "#527064",
-            "stroke": "#174539"
+            "fill": "#514A44",
+            "stroke": "#23221F"
           },
           "children": []
         },
@@ -199,7 +262,7 @@
           "tag": "path",
           "attrs": {
             "d": "M280 210h25m-24 7h25m-24 7h20",
-            "stroke": "#e4ecd9",
+            "stroke": "#FFF0E5",
             "stroke-width": "2.5"
           },
           "children": []
@@ -208,8 +271,8 @@
           "tag": "path",
           "attrs": {
             "d": "m343 161 8 15 10-5-5-14z",
-            "fill": "#d8eb9e",
-            "stroke": "#174539"
+            "fill": "#FFC13D",
+            "stroke": "#23221F"
           },
           "children": []
         },
@@ -225,7 +288,7 @@
           "tag": "path",
           "attrs": {
             "d": "M244 237h99l10-5",
-            "stroke": "#355d47",
+            "stroke": "#6C655F",
             "stroke-width": "8"
           },
           "children": []
@@ -236,7 +299,7 @@
       "tag": "g",
       "attrs": {
         "class": "seat-core",
-        "fill": "#174539"
+        "fill": "#23221F"
       },
       "children": [
         {
@@ -274,10 +337,10 @@
           "tag": "path",
           "attrs": {
             "class": "seat-cushion",
-            "stroke": "#174539",
+            "stroke": "#23221F",
             "stroke-width": "2.5",
             "d": "M218 177h46q10 0 10 10v5h-53q-11 0-13-9-1-6 10-6Z",
-            "fill": "#D8EB9E"
+            "fill": "#FFC13D"
           },
           "children": []
         }
@@ -297,8 +360,9 @@
     }
   },
   "source": {
-    "approvedGeneration": "seatpal-motion-20261013-r3",
-    "markSha256": "b791a90f6f4056fa8434236c8d793b88a45fe24c6c7380c61a4a42f724db6e7a",
-    "templateSha256": "985743f205e9d13ba4e989fe4a3f1898696e5aad953832882b705b2f53dd5712"
+    "approvedGeneration": "seatpal-orange-mark-20261015-v1",
+    "markSourcePath": "static/assets/seatpal/seatpal-mark.svg",
+    "markSha256": "939d0c4ca22a0b37e329a37c65569518f9cfe4e72e3b2814cb1f74804e4f5efb",
+    "legacyVehicleAssets": "brand.json.hero is retained for generated legacy car/motorcycle illustrations; current landing animation source is app/templates/_seatpal-landing-brand.html and static/seatpal-landing-brand.js."
   }
 }

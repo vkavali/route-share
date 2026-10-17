@@ -1,5 +1,6 @@
+import {SeatPalLoader} from './SeatPalLoader';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
-import {ActivityIndicator, Keyboard, Linking, Pressable, ScrollView, StyleSheet, TextInput, View} from 'react-native';
+import { Keyboard, Linking, Pressable, ScrollView, StyleSheet, TextInput, View} from 'react-native';
 import {WebView, WebViewMessageEvent} from 'react-native-webview';
 import * as Location from 'expo-location';
 import {Api, Point} from './api';
@@ -7,6 +8,7 @@ import {LEAFLET_CSS, LEAFLET_JS} from './generated/leaflet';
 import {T} from './translation';
 import {AppText} from './NativeTypography';
 import {normalizePlace, PlaceCandidate, SelectionIntent, samePlace} from './placeSelection';
+import {SeatPalTheme} from './SeatPalTheme';
 
 type Props = {lang:string; api:Api; initialPoint?:Point|null; initialQuery?:string; title?:string;
  onChoose:(p:Point)=>void; onCancel:()=>void; onFailure:(error:unknown)=>void};
@@ -29,7 +31,7 @@ export function MapPicker({lang,api,initialPoint,initialQuery='',title,onChoose,
  const invalidate=()=>{intent.current.next();operation.current=null;setBusy(null);};
  const editQuery=(value:string)=>{invalidate();queryRef.current=value;setQuery(value);setResults([]);setSearched(false);setError('');setPoint(null);};
  const selectPoint=(p:PlaceCandidate,center=true)=>{invalidate();setError('');setPoint(p,center);Keyboard.dismiss();};
- const html=useMemo(()=>`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; connect-src https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{height:100%;margin:0}.route-share-pin{background:transparent;border:0}.route-share-pin span{display:block;width:20px;height:20px;border:3px solid white;border-radius:50%;background:#153C32;box-shadow:0 1px 5px #315849}${LEAFLET_CSS}</style></head><body><div id="map"></div><script>${LEAFLET_JS}</script><script>const map=L.map('map').setView([17.2,79.3],8);const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);let marker=null;function notify(ll){window.ReactNativeWebView.postMessage(JSON.stringify({type:'candidate',lat:ll.lat,lon:ll.lng}));}function pin(ll,send){if(marker){marker.setLatLng(ll);}else{marker=L.marker(ll,{draggable:true,icon:L.divIcon({className:'route-share-pin',html:'<span></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);marker.on('dragend',e=>notify(e.target.getLatLng()));}if(send)notify(ll);}map.on('click',e=>pin(e.latlng,true));window.setCandidate=(lat,lon)=>{if(lat===null||lon===null){if(marker){map.removeLayer(marker);marker=null;}return;}const ll=L.latLng(lat,lon);map.setView(ll,14);pin(ll,false);};tiles.on('tileerror',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-error'})));tiles.on('load',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-loaded'})));window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));</script></body></html>`,[]);
+ const html=useMemo(()=>`<!doctype html><html><head><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'unsafe-inline'; style-src 'unsafe-inline'; img-src data: https://tile.openstreetmap.org; connect-src https://tile.openstreetmap.org; font-src data:"><style>html,body,#map{height:100%;margin:0}.route-share-pin{background:transparent;border:0}.route-share-pin span{display:block;width:20px;height:20px;border:3px solid white;border-radius:50%;background:${SeatPalTheme.colors.primary};box-shadow:0 1px 5px ${SeatPalTheme.colors.scrim}}${LEAFLET_CSS}</style></head><body><div id="map"></div><script>${LEAFLET_JS}</script><script>const map=L.map('map').setView([17.2,79.3],8);const tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:18,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);let marker=null;function notify(ll){window.ReactNativeWebView.postMessage(JSON.stringify({type:'candidate',lat:ll.lat,lon:ll.lng}));}function pin(ll,send){if(marker){marker.setLatLng(ll);}else{marker=L.marker(ll,{draggable:true,icon:L.divIcon({className:'route-share-pin',html:'<span></span>',iconSize:[24,24],iconAnchor:[12,12]})}).addTo(map);marker.on('dragend',e=>notify(e.target.getLatLng()));}if(send)notify(ll);}map.on('click',e=>pin(e.latlng,true));window.setCandidate=(lat,lon)=>{if(lat===null||lon===null){if(marker){map.removeLayer(marker);marker=null;}return;}const ll=L.latLng(lat,lon);map.setView(ll,14);pin(ll,false);};tiles.on('tileerror',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-error'})));tiles.on('load',()=>window.ReactNativeWebView.postMessage(JSON.stringify({type:'tiles-loaded'})));window.ReactNativeWebView.postMessage(JSON.stringify({type:'ready'}));</script></body></html>`,[]);
  const onMessage=(event:WebViewMessageEvent)=>{try{
   const raw=event.nativeEvent.data;if(typeof raw!=='string'||raw.length>512)return;
   const data=JSON.parse(raw);if(!data||typeof data!=='object')return;
@@ -93,7 +95,7 @@ export function MapPicker({lang,api,initialPoint,initialQuery='',title,onChoose,
    <View style={styles.searchRow}>
     <TextInput accessibilityLabel={t('mapSearchLabel')} value={query} onChangeText={editQuery}
      onSubmitEditing={()=>void search()} returnKeyType="search" maxLength={160} autoCorrect={false}
-     placeholder={t('mapSearchLabel')} placeholderTextColor="#67786E"
+     placeholder={t('mapSearchLabel')} placeholderTextColor={SeatPalTheme.colors.secondary}
      style={[styles.input,{fontFamily:lang==='te'?'AnekTelugu500':'Manrope500',lineHeight:lang==='te'?25:22}]}/>
     <Pressable accessibilityRole="button" disabled={busy==='search'} onPress={()=>void search()}
      accessibilityLabel={t('mapSearch')} style={[styles.search,busy==='search'&&styles.disabled]}>
@@ -101,7 +103,7 @@ export function MapPicker({lang,api,initialPoint,initialQuery='',title,onChoose,
    </View>
    <Pressable accessibilityRole="button" disabled={busy==='gps'} onPress={()=>void useCurrent()} style={styles.gps}>
     <AppText style={styles.gpsText}>{t('mapMyLocation')}</AppText></Pressable>
-   {busy?<View accessibilityLiveRegion="polite" style={styles.status}><ActivityIndicator color="#153C32"/><AppText style={styles.help}>{t(busy==='gps'?'mapLocationBusy':busy==='reverse'?'mapAddressLoading':'mapSearchLoading')}</AppText></View>:null}
+   {busy?<SeatPalLoader label={t(busy==='gps'?'mapLocationBusy':busy==='reverse'?'mapAddressLoading':'mapSearchLoading')}/>:null}
    {error?<AppText accessibilityRole="alert" style={styles.error}>{error}</AppText>:null}
    {searched&&!results.length&&!busy?<AppText accessibilityLiveRegion="polite" style={styles.help}>{t('mapSearchEmpty')}</AppText>:null}
    {results.length?<View style={styles.results}><AppText style={styles.resultsTitle}>{t('mapSearchResult')}</AppText>
@@ -137,13 +139,13 @@ export function MapPicker({lang,api,initialPoint,initialQuery='',title,onChoose,
  </View>;
 }
 const styles=StyleSheet.create({
- wrap:{flex:1,backgroundColor:'#F5F4EC'},content:{padding:16,gap:12,paddingBottom:20},
- title:{fontSize:23,fontWeight:'700',color:'#153C32'},help:{color:'#62736A',fontSize:14,lineHeight:22},
- searchRow:{flexDirection:'row',gap:8,alignItems:'stretch'},input:{flex:1,minWidth:0,minHeight:50,borderWidth:1,borderColor:'#C9D5C7',borderRadius:12,paddingHorizontal:12,paddingVertical:10,color:'#153C32',backgroundColor:'#FFFFFF',fontSize:16},
- search:{minHeight:50,minWidth:76,borderRadius:12,backgroundColor:'#153C32',justifyContent:'center',alignItems:'center',paddingHorizontal:12},searchText:{color:'#FFFFFF',fontWeight:'700',fontSize:15},
- gps:{minHeight:48,justifyContent:'center',alignItems:'center',padding:10,borderRadius:12,backgroundColor:'#E7EDDF'},gpsText:{color:'#153C32',fontWeight:'600',fontSize:15},
- status:{flexDirection:'row',alignItems:'center',gap:8},error:{color:'#8A3C2A',fontSize:14,lineHeight:22},
- results:{gap:8},resultsTitle:{fontSize:14,fontWeight:'600',color:'#526A5D'},result:{minHeight:62,padding:13,gap:5,borderRadius:13,borderWidth:1,borderColor:'#DCE4D8',backgroundColor:'#FFFFFF'},resultSelected:{borderColor:'#52754C',backgroundColor:'#EEF3DE'},resultText:{fontSize:16,fontWeight:'600',color:'#153C32'},address:{fontSize:13,lineHeight:20,color:'#5F7166'},selectionTag:{fontSize:12,fontWeight:'600',color:'#315849'},
- mapFrame:{height:260,overflow:'hidden',borderRadius:16,backgroundColor:'#E6EBDD'},map:{flex:1},provider:{gap:5},providerText:{fontSize:12,color:'#62736A'},policy:{fontSize:12,color:'#315849',textDecorationLine:'underline',paddingVertical:5},
- footer:{paddingHorizontal:16,paddingVertical:12,borderTopWidth:1,borderColor:'#DCE4D8',gap:8,backgroundColor:'#F5F4EC'},selected:{color:'#153C32',fontWeight:'600',fontSize:15},buttons:{flexDirection:'row',gap:10},cancel:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:'#E7EDDF',alignItems:'center',justifyContent:'center'},confirm:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:'#153C32',alignItems:'center',justifyContent:'center'},cancelText:{color:'#153C32',fontWeight:'700',fontSize:15},confirmText:{color:'#FFFFFF',fontWeight:'700',fontSize:15},disabled:{opacity:.45},
+ wrap:{flex:1,backgroundColor:SeatPalTheme.colors.page},content:{padding:16,gap:12,paddingBottom:20},
+ title:{fontSize:23,fontWeight:'700',color:SeatPalTheme.colors.text},help:{color:SeatPalTheme.colors.secondary,fontSize:14,lineHeight:22},
+ searchRow:{flexDirection:'row',gap:8,alignItems:'stretch'},input:{flex:1,minWidth:0,minHeight:50,borderWidth:1,borderColor:SeatPalTheme.colors.border,borderRadius:12,paddingHorizontal:12,paddingVertical:10,color:SeatPalTheme.colors.text,backgroundColor:SeatPalTheme.colors.surface,fontSize:16},
+ search:{minHeight:50,minWidth:76,borderRadius:12,backgroundColor:SeatPalTheme.colors.primary,justifyContent:'center',alignItems:'center',paddingHorizontal:12},searchText:{color:SeatPalTheme.colors.onPrimary,fontWeight:'700',fontSize:15},
+ gps:{minHeight:48,justifyContent:'center',alignItems:'center',padding:10,borderRadius:12,backgroundColor:SeatPalTheme.colors.selected},gpsText:{color:SeatPalTheme.colors.text,fontWeight:'600',fontSize:15},
+ status:{flexDirection:'row',alignItems:'center',gap:8},error:{color:SeatPalTheme.colors.danger,fontSize:14,lineHeight:22},
+ results:{gap:8},resultsTitle:{fontSize:14,fontWeight:'600',color:SeatPalTheme.colors.secondary},result:{minHeight:62,padding:13,gap:5,borderRadius:13,borderWidth:1,borderColor:SeatPalTheme.colors.border,backgroundColor:SeatPalTheme.colors.surface},resultSelected:{borderColor:SeatPalTheme.colors.primary,backgroundColor:SeatPalTheme.colors.selected},resultText:{fontSize:16,fontWeight:'600',color:SeatPalTheme.colors.text},address:{fontSize:13,lineHeight:20,color:SeatPalTheme.colors.secondary},selectionTag:{fontSize:12,fontWeight:'600',color:SeatPalTheme.colors.secondary},
+ mapFrame:{height:260,overflow:'hidden',borderRadius:16,backgroundColor:SeatPalTheme.colors.subtle},map:{flex:1},provider:{gap:5},providerText:{fontSize:12,color:SeatPalTheme.colors.secondary},policy:{fontSize:12,color:SeatPalTheme.colors.secondary,textDecorationLine:'underline',paddingVertical:5},
+ footer:{paddingHorizontal:16,paddingVertical:12,borderTopWidth:1,borderColor:SeatPalTheme.colors.border,gap:8,backgroundColor:SeatPalTheme.colors.page},selected:{color:SeatPalTheme.colors.text,fontWeight:'600',fontSize:15},buttons:{flexDirection:'row',gap:10},cancel:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:SeatPalTheme.colors.selected,alignItems:'center',justifyContent:'center'},confirm:{flex:1,minHeight:50,padding:12,borderRadius:13,backgroundColor:SeatPalTheme.colors.primary,alignItems:'center',justifyContent:'center'},cancelText:{color:SeatPalTheme.colors.text,fontWeight:'700',fontSize:15},confirmText:{color:SeatPalTheme.colors.onPrimary,fontWeight:'700',fontSize:15},disabled:{opacity:.45},
 });

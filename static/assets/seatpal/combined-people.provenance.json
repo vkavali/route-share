@@ -1,0 +1,28 @@
+{
+  "asset": "static/assets/seatpal/combined-people.webp",
+  "generated_at_utc": "2026-10-14T15:09:00.087245+00:00",
+  "generation_tool": "built-in image_gen",
+  "generation_prompt": "Use case: photorealistic-natural. Asset type: wide website hero photograph for SeatPal. Input image 1 is a visual concept reference only for candid mood, Indian city setting, and warm leafy street; do not copy its UI, text, branding, framing, or fictional people identities. Create a standalone realistic candid marketing photograph of two fictional Indian adults naturally meeting on a leafy Hyderabad residential street. One carries a plain backpack and casually holds a simple unbranded motorcycle helmet. A small parked car and one motorbike are secondary background details only. Horizontal landscape, final 1600x1100 framing. Keep both people center-right and leave a generous calm shaded left third for later white HTML copy. Warm natural morning light, ordinary lived-in neighborhood, authentic skin and clothing texture, realistic photographic depth. Natural in-between conversation, no direct camera gaze, no posed advertising stance, no high-five. No text, letters, signs, labels, readable number plates, UI, logos, watermarks, extra people, exaggerated smiles, glossy stock-photo styling, or vehicle-dominant framing.",
+  "reference": {
+    "path": "/mnt/c/Users/vkava/.codex/generated_images/01a111c4-905e-7c52-a5af-7f803111e276/exec-a6b6b0db-2f58-4487-bba3-14b10faf3bef.png",
+    "role": "AI-generated design concept for mood/composition only; no people identities reused"
+  },
+  "source_image": {
+    "path": "/mnt/c/Users/vkava/.codex/generated_images/01a13899-8960-79d3-acfc-2f378ac400bd/exec-8e913a9d-2dbd-4139-a3f5-ab6298059b65.png",
+    "dimensions_px": {
+      "width": 1513,
+      "height": 1040
+    },
+    "format": "PNG"
+  },
+  "output": {
+    "dimensions_px": {
+      "width": 1600,
+      "height": 1100
+    },
+    "format": "WebP",
+    "quality": 90,
+    "bytes": 233392,
+    "sha256": "e210c2e487b861a48d973aaa0ab467198005ae46fe16fdcd52f083768e4c6466"
+  }
+}

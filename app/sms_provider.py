@@ -64,6 +64,30 @@ def _https_post(path, payload):
         connection.close()
 
 
+def _https_post_api(path, payload, auth_key):
+    """Call only MSG91's documented access-token verifier, with Authkey header."""
+    connection = http.client.HTTPSConnection("api.msg91.com", timeout=10)
+    try:
+        connection.request("POST", "/api/v5/widget/" + path,
+                           body=json.dumps(payload).encode("utf-8"),
+                           headers={"Content-Type": "application/json", "Accept": "application/json",
+                                    "authkey": auth_key})
+        response = connection.getresponse()
+        if response.status != 200:
+            raise SMSProviderUnavailable("SMS provider unavailable")
+        body = response.read(16385)
+        if len(body) > 16384:
+            raise SMSProviderUnavailable("SMS provider unavailable")
+        result = json.loads(body)
+        if not isinstance(result, dict):
+            raise SMSProviderUnavailable("SMS provider unavailable")
+        return result
+    except Exception:
+        raise SMSProviderUnavailable("SMS provider unavailable") from None
+    finally:
+        connection.close()
+
+
 class MSG91Provider:
     def __init__(self, *, widget_id=None, token_auth=None, auth_key=None,
                  handle_secret=None, contract_verified=False, transport=None, clock=None):
@@ -150,3 +174,47 @@ class MSG91Provider:
         # identity claims, or infer success from token shape alone.
         verified = self._call("verifyAccessToken", {"authkey": self.auth_key, "access-token": token})
         return verified.get("type") == "success" and self._read_handle(handle) is not None
+
+
+class MSG91WebSDKVerifier:
+    """Server-side verifier for a JWT emitted by MSG91's CAPTCHA-aware Web SDK.
+
+    This does not send or retry OTPs. Sending occurs through the official client
+    SDK; this server verifies the resulting access-token and binds its returned
+    identifier to the pending local challenge. Enable only after provider abuse
+    controls and the response contract have been checked for the actual widget.
+    """
+
+    def __init__(self, *, widget_id=None, token_auth=None, auth_key=None,
+                 contract_verified=False, abuse_controls_confirmed=False,
+                 transport=None):
+        self.widget_id, self.token_auth, self.auth_key = widget_id, token_auth, auth_key
+        self.ready = (contract_verified is True and abuse_controls_confirmed is True
+                      and all(isinstance(v, str) and bool(v.strip()) and len(v) <= 1024
+                              for v in (widget_id, token_auth, auth_key)))
+        self._post = transport
+
+    def public_config(self, phone):
+        if not self.ready:
+            raise SMSProviderUnavailable("SMS provider unavailable")
+        return {"widget_id": self.widget_id, "token_auth": self.token_auth,
+                "identifier": phone[1:]}
+
+    def verify_access_token(self, token):
+        if (not self.ready or not isinstance(token, str) or not 1 <= len(token) <= 8192
+                or any(ord(ch) < 33 or ord(ch) > 126 for ch in token)):
+            return None
+        try:
+            result = (self._post("verifyAccessToken", {"access-token": token}, self.auth_key)
+                      if self._post else _https_post_api("verifyAccessToken", {"access-token": token}, self.auth_key))
+        except Exception:
+            raise SMSProviderUnavailable("SMS provider unavailable") from None
+        if not isinstance(result, dict) or result.get("type") != "success":
+            return None
+        identifier = result.get("message")
+        # MSG91's official sample returns the country-prefixed mobile identifier
+        # (digits only). Do not infer identity from JWT claims or normalize an
+        # unexpected response into a match.
+        if not isinstance(identifier, str) or not re.fullmatch(r"91[6-9][0-9]{9}", identifier):
+            return None
+        return "+" + identifier

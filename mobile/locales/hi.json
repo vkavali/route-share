@@ -1,5 +1,6 @@
 {
   "NSLocationWhenInUseUsageDescription": "पिकअप या गंतव्य चुनने के लिए अपना स्थान उपयोग करें, या स्वीकार की गई बुकिंग में दूसरे व्यक्ति से साझा करें। आपके रोकने या पहुँचने पर साझा करना बंद हो जाएगा।",
   "NSMicrophoneUsageDescription": "माइक दबाने पर ही यात्रा रिकॉर्ड करें। ऑडियो अस्थायी रूप से SeatPal सर्वर पर टेक्स्ट में बदलेगा और प्रक्रिया पूरी होने या रद्द होने पर मिट जाएगा।",
+  "NSFaceIDUsageDescription": "इस iPhone पर सेव किए गए SeatPal साइन-इन को अनलॉक करने के लिए Face ID का उपयोग करें।",
   "CFBundleDisplayName": "SeatPal"
 }

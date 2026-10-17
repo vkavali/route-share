@@ -55,9 +55,9 @@ def _invalid():
 
 class PhoneAuthService:
     def __init__(self, store, *, provider=None, hmac_key=None, global_daily_limit=None,
-                 limits=None, mobile_auth=None, clock=None,
+                 sdk_provider=None, limits=None, mobile_auth=None, clock=None,
                  terms_version="2026-10-11", privacy_version="2026-10-11"):
-        self.store, self.provider = store, provider
+        self.store, self.provider, self.sdk_provider = store, provider, sdk_provider
         self.clock = clock or time.time
         self.mobile_auth = mobile_auth or MobileAuthenticator(store, clock=self.clock)
         self.key = hmac_key.encode() if isinstance(hmac_key, str) else hmac_key
@@ -69,7 +69,11 @@ class PhoneAuthService:
         self.enabled = (getattr(provider, "ready", False) is True
                         and isinstance(self.key, bytes) and len(self.key) >= 32
                         and type(global_daily_limit) is int and 1 <= global_daily_limit <= 100000)
-        if self.enabled:
+        self.sdk_enabled = (getattr(sdk_provider, "ready", False) is True
+                            and isinstance(self.key, bytes) and len(self.key) >= 32
+                            and type(global_daily_limit) is int and 1 <= global_daily_limit <= 100000)
+        self.public_enabled = self.enabled or self.sdk_enabled
+        if self.public_enabled:
             # Rotating this key without migrating identities would allow duplicate
             # accounts. Fail closed rather than silently abandoning reservations.
             fingerprint = self._digest("key-fingerprint", "phone-auth-v1")
@@ -80,13 +84,242 @@ class PhoneAuthService:
                 tx.put("phone_auth_config", "identity-key", {"id": "identity-key", "fingerprint": fingerprint})
 
     def capabilities(self):
-        return {"enabled": self.enabled, "country_code": "+91", "otp_length": 6,
+        mode = "msg91_web_sdk" if self.sdk_enabled else "msg91_rest" if self.enabled else "unavailable"
+        # `enabled` remains the legacy REST capability used by native sign-in
+        # and account recovery/phone-change. Web signup can use either path.
+        return {"enabled": self.enabled, "web_enabled": self.public_enabled,
+                "recovery_enabled": self.enabled, "mode": mode,
+                "country_code": "+91", "otp_length": 6,
                 "expires_in": TTL, "resend_after": COOLDOWN,
                 "terms_version": self.terms_version, "privacy_version": self.privacy_version}
 
     def _ready(self):
         if not self.enabled:
             raise PhoneAuthError("Phone sign-in is temporarily unavailable. Try again later.", 503, "phone_auth_unavailable")
+
+    def _ready_sdk(self):
+        if not self.sdk_enabled:
+            raise PhoneAuthError("Phone sign-in is temporarily unavailable. Try again later.", 503, "phone_auth_unavailable")
+
+    def _sdk_response(self, row):
+        response = self._challenge_response(row)
+        try:
+            response["sdk"] = self.sdk_provider.public_config(row["phone"])
+        except Exception:
+            raise PhoneAuthError("Phone sign-in is temporarily unavailable. Try again later.", 503,
+                                 "phone_auth_unavailable") from None
+        return response
+
+    def sdk_start(self, payload, ip, session_binding):
+        """Reserve a local flow before the browser invokes MSG91's Web SDK.
+
+        No provider send occurs on the server. MSG91's public token can be used
+        directly by a determined client, so provider-side limits and CAPTCHA
+        must also be configured before this mode is enabled.
+        """
+        self._ready_sdk()
+        phone = self._phone(payload.get("phone"))
+        flow = self._flow(payload.get("flow_token"))
+        request_id = self._request(payload.get("request_id"))
+        consent = self._consent(payload)
+        phone_key, ip_key = self._digest("phone", phone), self._ip(ip)
+        session_key = self._sdk_session(session_binding)
+        request_key = self._digest("send-request", flow + ":" + request_id + ":signin-sdk")
+        now = self.clock()
+        with self.store.transaction() as tx:
+            now = self.clock()
+            self._prune(tx, now)
+            prior = tx.get("phone_send_requests", request_key)
+            if prior:
+                row = tx.get("phone_challenges", prior["challenge_id"])
+                if (not row or row.get("provider_mode") != "msg91_web_sdk"
+                        or row.get("phone_key") != phone_key or row.get("flow_hash") != flow
+                        or row.get("session_key") != session_key):
+                    raise _invalid()
+                if row["expires_at"] <= now:
+                    raise PhoneAuthError("This code expired. Request a new code.", 410, "phone_auth_expired")
+                if row.get("state") != "sent":
+                    raise PhoneAuthError("This sign-in attempt is no longer active. Start again.", 409,
+                                         "invalid_phone_flow")
+                return self._sdk_response(row)
+            state = tx.get("phone_send_state", phone_key)
+            if state and state["resend_at"] > now:
+                raise PhoneAuthError("Please wait before requesting another code.", 429,
+                                     "phone_auth_rate_limited", max(1, int(state["resend_at"] - now)))
+            self._consume(tx, now, [
+                ("send-global-day", "all", 86400, self.daily_limit),
+                ("send-global-minute", "all", 60, self.limits["global_minute"]),
+                ("send-phone-hour", phone_key, 3600, self.limits["phone_hour"]),
+                ("send-phone-day", phone_key, 86400, self.limits["phone_day"]),
+                ("send-ip-ten", ip_key, 600, self.limits["ip_ten_minutes"]),
+                ("send-ip-day", ip_key, 86400, self.limits["ip_day"]),
+            ])
+            if state:
+                old = tx.get("phone_challenges", state["challenge_id"])
+                if old:
+                    old.update(state="replaced", provider_handle=None)
+                    tx.put("phone_challenges", old["id"], old)
+            identity = str(uuid.uuid4())
+            identity_record = tx.get("phone_identities", phone_key)
+            identity_user = tx.get("users", identity_record["user_id"]) if identity_record else None
+            identity_at_issue = ({"user_id": identity_record["user_id"], "auth_epoch": auth_epoch(identity_user)}
+                                 if identity_record else None)
+            row = {"id": identity, "phone": phone, "phone_key": phone_key, "flow_hash": flow,
+                   "ip_key": ip_key, "session_key": session_key, "state": "sent", "purpose": "signin", "provider_mode": "msg91_web_sdk",
+                   "consent": consent, "context": {}, "identity_at_issue": identity_at_issue,
+                   "attempts": 0, "expires_at": now + TTL, "resend_at": now + COOLDOWN,
+                   "retain_until": now + TTL + 60}
+            tx.put("phone_challenges", identity, row)
+            tx.put("phone_send_state", phone_key, {"id": phone_key, "challenge_id": identity,
+                   "resend_at": row["resend_at"], "retain_until": row["retain_until"]})
+            tx.put("phone_send_requests", request_key, {"id": request_key, "challenge_id": identity,
+                   "retain_until": row["retain_until"]})
+        return self._sdk_response(row)
+
+    def sdk_resend(self, payload, ip, session_binding):
+        """Invalidate the prior local challenge and reserve one fresh SDK send."""
+        self._ready_sdk()
+        flow = self._flow(payload.get("flow_token"))
+        session_key = self._sdk_session(session_binding)
+        with self.store.read() as tx:
+            row = self._bound(tx, payload.get("challenge_id"), flow, self.clock())
+            if row.get("provider_mode") != "msg91_web_sdk" or row.get("purpose", "signin") != "signin":
+                raise _invalid()
+            if row.get("ip_key") != self._ip(ip) or row.get("session_key") != session_key:
+                raise _invalid()
+            if row.get("state") not in {"sent", "replaced"}:
+                raise _invalid()
+            phone, consent = row["phone"], row.get("consent")
+        return self.sdk_start({"phone": phone, "flow_token": payload.get("flow_token"),
+                               "request_id": payload.get("request_id"), "consent": consent}, ip, session_binding)
+
+    def sdk_verify(self, payload, ip, session_binding):
+        """Verify an SDK access-token server-side, then consume it atomically."""
+        self._ready_sdk()
+        flow = self._flow(payload.get("flow_token"))
+        session_key = self._sdk_session(session_binding)
+        token = payload.get("access_token")
+        if (not isinstance(token, str) or not 1 <= len(token) <= 8192
+                or any(ord(ch) < 33 or ord(ch) > 126 for ch in token)):
+            raise PhoneAuthError("The phone could not be verified. Try again.", 400, "phone_auth_invalid_code")
+        token_hash = hashlib.sha256(token.encode("ascii")).hexdigest()
+        failure = None
+        with self.store.transaction() as tx:
+            now = self.clock()
+            self._prune(tx, now)
+            self._consume(tx, now, [("verify-ip", self._ip(ip), 600, self.limits["verify_ip_ten_minutes"]),
+                                   ("verify-global", "all", 86400, self.limits["verify_global_day"])] )
+            try:
+                row = self._bound(tx, payload.get("challenge_id"), flow, now)
+                if (row.get("provider_mode") != "msg91_web_sdk" or row.get("purpose", "signin") != "signin"
+                        or row.get("ip_key") != self._ip(ip) or row.get("session_key") != session_key):
+                    raise _invalid()
+                if row["state"] == "verifying":
+                    raise PhoneAuthError("Phone verification is processing. Please wait.", 409, "phone_auth_busy")
+                if row["state"] != "sent":
+                    raise PhoneAuthError("This sign-in flow is unavailable. Start again.", 409, "invalid_phone_flow")
+                if row["attempts"] >= MAX_ATTEMPTS:
+                    raise PhoneAuthError("Too many verification attempts. Start again later.", 429,
+                                         "phone_auth_rate_limited", COOLDOWN)
+                row.update(state="verifying", lease=secrets.token_hex(16), attempts=row["attempts"] + 1)
+                tx.put("phone_challenges", row["id"], row)
+                lease = row["lease"]
+            except PhoneAuthError as exc:
+                failure = exc
+        if failure:
+            raise failure
+
+        try:
+            verified_phone = self.sdk_provider.verify_access_token(token)
+            provider_error = False
+        except Exception:
+            verified_phone, provider_error = None, True
+
+        failure = None
+        response = None
+        try:
+            with self.store.transaction() as tx:
+                current = tx.get("phone_challenges", row["id"])
+                now = self.clock()
+                if (not current or current.get("lease") != lease or current.get("state") != "verifying"
+                        or current["expires_at"] <= now or current.get("flow_hash") != flow
+                        or current.get("ip_key") != self._ip(ip) or current.get("session_key") != session_key):
+                    raise _invalid()
+                current.pop("lease", None)
+                if provider_error:
+                    current["state"] = "sent"
+                    failure = PhoneAuthError("Phone verification is temporarily unavailable. Try again.",
+                                             503, "phone_auth_unavailable")
+                elif verified_phone != current.get("phone"):
+                    current["state"] = "sent"
+                    failure = PhoneAuthError("The phone could not be verified. Try again.", 400,
+                                             "phone_auth_invalid_code")
+                elif tx.get("phone_sdk_token_uses", token_hash):
+                    current["state"] = "consumed"
+                    failure = _invalid()
+                else:
+                    # The token hash, new identity/user, and consumed challenge
+                    # commit together. The documents PK makes the hash globally unique.
+                    tx.put("phone_sdk_token_uses", token_hash,
+                           {"id": token_hash, "challenge_id": current["id"], "consumed_at": now})
+                    consent = current.get("consent")
+                    if not isinstance(consent, dict):
+                        raise _invalid()
+                    response = self._complete_signin(tx, current, consent)
+                    current.update(state="consumed", provider_handle=None)
+                tx.put("phone_challenges", current["id"], current)
+        except PhoneAuthError:
+            # Rollback prevented token/account writes; close the challenge so a
+            # provider-approved proof cannot leave a permanent verifying lease.
+            with self.store.transaction() as tx:
+                current = tx.get("phone_challenges", row["id"])
+                if current and current.get("lease") == lease and current.get("state") == "verifying":
+                    current.pop("lease", None)
+                    current["state"] = "consumed"
+                    tx.put("phone_challenges", current["id"], current)
+            raise
+        except Exception:
+            # Any transaction failure (including an unexpected uniqueness race)
+            # rolls back both account creation and the token consumption.
+            with self.store.transaction() as tx:
+                current = tx.get("phone_challenges", row["id"])
+                if current and current.get("lease") == lease and current.get("state") == "verifying":
+                    current.pop("lease", None)
+                    current["state"] = "sent"
+                    tx.put("phone_challenges", current["id"], current)
+            raise PhoneAuthError("Phone sign-in is temporarily unavailable. Try again.", 503,
+                                 "phone_auth_unavailable") from None
+        if failure:
+            raise failure
+        return response
+
+    def _complete_signin(self, tx, current, consent, *, native=False):
+        identity = tx.get("phone_identities", current["phone_key"])
+        user = tx.get("users", identity["user_id"]) if identity else None
+        issued = current.get("identity_at_issue")
+        actual = {"user_id": identity["user_id"], "auth_epoch": auth_epoch(user)} if identity else None
+        if issued != actual:
+            raise PhoneAuthError("This sign-in flow changed. Request a new code.", 409, "invalid_phone_flow")
+        if identity and (identity.get("status") != "active" or not is_active_account(user)
+                         or user.get("auth_method") != "phone" or user.get("development") is not False
+                         or user.get("role") != "member"):
+            raise PhoneAuthError("This account is unavailable. Contact support.", 403, "account_unavailable")
+        if not identity:
+            user_id = "member_" + uuid.uuid4().hex
+            user = {"id": user_id, "name": "", "role": "member", "development": False,
+                    "account_status": "active", "auth_epoch": 0, "auth_method": "phone", "auth_phone": current["phone"],
+                    "phone": current["phone"], "phone_verified": True, "share_phone": False,
+                    "driver_approved": False, "driver_approval": None, "staff_capabilities": [],
+                    "onboarding_required": True,
+                    "verification": {key: "verified" if key == "phone" else "not_checked"
+                                     for key in ("phone", "identity", "dl", "rc", "insurance", "selfie")}}
+            tx.put("phone_identities", current["phone_key"], {"id": current["phone_key"],
+                   "user_id": user_id, "phone": current["phone"], "status": "active"})
+        user.update(phone_consent=consent, phone_verified=True)
+        tx.put("users", user["id"], user)
+        response = self.mobile_auth.issue_in(tx, user) if native else {"user": account_user(user)}
+        response["onboarding_required"] = self.requires_onboarding(user)
+        return response
 
     def _digest(self, purpose, value):
         return hmac.new(self.key, (purpose + "\0" + value).encode(), hashlib.sha256).hexdigest()
@@ -115,6 +348,11 @@ class PhoneAuthService:
             # Do not grant each malformed value an independent quota bucket.
             normalized = "unknown"
         return self._digest("ip", normalized)
+
+    def _sdk_session(self, value):
+        if not isinstance(value, str) or not 20 <= len(value) <= 256:
+            raise _invalid()
+        return self._digest("sdk-session", value)
 
     @staticmethod
     def _request(value):

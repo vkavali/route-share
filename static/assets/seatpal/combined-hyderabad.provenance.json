@@ -1,0 +1,39 @@
+{
+  "asset": "combined-hyderabad.webp",
+  "created_at_utc": "2026-10-14T15:11:23.374000+00:00",
+  "purpose": "Standalone dimensional Hyderabad-inspired conceptual journey artwork for the approved combined SeatPal landing.",
+  "generation": {
+    "tool": "image_gen.imagegen",
+    "mode": "built-in reference edit",
+    "reference_path": "/mnt/c/Users/vkava/.codex/generated_images/01a111c4-905e-7c52-a5af-7f803111e276/exec-35c7885d-c015-48e7-ab9c-757e8f92bc2d.png",
+    "reference_sha256": "449b9f2dfb42c8fc2d12de8276a8aa1a3a36cd57cf799611b6eac6bf9cd98f18",
+    "source_png_path": "/mnt/c/Users/vkava/.codex/generated_images/01a138a3-6780-7e83-9869-2f9d8296a088/exec-3940bcd1-963a-48bd-a1af-67f6965f8010.png",
+    "source_png_sha256": "0e34c3f192a594bb5dcbb0dc10664bf35db0c368994ac51d998980abd02855f7",
+    "source_png_dimensions": [
+      1672,
+      941
+    ],
+    "source_png_bytes": 2346484,
+    "prompt": "Edit the attached reference image into a standalone landscape artwork. Use ONLY the lower architectural city scene as the subject and preserve its sophisticated visual mechanics: dimensional studio photography of a finely detailed architectural scale model, not a flat illustration or cartoon. Remove EVERY interface element, all text, all labels, headers, captions, controls, numbers, and watermark-like words from the reference. Recompose and extend the city scene into a clean edge-to-edge 1600 by 900 pixel, 16:9 landscape image. An understated Hyderabad-inspired neighbourhood built of cool white concrete, layered white elevated bridges above subtly rippled grey-green water, finely textured white blocks and terrace edges, realistic deep green miniature trees, a convincing white Charminar architectural form toward the right. Dark charcoal asphalt roads converge at a small understated lime-green seat-shaped mark, with a fine subtle lime line linking the roads. Include one small white car toward the left and one small dark motorcycle toward the central right, each given similar visual attention and prominence. The shared lime seat mark is small and tasteful, not a giant logo, and must not become an interface icon floating over the image. Real soft ambient studio shadows, subtle concrete grain, precise high-end architectural photography, cool whites, restrained forest-green and lime accents, no dramatic glow. Upper part transitions to a pure white soft studio sky, with the entire upper edge pure white to blend naturally into a white webpage. All artwork fills the image edge to edge; no inset panel, border, mockup, browser frame, or rounded corners. Main focal grouping is central-right and remains coherent when the horizontal image is cropped on a mobile screen. It is a conceptual journey artwork, never a literal navigation map. Absolutely no words, numbers, labels, captions, arrows-as-UI, button shapes, UI, controls, or watermarks anywhere."
+  },
+  "delivery": {
+    "encoder": "Existing isolated Chrome canvas; no package install",
+    "operation": "Resize to 1600x900 and encode image/webp; source composition retained",
+    "quality": 0.86,
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 178396,
+    "sha256": "0ab3ccff8945d3522f36d3f53a89abbe01c3596cf3233c3e76ee176590763e69"
+  },
+  "inspection": {
+    "no_ui_text_captions_controls_or_watermarks": true,
+    "white_upper_edge": true,
+    "white_architectural_relief_with_charminar_right": true,
+    "car_and_motorcycle_present": true,
+    "subtle_lime_seat_at_road_convergence": true,
+    "conceptual_artwork_not_a_navigation_map": true
+  },
+  "source_changes": "Only this raster artwork and provenance file; no UI, native, application, or deployment changes."
+}

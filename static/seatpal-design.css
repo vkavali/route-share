@@ -1,0 +1,29 @@
+/* SeatPal shared presentation primitives. No product state or layout overrides. */
+:root {
+  --sp-bg: #FAFAF9;
+  --sp-surface: #FFFFFF;
+  --sp-ink: #24272B;
+  --sp-muted: #62676C;
+  --sp-accent: #C64A12;
+  --sp-accent-vivid: #F97316;
+  --sp-saffron: #FFC13D;
+  --sp-accent-soft: #FFF5EE;
+  --sp-line: #E2E4E6;
+  --sp-lime: var(--sp-saffron);
+  --sp-radius-control: 14px;
+  --sp-radius-panel: 28px;
+  --sp-shadow: 0 2px 12px rgba(29, 29, 31, .045);
+  --sp-ease: cubic-bezier(.22, 1, .36, 1);
+  --sp-fast: 160ms;
+  --sp-settle: 360ms;
+  --sp-font: -apple-system, BlinkMacSystemFont, 'Segoe UI', Manrope, 'Anek Telugu', sans-serif;
+  --sp-font-te: 'Anek Telugu', 'Nirmala UI', sans-serif;
+}
+html { font-family: var(--sp-font); font-synthesis: none; }
+body { font-family: var(--sp-font); }
+button, input, select, textarea { font-family: inherit; }
+html:lang(te), html:lang(te) body, :lang(te) { font-family: var(--sp-font-te); letter-spacing: 0; }
+@media (prefers-reduced-motion: reduce) {
+  :root { --sp-fast: 0ms; --sp-settle: 0ms; }
+  html { scroll-behavior: auto; }
+}

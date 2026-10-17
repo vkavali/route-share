@@ -136,7 +136,8 @@ def test_pair_end_removes_payment_target_but_preserves_refund_rights(setup, chan
             trip = tx.get('trips', 'trip'); trip['status'] = 'cancelled'; tx.put('trips', 'trip', trip)
     result = view(service, users)
     assert result['upi_uri'] is None and result['upi_id'] is None and result['payee_name'] is None
-    with pytest.raises(PaymentError): command(service, users, 'driver', 'confirm_received', 3)
+    # Historic receipt reconciliation remains available after collection eligibility ends.
+    assert 'confirm_received' in view(service, users, 'driver')['allowed_actions']
     command(service, users, 'passenger', 'dispute', 3)
     command(service, users, 'passenger', 'request_refund', 4)
     command(service, users, 'driver', 'report_refund', 5)
@@ -434,7 +435,7 @@ def test_void_unpaid_owner_terminal_only_audited_and_frees_cap(setup, terminal_k
     assert result['status'] == 'voided_unpaid' and result['void_reason'] == 'No transfer received'
     passenger = view(service, users)
     assert passenger['upi_uri'] is None and passenger['upi_id'] is None and passenger['collection_available'] is False
-    assert passenger['allowed_actions'] == [] and passenger['events'][-1]['reason'] == 'No transfer received'
+    assert 'report_paid' in passenger['allowed_actions'] and passenger['events'][-1]['reason'] == 'No transfer received'
     assert passenger['amount_paise'] == 12345 and passenger['budget']['reserved_paise'] == 0
     assert command(service, users, 'driver', 'void_unpaid', 2, reason='No transfer received')['replayed'] is True
 
@@ -596,3 +597,127 @@ def test_legacy_demo_agreement_may_be_voided_without_renewed_collection(setup):
     assert view(service, users)['upi_uri'] is None
     result = command(service, users, 'driver', 'void_unpaid', 2, reason='No transfer; cancelled old test agreement')['payment']
     assert result['status'] == 'voided_unpaid' and result['budget']['reserved_paise'] == 0
+
+
+@pytest.mark.parametrize('saved_quote', [
+    {'currency': 'INR', 'amount_paise': 0},
+    {'currency': 'USD', 'amount_paise': 12345},
+    {'currency': 'INR', 'amount_paise': True},
+    {'currency': 'INR', 'amount_paise': '12345'},
+    {'currency': 'INR'},
+    'malformed',
+])
+def test_saved_booking_quote_must_match_proposal_atomically(setup, saved_quote):
+    store, service, users = setup
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['price_quote'] = saved_quote
+        tx.put('bookings', 'booking', booking)
+    with pytest.raises(PaymentError) as error:
+        propose(service, users)
+    assert error.value.code == 'booking_price_mismatch'
+    with store.read() as tx:
+        assert not tx.list('payments')
+        assert not tx.list('payment_events')
+        assert not tx.list('payout_accounts')
+
+
+def test_exact_saved_booking_quote_can_be_agreed_and_used(setup):
+    store, service, users = setup
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['price_quote'] = {'currency': 'INR', 'amount_paise': 12345}
+        tx.put('bookings', 'booking', booking)
+    proposed = propose(service, users)['payment']
+    assert proposed['amount_paise'] == 12345
+    agreed = command(service, users, 'passenger', 'agree', 1)['payment']
+    assert agreed['upi_uri'] and parse_qs(urlparse(agreed['upi_uri']).query)['am'] == ['123.45']
+
+
+def test_legacy_proposal_rechecks_new_booking_quote_before_agreement(setup):
+    store, service, users = setup
+    propose(service, users)
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['price_quote'] = {'currency': 'INR', 'amount_paise': 9999}
+        tx.put('bookings', 'booking', booking)
+    current = view(service, users)
+    # A proposed quote has no transferable UPI target; agreement is the point
+    # where a newly saved booking fare is rechecked.
+    assert current['upi_uri'] is None and current['upi_id'] is None
+    with pytest.raises(PaymentError) as error:
+        command(service, users, 'passenger', 'agree', 1)
+    assert error.value.code == 'booking_price_mismatch'
+    assert view(service, users)['status'] == 'proposed'
+    with store.read() as tx:
+        assert len(tx.list('payment_events')) == 1
+
+
+def test_legacy_agreement_price_mismatch_hides_target_but_allows_reconciliation(setup):
+    store, service, users = setup
+    propose(service, users)
+    command(service, users, 'passenger', 'agree', 1)
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['price_quote'] = {'currency': 'INR', 'amount_paise': 9999}
+        tx.put('bookings', 'booking', booking)
+    current = view(service, users)
+    assert current['collection_eligibility']['reason'] == 'booking_price_mismatch'
+    assert current['upi_uri'] is None and current['upi_id'] is None
+    assert 'report_paid' in current['allowed_actions']
+    command(service, users, 'passenger', 'report_paid', 2)
+    assert 'confirm_received' in view(service, users, 'driver')['allowed_actions']
+    command(service, users, 'driver', 'confirm_received', 3)
+    assert view(service, users)['status'] == 'owner_confirmed'
+
+
+def test_cancelled_booking_late_report_reconciles_refund_after_restart(setup):
+    store, service, users = setup
+    propose(service, users)
+    command(service, users, 'passenger', 'agree', 1)
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['status'] = 'cancelled'
+        tx.put('bookings', 'booking', booking)
+    current = view(service, users)
+    assert current['upi_uri'] is None and current['upi_id'] is None
+    assert 'report_paid' in current['allowed_actions']
+    reported = command(service, users, 'passenger', 'report_paid', 2)['payment']
+    assert reported['status'] == 'passenger_reported' and reported['upi_uri'] is None
+    assert command(service, users, 'passenger', 'report_paid', 2)['replayed'] is True
+    restarted = PaymentService(Store(store.path), enabled=True)
+    assert view(restarted, users)['status'] == 'passenger_reported'
+    command(restarted, users, 'driver', 'confirm_received', 3)
+    command(restarted, users, 'passenger', 'request_refund', 4)
+    command(restarted, users, 'driver', 'report_refund', 5)
+    final = command(restarted, users, 'passenger', 'confirm_refund', 6)['payment']
+    assert final['status'] == 'refunded' and final['upi_uri'] is None
+
+
+def test_late_report_after_owner_void_restores_cap_without_reopening_collection(setup):
+    store, service, users = setup
+    propose(service, users)
+    command(service, users, 'passenger', 'agree', 1)
+    with store.transaction() as tx:
+        booking = tx.get('bookings', 'booking')
+        booking['status'] = 'cancelled'
+        tx.put('bookings', 'booking', booking)
+    voided = command(service, users, 'driver', 'void_unpaid', 2,
+                     reason='Owner believes transfer was not made')['payment']
+    assert voided['status'] == 'voided_unpaid' and voided['budget']['reserved_paise'] == 0
+    assert voided['upi_uri'] is None and voided['upi_id'] is None
+    assert 'report_paid' in view(service, users)['allowed_actions']
+    budget(service, users, version=1, key='lower-cap-after-void', fuel_paise=12000,
+           toll_paise=0, owner_share_paise=2000)
+    restarted = PaymentService(Store(store.path), enabled=True)
+    reported = command(restarted, users, 'passenger', 'report_paid', 3)['payment']
+    assert reported['status'] == 'passenger_reported'
+    assert reported['upi_uri'] is None and reported['upi_id'] is None
+    assert reported['budget']['reserved_paise'] == 12345
+    assert reported['budget']['remaining_paise'] == 0
+    assert reported['collection_available'] is False
+    assert reported['collection_eligibility']['reason'] == 'booking_ineligible'
+    assert command(restarted, users, 'passenger', 'report_paid', 3)['replayed'] is True
+    confirmed = command(restarted, users, 'driver', 'confirm_received', 4)['payment']
+    assert confirmed['status'] == 'owner_confirmed' and confirmed['upi_uri'] is None
+    assert confirmed['budget']['reserved_paise'] == 12345

@@ -1,0 +1,40 @@
+{
+  "asset": "neutral-hyderabad.webp",
+  "created_at_utc": "2026-10-14T15:28:09.921503+00:00",
+  "purpose": "Neutral white/graphite/silver architectural artwork for approved SeatPal concept 3, with tiny blue seat and route accent.",
+  "generation": {
+    "tool": "image_gen.imagegen",
+    "mode": "built-in palette edit",
+    "reference_path": "/home/skywalker/.codex/worktrees/seatpal-latest-landing/build-the-india-intercity-route-sharing/static/assets/seatpal/combined-hyderabad.webp",
+    "reference_sha256": "0ab3ccff8945d3522f36d3f53a89abbe01c3596cf3233c3e76ee176590763e69",
+    "source_png_path": "/mnt/c/Users/vkava/.codex/generated_images/01a138a3-6780-7e83-9869-2f9d8296a088/exec-46e7f1c6-a6bd-4f06-84ff-22d16bc5877b.png",
+    "source_png_sha256": "414d31d9c9c25ccb100291b5a80800bc18198f159cffb7d3e20c06b0683c54fa",
+    "source_png_dimensions": [
+      1672,
+      941
+    ],
+    "source_png_bytes": 2289396,
+    "prompt": "Edit ONLY the palette and material color of the supplied Hyderabad architectural artwork, preserving the exact landscape composition, viewpoint, dimensional detail, roads, layered bridges, central convergence, Charminar toward the right, one small white car on the left and one small motorcycle toward the right with equal visual attention. This is a premium photographic studio architectural scale model. Convert all structures to white porcelain and pale limestone. Asphalt is neutral graphite. All trees, foliage, palms, shrubs, and landscaping must become sculptural matte soft-silver grey architectural-model vegetation with their existing fine natural texture and detail preserved. Water is neutral silvery grey, with subtle realistic ripples and reflections. All surroundings and every material are monochrome white, graphite, or silver-grey. NO green anywhere, NO lime, NO orange, NO warm cream, NO colored foliage, NO colored water. Replace the existing lime seat-shaped accent and the thin lime route line with a tiny restrained electric-blue accent (#0066cc): the seat stays small at the road convergence and the route remains very thin. Blue occupies less than 2 percent of the entire image and is the only chromatic color. No dramatic glow or neon halo. Keep the entire upper edge clean pure white, with a soft white studio sky and real soft neutral ambient shadows. Preserve the crisp concrete grain, layered forms and restrained dimensional depth, no cartoon or flat vector style. Output 1600x900 landscape, edge-to-edge, crop-safe, focal grouping central-right. Absolutely no text, captions, labels, watermarks, headers, interface elements, controls, borders, or map accuracy cues. Do not add any objects or change the existing layout."
+  },
+  "delivery": {
+    "encoder": "Existing isolated Chrome canvas; no package install",
+    "operation": "Resize only to 1600x900 and encode image/webp; source composition retained",
+    "quality": 0.86,
+    "dimensions": [
+      1600,
+      900
+    ],
+    "bytes": 152838,
+    "sha256": "3ee4498a99f4b58127056406e908e97b9ca35227d30f9306e229758b7169a314"
+  },
+  "visual_inspection": {
+    "white_upper_edge": true,
+    "neutral_white_graphite_silver_palette": true,
+    "no_green_lime_or_orange": true,
+    "tiny_blue_seat_route_accent": true,
+    "composition_charminar_and_balanced_vehicles_preserved": true,
+    "no_ui_text_captions_controls_or_watermarks": true,
+    "conceptual_artwork_not_navigation_map": true
+  },
+  "scope": "Only this raster and provenance; original combined-hyderabad.webp preserved; no UI/native/source/config/deployment changes."
+}

@@ -1,6 +1,8 @@
 """Route projection, ordered stop insertion, time windows and half-open seat intervals."""
 import math
+from decimal import Decimal, InvalidOperation, ROUND_HALF_UP
 from datetime import datetime, timedelta
+from .ride_options import BAG_KEYS, MAX_BAGS, baggage_remaining as segment_baggage_remaining
 
 
 class Incompatible(Exception):
@@ -62,6 +64,23 @@ def available_capacity(trip, bookings, start_m, end_m):
     return min(overlap) if overlap else trip['seats']
 
 
+def _finite_nonnegative(value):
+    if isinstance(value, bool) or not isinstance(value, (int, float)):
+        return False
+    try:
+        return math.isfinite(float(value)) and value >= 0
+    except (OverflowError, ValueError):
+        return False
+
+
+def baggage_capacity(trip, bookings, start_m, end_m):
+    """Return remaining per-class capacity; None means legacy/unknown."""
+    remaining = segment_baggage_remaining(trip, bookings, start_m, end_m)
+    if remaining is None:
+        return None
+    return {key: max(0, min(MAX_BAGS, value)) for key, value in remaining.items()}
+
+
 def itinerary(trip, rows, router, pickup_only=None):
     """Stable order along original geometry; drop before pickup at equal chainage."""
     events = []
@@ -72,11 +91,17 @@ def itinerary(trip, rows, router, pickup_only=None):
     events.sort(key=lambda e: (round(e[0], 2), e[1], e[2]))
     points = [trip['origin']] + [e[4] for e in events] + [trip['destination']]
     route = router.route(points) if events else trip['route']
-    elapsed, times = 0.0, {}
+    leg_distances = route.get('leg_distances_m')
+    distance_valid = (isinstance(leg_distances, list) and len(leg_distances) == len(points)-1
+                      and all(_finite_nonnegative(value) for value in leg_distances))
+    elapsed, cumulative_distance, times = 0.0, Decimal(0), {}
     for index, (event, duration) in enumerate(zip(events, route['leg_durations_s'])):
         elapsed += duration
+        if distance_valid:
+            cumulative_distance += Decimal(str(leg_distances[index]))
         stop = times.setdefault(event[2], {})
         stop[event[3]] = elapsed
+        stop[event[3]+'_distance_m'] = format(cumulative_distance, 'f') if distance_valid else None
         waypoints = route.get('waypoints', [])
         snapped = waypoints[index+1] if len(waypoints) == len(points) else {}
         location = snapped.get('location', [event[4]['lon'], event[4]['lat']])
@@ -85,7 +110,7 @@ def itinerary(trip, rows, router, pickup_only=None):
     return route, times
 
 
-def evaluate(trip, request, bookings, router):
+def evaluate(trip, request, bookings, router, *, require_rate_distance=True):
     start = project(request['origin'], trip['route']['coordinates'])
     end = project(request['destination'], trip['route']['coordinates'])
     if start['off_route_m'] > 15000 or end['off_route_m'] > 15000:
@@ -95,10 +120,20 @@ def evaluate(trip, request, bookings, router):
     capacity = available_capacity(trip, bookings, start['along_m'], end['along_m'])
     if capacity < request['seats']:
         raise Incompatible('There are not enough seats on the overlapping segment.', {'available_seats':capacity,'requested_seats':request['seats']})
+    available_bags = baggage_capacity(trip, bookings, start['along_m'], end['along_m'])
+    requested_bags = request.get('baggage') or {key: 0 for key in BAG_KEYS}
+    if available_bags is None:
+        if any(requested_bags.get(key, 0) for key in BAG_KEYS):
+            raise Incompatible('This trip has no listed baggage capacity. Ask the driver to update the offer before requesting bags.', {'baggage_capacity':'unknown'})
+    elif any(requested_bags.get(key, 0) > available_bags[key] for key in BAG_KEYS):
+        raise Incompatible('There is not enough listed baggage capacity on the overlapping segment.', {
+            'baggage_remaining':available_bags, 'baggage_requested':requested_bags
+        })
     rows = occupied(bookings)
     candidate = {'id': 'candidate:' + request['id'], 'start_m': start['along_m'], 'end_m': end['along_m'],
                  'pickup': request['origin'], 'dropoff': request['destination'],
-                 'window_start': request['window_start'], 'window_end': request['window_end']}
+                 'window_start': request['window_start'], 'window_end': request['window_end'],
+                 'arrive_by': request.get('arrive_by'), 'baggage': requested_bags}
     current_route, _ = itinerary(trip, rows, router)
     proposed_route, times = itinerary(trip, rows+[candidate], router)
     detour_s = max(0, proposed_route['duration_s'] - trip['route']['duration_s'])
@@ -109,6 +144,13 @@ def evaluate(trip, request, bookings, router):
         arrival = departure + timedelta(seconds=times[row['id']]['pickup'])
         if not datetime.fromisoformat(row['window_start']) <= arrival <= datetime.fromisoformat(row['window_end']):
             raise Incompatible('This itinerary would miss a passenger pickup window.', {'pickup_at':arrival.isoformat(),'window_start':row['window_start'],'window_end':row['window_end']})
+        deadline = row.get('arrive_by')
+        if deadline:
+            dropoff = departure + timedelta(seconds=times[row['id']]['dropoff'])
+            if dropoff > datetime.fromisoformat(deadline):
+                raise Incompatible('This itinerary would arrive after a passenger deadline.', {
+                    'dropoff_at':dropoff.isoformat(), 'arrive_by':deadline
+                })
     pickup_route, _ = itinerary(trip, rows+[candidate], router, pickup_only=candidate['id'])
     # Signed, sequential marginal differences. They sum exactly to total added time;
     # negative values can result from a provider selecting a different road route.
@@ -116,6 +158,23 @@ def evaluate(trip, request, bookings, router):
     drop_added = proposed_route['duration_s'] - pickup_route['duration_s']
     extra = proposed_route['duration_s'] - current_route['duration_s']
     timing = times[candidate['id']]
+    pickup_distance = timing.get('pickup_distance_m')
+    dropoff_distance = timing.get('dropoff_distance_m')
+    passenger_distance = None
+    if isinstance(pickup_distance, str) and isinstance(dropoff_distance, str):
+        try:
+            passenger_distance = int((Decimal(dropoff_distance)-Decimal(pickup_distance)).quantize(
+                Decimal('1'), rounding=ROUND_HALF_UP))
+        except (InvalidOperation, ValueError):
+            passenger_distance = None
+    route_calculation_id = proposed_route.get('calculation_id')
+    route_provider = proposed_route.get('provider')
+    route_calculated_at = proposed_route.get('calculated_at')
+    if require_rate_distance and trip.get('seat_rate_paise_per_km') is not None and (
+            passenger_distance is None or passenger_distance < 0
+            or not all(isinstance(value, str) and value.strip() for value in
+                       (route_calculation_id, route_provider, route_calculated_at))):
+        raise Incompatible('This route has no validated passenger distance for a fare quote.')
     baseline = distance(trip['origin'], request['origin']) <= 20000 and distance(trip['destination'], request['destination']) <= 20000
     # Configurable research UX estimate, not a fare or validated cost split.
     segment_km = (end['along_m']-start['along_m'])/1000
@@ -124,6 +183,15 @@ def evaluate(trip, request, bookings, router):
             'pickup_snap_m':timing['pickup_snap_m'], 'dropoff_snap_m':timing['dropoff_snap_m'],
             'pickup_at': (departure+timedelta(seconds=timing['pickup'])).isoformat(),
             'dropoff_at': (departure+timedelta(seconds=timing['dropoff'])).isoformat(),
+            'arrive_by': request.get('arrive_by'),
+            'baggage_remaining': available_bags,
+            'passenger_route_distance_m': passenger_distance,
+            'route_calculation_id': route_calculation_id,
+            'route_provider': route_provider,
+            'route_calculated_at': route_calculated_at,
+            'passenger_baggage': {key: requested_bags.get(key, 0) for key in BAG_KEYS},
+            'passenger_baggage_notes': request.get('baggage_notes', ''),
+            'trip_baggage_notes': trip.get('baggage_notes', ''),
             'pickup_detour_minutes': round(pickup_added/60, 2), 'dropoff_detour_minutes': round(drop_added/60, 2),
             'incremental_detour_minutes': round(extra/60, 2), 'total_driver_detour_minutes': round(detour_s/60, 2),
             'contribution_inr': round(segment_km*2*request['seats']),

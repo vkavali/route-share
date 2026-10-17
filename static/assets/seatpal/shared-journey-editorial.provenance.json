@@ -1,0 +1,11 @@
+{
+  "mode": "built-in image_gen",
+  "asset": "shared-journey-editorial.png",
+  "created_on": "2026-10-14",
+  "description": "AI-generated illustrative promotional scene: two young adult Indian friends meet beside an unbranded compact hatchback on a Hyderabad residential street; one has a backpack, another greets them, with a commuter motorcycle in the background.",
+  "intended_use": "Decorative editorial hero artwork for the SeatPal landing page.",
+  "not_evidence": "Depicts no real SeatPal users, trip, route geometry, service availability, or customer testimonial.",
+  "visual_review": "Inspected generated output. Photorealistic natural morning scene; no visible text, logos, readable plate, map, or interface.",
+  "dimensions": {"width": 1536, "height": 1024},
+  "source_output": "/mnt/c/Users/vkava/.codex/generated_images/01a138da-5b95-79b0-b453-527498122b00/exec-fc0641e5-602e-4237-9dda-4c1cdb449717.png"
+}

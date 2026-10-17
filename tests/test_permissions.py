@@ -272,7 +272,7 @@ def test_late_accepted_cancellation_is_only_an_audit_flag(tmp_path):
     assert not any(key in cancelled["booking"] for key in ("penalty", "payment", "fine"))
 
 
-def test_passenger_search_is_one_seat_and_repeat_request_reuses_active_trip_booking(tmp_path):
+def test_passenger_search_is_one_seat_and_new_search_conflicts_with_active_booking(tmp_path):
     service, _store, users, _ = make_service(tmp_path)
     driver, passenger = users["driver"], users["passenger"]
     departure = future_departure()
@@ -282,9 +282,15 @@ def test_passenger_search_is_one_seat_and_repeat_request_reuses_active_trip_book
 
     first_search = search(service, passenger, KONDAPUR, VIJAYAWADA, departure, seats=1)
     first = act(service, "request", passenger, match_id=first_search["matches"][0]["id"])["booking"]
-    second_search = search(service, passenger, KONDAPUR, VIJAYAWADA, departure, seats=1)
-    retry = act(service, "request", passenger, match_id=second_search["matches"][0]["id"])["booking"]
+    retry = act(service, "request", passenger, match_id=first_search["matches"][0]["id"])["booking"]
     assert retry["id"] == first["id"]
+    assert retry["price_quote"] == first["price_quote"]
+
+    second_search = search(service, passenger, KONDAPUR, VIJAYAWADA, departure, seats=1)
+    with pytest.raises(DomainError) as conflict:
+        act(service, "request", passenger, match_id=second_search["matches"][0]["id"])
+    assert conflict.value.status == 409
+    assert conflict.value.code == "booking_already_exists"
 
 
 def test_pending_and_hourly_seat_request_limits_are_transactional(tmp_path):

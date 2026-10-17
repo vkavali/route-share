@@ -334,12 +334,60 @@ def _cleanup_crashed_roots(base):
         match = re.fullmatch(r"route-share-voice-(\d+)-[a-f0-9]{32}", path.name)
         if not match or path.is_symlink() or not path.is_dir():
             continue
+        pid = int(match[1])
+        if sys.platform == "win32":
+            # os.kill(pid, 0) is not a process-existence query on Windows.
+            # Any uncertain result must preserve the directory.
+            try:
+                alive = _windows_pid_is_alive(pid)
+            except Exception:
+                alive = True
+            if not alive:
+                shutil.rmtree(path, ignore_errors=True)
+            continue
         try:
-            os.kill(int(match[1]), 0)
+            os.kill(pid, 0)
         except ProcessLookupError:
             shutil.rmtree(path, ignore_errors=True)
         except (PermissionError, OSError):
             pass
+
+
+def _windows_pid_is_alive(pid):
+    """Probe process exit state without sending a signal on Windows.
+
+    OpenProcess failure is treated as dead only for ERROR_INVALID_PARAMETER;
+    access denied and other errors are ambiguous and therefore preserve roots.
+    """
+    if type(pid) is not int or not 0 < pid <= 0xFFFFFFFF:
+        # Do not let a malformed directory name wrap into another DWORD PID.
+        return True
+    try:
+        import ctypes
+        from ctypes import wintypes
+
+        synchronize = 0x00100000
+        wait_object_0 = 0x00000000
+        error_invalid_parameter = 87
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.OpenProcess.argtypes = (wintypes.DWORD, wintypes.BOOL, wintypes.DWORD)
+        kernel32.OpenProcess.restype = wintypes.HANDLE
+        kernel32.WaitForSingleObject.argtypes = (wintypes.HANDLE, wintypes.DWORD)
+        kernel32.WaitForSingleObject.restype = wintypes.DWORD
+        kernel32.CloseHandle.argtypes = (wintypes.HANDLE,)
+        kernel32.CloseHandle.restype = wintypes.BOOL
+
+        handle = kernel32.OpenProcess(synchronize, False, pid)
+        if not handle:
+            return ctypes.get_last_error() != error_invalid_parameter
+        # WAIT_OBJECT_0 means exited. WAIT_TIMEOUT means alive. WAIT_FAILED and
+        # unknown statuses are treated as alive so cleanup fails closed.
+        return kernel32.WaitForSingleObject(handle, 0) != wait_object_0
+    except (OSError, AttributeError, ValueError, TypeError):
+        return True
+    finally:
+        if "handle" in locals() and handle:
+            kernel32.CloseHandle(handle)
 
 
 class VoiceService:

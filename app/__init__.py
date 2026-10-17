@@ -19,13 +19,14 @@ from flask import Flask, g, jsonify, request, session, send_file, render_templat
 from flask.json.provider import DefaultJSONProvider
 from werkzeug.middleware.proxy_fix import ProxyFix
 from werkzeug.exceptions import HTTPException
-from werkzeug.security import generate_password_hash
+from werkzeug.security import check_password_hash, generate_password_hash
 
 from .community import CommunityError
 from .auth import (is_active_account, auth_epoch, current_actor_matches, web_session_hash,
                    issue_web_session_in, revoke_web_session_in, session_binding_matches_in)
 from .phone_auth import PhoneAuthError, PhoneAuthService
 from .account_lifecycle import AccountLifecycleError, AccountLifecycleService
+from .backup_email import BackupEmailService
 from .driver_verification import DriverVerificationError, DriverVerificationService, MAX_DOCUMENT_BYTES
 from .identity_verification import IdentityVerificationError, IdentityVerificationService
 from .payments import PaymentError, PaymentService
@@ -125,7 +126,9 @@ def _seed_users(store: Store, password: str, *, passwords: dict[str, str] | None
     }, "development": True, "phone": ""}
     with store.transaction() as tx:
         for account, (name, role) in ACCOUNT_NAMES.items():
-            record = tx.get("users", account) or {"id": account, **defaults}
+            record = tx.get("users", account)
+            existed = record is not None
+            record = record or {"id": account, **defaults}
             record.setdefault("name", name)
             record.setdefault("phone", "")
             record.setdefault("share_phone", False)
@@ -136,10 +139,23 @@ def _seed_users(store: Store, password: str, *, passwords: dict[str, str] | None
                 record["staff_capabilities"] = ["ops.read", "verify.review", "safety.act", "staff.manage"] if account == "admin" else []
                 if account == "driver":
                     record["driver_approval"] = {"kind": "development", "expires_at": (datetime.now(timezone.utc) + timedelta(days=30)).isoformat(), "note": "Test permission only; licence and RC have not been verified."}
-            record.update({
-                "password_hash": generate_password_hash(passwords[account] if passwords else password),
-                "development": development,
-            })
+            configured_password = passwords[account] if passwords else password
+            stored_hash = record.get("password_hash")
+            try:
+                unchanged_password = isinstance(stored_hash, str) and check_password_hash(stored_hash, configured_password)
+            except (TypeError, ValueError):
+                unchanged_password = False
+            if not unchanged_password:
+                record["password_hash"] = generate_password_hash(configured_password)
+                if existed:
+                    old_epoch = auth_epoch(record)
+                    record["auth_epoch"] = (old_epoch if old_epoch is not None else 0) + 1
+                    # Revoke both session types when the configured credential changes.
+                    for collection in ("web_sessions", "mobile_sessions"):
+                        for binding in tx.list(collection):
+                            if binding.get("user_id") == account:
+                                tx.delete(collection, binding["id"])
+            record["development"] = development
             tx.put("users", account, record)
 
 
@@ -174,6 +190,11 @@ def _canonical_public_origin(value: Any) -> str:
     except ValueError as exc:
         raise ValueError("PUBLIC_ORIGIN must be a canonical HTTPS origin.") from exc
     hostname = parsed.hostname
+    if (not hostname or any(ord(char) <= 32 or ord(char) == 127 for char in value)
+            or (":" not in hostname and (len(hostname) > 253 or any(
+                not re.fullmatch(r"[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?", label)
+                for label in hostname.split("."))))):
+        raise ValueError("PUBLIC_ORIGIN must contain an exact valid host, never a wildcard.")
     if (parsed.scheme != "https" or not hostname or parsed.username or parsed.password
             or parsed.path or parsed.query or parsed.fragment or hostname != hostname.lower()
             or port == 443):
@@ -195,6 +216,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         BETA_PASSWORD=os.environ.get("BETA_PASSWORD", "local-beta-only"),
         HOSTED_MODE=_hosted_enabled(os.environ.get("ROUTE_SHARE_HOSTED", "0")),
         PUBLIC_ORIGIN=os.environ.get("PUBLIC_ORIGIN"),
+        PUBLIC_ORIGIN_ALIASES=os.environ.get("PUBLIC_ORIGIN_ALIASES", ""),
         BETA_ACCOUNT_PASSWORDS=os.environ.get("BETA_ACCOUNT_PASSWORDS"),
         MAX_CONTENT_LENGTH=MAX_JSON_BYTES,
         VOICE_ENABLED=_hosted_enabled(os.environ.get("VOICE_ENABLED", "0")),
@@ -208,7 +230,13 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         TESTING=False,
         DIRECT_UPI_ENABLED=_hosted_enabled(os.environ.get("DIRECT_UPI_ENABLED", "0")),
         PHONE_AUTH_ENABLED=_hosted_enabled(os.environ.get("PHONE_AUTH_ENABLED", "0")),
+        PHONE_AUTH_SDK_ENABLED=_hosted_enabled(os.environ.get("PHONE_AUTH_SDK_ENABLED", "0")),
         PHONE_AUTH_HMAC_KEY=os.environ.get("PHONE_AUTH_HMAC_KEY"),
+        BACKUP_EMAIL_ENABLED=_hosted_enabled(os.environ.get("BACKUP_EMAIL_ENABLED", "0")),
+        BACKUP_EMAIL_ENCRYPTION_KEY=os.environ.get("BACKUP_EMAIL_ENCRYPTION_KEY"),
+        BACKUP_EMAIL_DAILY_LIMIT=os.environ.get("BACKUP_EMAIL_DAILY_LIMIT"),
+        HOSTINGER_MAIL_API_TOKEN=os.environ.get("HOSTINGER_MAIL_API_TOKEN"),
+        HOSTINGER_MAILBOX_RESOURCE_ID=os.environ.get("HOSTINGER_MAILBOX_RESOURCE_ID"),
         PHONE_AUTH_DAILY_LIMIT=os.environ.get("PHONE_AUTH_DAILY_LIMIT"),
         IDENTITY_EVIDENCE_KEY=os.environ.get("IDENTITY_EVIDENCE_KEY"),
         DEMO_PASSWORD_ENABLED=_hosted_enabled(os.environ.get("DEMO_PASSWORD_ENABLED", "1")),
@@ -216,6 +244,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         MSG91_TOKEN_AUTH=os.environ.get("MSG91_TOKEN_AUTH"),
         MSG91_AUTH_KEY=os.environ.get("MSG91_AUTH_KEY"),
         MSG91_CONTRACT_VERIFIED=_hosted_enabled(os.environ.get("MSG91_CONTRACT_VERIFIED", "0")),
+        MSG91_SDK_CONTRACT_VERIFIED=_hosted_enabled(os.environ.get("MSG91_SDK_CONTRACT_VERIFIED", "0")),
+        MSG91_PROVIDER_ABUSE_CONTROLS_CONFIRMED=_hosted_enabled(os.environ.get("MSG91_PROVIDER_ABUSE_CONTROLS_CONFIRMED", "0")),
         APP_DISPLAY_NAME=os.environ.get("APP_DISPLAY_NAME", "SeatPal"),
         PUBLIC_OPERATOR_NAME=os.environ.get("PUBLIC_OPERATOR_NAME", ""),
         PUBLIC_SUPPORT_EMAIL=os.environ.get("PUBLIC_SUPPORT_EMAIL", ""),
@@ -225,8 +255,18 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         app.config.update(config)
     hosted_mode = _hosted_enabled(app.config["HOSTED_MODE"])
     app.config["HOSTED_MODE"] = hosted_mode
+    accepted_public_netlocs = frozenset()
     if hosted_mode:
         app.config["PUBLIC_ORIGIN"] = _canonical_public_origin(app.config.get("PUBLIC_ORIGIN"))
+        aliases = app.config["PUBLIC_ORIGIN_ALIASES"]
+        if not isinstance(aliases, str):
+            raise ValueError("PUBLIC_ORIGIN_ALIASES must be a comma-separated string of HTTPS origins.")
+        try:
+            alias_origins = [_canonical_public_origin(item.strip()) for item in aliases.split(",")] if aliases else []
+        except ValueError as exc:
+            raise ValueError("PUBLIC_ORIGIN_ALIASES contains an invalid canonical HTTPS origin.") from exc
+        accepted_public_netlocs = frozenset(urlsplit(origin).netloc.casefold()
+            for origin in [app.config["PUBLIC_ORIGIN"], *alias_origins])
         account_passwords = _hosted_passwords(app.config.get("BETA_ACCOUNT_PASSWORDS"))
         app.config.update(
             DEVELOPMENT_MODE=False,
@@ -247,13 +287,15 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
     app.extensions["live_location_store"] = live_locations
     trusted_contacts = TrustedContactService(store, app.config["SECRET_KEY"])
     app.extensions["trusted_contact_service"] = trusted_contacts
-    mobile_auth = MobileAuthenticator(store, demo_password_enabled=_hosted_enabled(app.config["DEMO_PASSWORD_ENABLED"]))
+    mobile_auth = MobileAuthenticator(store, demo_password_enabled=_hosted_enabled(app.config["DEMO_PASSWORD_ENABLED"]),
+                                      rate_limit_key=app.config["SECRET_KEY"])
     app.extensions["mobile_auth"] = mobile_auth
     operator_name = str(app.config["PUBLIC_OPERATOR_NAME"]).strip()
     support_email = str(app.config["PUBLIC_SUPPORT_EMAIL"]).strip()
     operator_configured = bool(1 <= len(operator_name) <= 160 and
                                re.fullmatch(r"[A-Za-z0-9.!#$%&'*+/=?^_`{|}~-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,63}", support_email))
     phone_provider = None
+    phone_sdk_provider = None
     if _hosted_enabled(app.config["PHONE_AUTH_ENABLED"]) and operator_configured:
         # An injected provider is only permitted in an explicitly isolated test app.
         if app.testing and app.config.get("PHONE_AUTH_PROVIDER") is not None:
@@ -265,15 +307,40 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
                 auth_key=app.config["MSG91_AUTH_KEY"], handle_secret=app.config["PHONE_AUTH_HMAC_KEY"],
                 contract_verified=_hosted_enabled(app.config["MSG91_CONTRACT_VERIFIED"]),
             )
+        if _hosted_enabled(app.config.get("PHONE_AUTH_SDK_ENABLED")):
+            if app.testing and app.config.get("PHONE_AUTH_SDK_PROVIDER") is not None:
+                phone_sdk_provider = app.config["PHONE_AUTH_SDK_PROVIDER"]
+            else:
+                from .sms_provider import MSG91WebSDKVerifier
+                phone_sdk_provider = MSG91WebSDKVerifier(
+                    widget_id=app.config["MSG91_WIDGET_ID"], token_auth=app.config["MSG91_TOKEN_AUTH"],
+                    auth_key=app.config["MSG91_AUTH_KEY"],
+                    contract_verified=_hosted_enabled(app.config["MSG91_SDK_CONTRACT_VERIFIED"]),
+                    abuse_controls_confirmed=_hosted_enabled(app.config["MSG91_PROVIDER_ABUSE_CONTROLS_CONFIRMED"]),
+                )
     daily_limit = app.config["PHONE_AUTH_DAILY_LIMIT"]
     if isinstance(daily_limit, str) and re.fullmatch(r"[0-9]{1,6}", daily_limit):
         daily_limit = int(daily_limit)
     phone_auth = PhoneAuthService(store, provider=phone_provider,
         hmac_key=app.config["PHONE_AUTH_HMAC_KEY"], global_daily_limit=daily_limit,
-        mobile_auth=mobile_auth)
+        sdk_provider=phone_sdk_provider, mobile_auth=mobile_auth)
     app.extensions["phone_auth"] = phone_auth
     lifecycle = AccountLifecycleService(store, phone_auth, mobile_auth=mobile_auth)
     app.extensions["account_lifecycle"] = lifecycle
+    email_provider = None
+    if _hosted_enabled(app.config["BACKUP_EMAIL_ENABLED"]):
+        if app.testing and app.config.get("BACKUP_EMAIL_PROVIDER") is not None:
+            email_provider = app.config["BACKUP_EMAIL_PROVIDER"]
+        else:
+            from .email_delivery import email_provider_from_config
+            email_provider = email_provider_from_config(app.config)
+    email_limit = app.config["BACKUP_EMAIL_DAILY_LIMIT"]
+    if isinstance(email_limit, str) and re.fullmatch(r"[0-9]{1,6}", email_limit):
+        email_limit = int(email_limit)
+    backup_email = BackupEmailService(store, lifecycle, provider=email_provider,
+        encryption_key=app.config["BACKUP_EMAIL_ENCRYPTION_KEY"], daily_limit=email_limit)
+    lifecycle.backup_email = backup_email
+    app.extensions["backup_email"] = backup_email
     geocoder = NominatimGeocoder(app.config["NOMINATIM_BASE_URL"])
     app.extensions["geocoder"] = geocoder
     voice_service = VoiceService(store=store, daily_limit=app.config["VOICE_DAILY_LIMIT"], model_paths={
@@ -302,14 +369,16 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     def feature_flags():
         return {**public_flags(), "direct_upi_enabled": payment_service.enabled,
-                "paid_rides_enabled": payment_service.enabled,
+                # A manual UPI declaration is not a verified gateway charge.
+                "paid_rides_enabled": False,
+                "verified_payment_settlement_enabled": False,
                 "payment_provider_mode": "direct_upi_manual" if payment_service.enabled else "disabled",
                 "driver_document_review_enabled": True,
-                "public_registration_enabled": phone_auth.enabled,
+                "public_registration_enabled": phone_auth.public_enabled,
                 "demo_password_enabled": mobile_auth.demo_password_enabled}
 
     def phone_capabilities_payload():
-        return {**phone_auth.capabilities(), "terms_url": "/terms", "privacy_url": "/privacy",
+        return {**phone_auth.capabilities(), "backup_email_enabled": backup_email.enabled, "terms_url": "/terms", "privacy_url": "/privacy",
                 "operator_configured": operator_configured}
 
     def error(message: str, status: int):
@@ -336,12 +405,14 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         digest = web_session_hash(session.get("auth_session_id"))
         return "web:" + digest if digest else ""
 
-    def establish_web_session(user, *, rotate_csrf=True):
+    def establish_web_session(user, *, rotate_csrf=True, expected_password_hash=None):
         session_id = secrets.token_urlsafe(32)
         previous_csrf = session.get("csrf_token")
         with store.transaction() as tx:
             current = tx.get("users", user["id"])
-            if not current_actor_matches(current, user):
+            if (not current_actor_matches(current, user)
+                    or (expected_password_hash is not None
+                        and current.get("password_hash") != expected_password_hash)):
                 raise PhoneAuthError("Account changed. Sign in again.", 401, "account_changed")
             revoke_web_session_in(tx, session.get("auth_session_id"))
             issue_web_session_in(tx, current, session_id)
@@ -356,9 +427,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         host_header = request.host.casefold()
         healthcheck_request = request.path == "/api/health" and request.method == "GET"
         if app.config["HOSTED_MODE"]:
-            public_netloc = urlsplit(app.config["PUBLIC_ORIGIN"]).netloc.casefold()
             railway_health_host = healthcheck_request and host_header == "healthcheck.railway.app"
-            if host_header != public_netloc and not railway_health_host:
+            if host_header not in accepted_public_netlocs and not railway_health_host:
                 return error("This hosted beta only accepts its configured public host", 400)
             if not request.is_secure and not healthcheck_request:
                 return error("HTTPS is required", 400)
@@ -410,13 +480,16 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         onboarding_routes = {"/api/bootstrap", "/api/phone/capabilities", "/api/phone/profile",
                              "/api/logout", "/api/mobile/logout", "/api/health",
                              "/api/account/lifecycle", "/api/account/reauth/start", "/api/account/reauth/verify",
-                             "/api/account/recovery-key", "/api/account/delete"}
+                             "/api/account/recovery-key", "/api/account/delete",
+                             "/api/account/backup-email/start", "/api/account/backup-email/verify", "/api/account/backup-email/remove"}
         if (request.path.startswith("/api/") and active_user and active_user.get("onboarding_required")
                 and request.path not in onboarding_routes):
             return jsonify({"error": "Complete your account details first.", "code": "onboarding_required"}), 403
         mobile_signin_routes = {"/api/mobile/login", "/api/mobile/phone/start",
                                 "/api/mobile/phone/resend", "/api/mobile/phone/verify",
-                                "/api/mobile/account/recovery/start", "/api/mobile/account/recovery/verify"}
+                                "/api/mobile/account/recovery/start", "/api/mobile/account/recovery/verify",
+                                "/api/mobile/account/recovery/email/start", "/api/mobile/account/recovery/email/verify",
+                                "/api/mobile/account/recovery/phone/start", "/api/mobile/account/recovery/phone/verify"}
         if request.path in mobile_signin_routes and request.method == "POST":
             # Native unauthenticated requests carry no browser session. Refuse
             # cookie/Origin-bearing requests here so this cannot bypass web CSRF.
@@ -433,7 +506,8 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         if not source:
             return error("Same-origin request required", 403)
         parsed = urlsplit(source)
-        expected = urlsplit(app.config["PUBLIC_ORIGIN"] if app.config["HOSTED_MODE"] else request.host_url)
+        # Host was already allowlisted above; aliases never authorize cross-origin browser POSTs.
+        expected = urlsplit(request.host_url)
         malformed_origin = bool(origin and (parsed.path or parsed.query or parsed.fragment or parsed.username or parsed.password))
         if malformed_origin or (parsed.scheme, parsed.netloc.lower()) != (expected.scheme, expected.netloc.lower()):
             return error("Same-origin request required", 403)
@@ -557,7 +631,10 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
 
     @app.errorhandler(DomainError)
     def handle_domain_error(exc):
-        return error(str(getattr(exc, "message", exc)), int(getattr(exc, "status", 400)))
+        payload = {"error": str(getattr(exc, "message", exc))}
+        if getattr(exc, "code", None):
+            payload["code"] = exc.code
+        return jsonify(payload), int(getattr(exc, "status", 400))
 
     @app.errorhandler(413)
     def too_large(_exc):
@@ -583,11 +660,47 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         response.headers["Cache-Control"] = "no-store"
         response.headers["X-Content-Type-Options"] = "nosniff"
         response.headers["X-Frame-Options"] = "DENY"
-        response.headers["Content-Security-Policy"] = "default-src 'self'; script-src 'self'; worker-src 'self' blob:; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob: https://tiles.openfreemap.org https://tile.openstreetmap.org https://*.tile.openstreetmap.org; connect-src 'self' https://tiles.openfreemap.org; object-src 'none'; base-uri 'self'; frame-ancestors 'none'"
+        if phone_auth.sdk_enabled:
+            script_src = ("'self' https://verify.msg91.com https://www.google.com/recaptcha/ "
+                          "https://www.gstatic.com/recaptcha/ https://hcaptcha.com https://*.hcaptcha.com")
+            frame_src = ("https://verify.msg91.com https://www.google.com/recaptcha/ "
+                         "https://www.gstatic.com/recaptcha/ https://hcaptcha.com https://*.hcaptcha.com")
+            connect_src = ("'self' https://tiles.openfreemap.org https://control.msg91.com https://api.msg91.com "
+                           "https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/ "
+                           "https://hcaptcha.com https://*.hcaptcha.com")
+            style_src = "'self' 'unsafe-inline' https://hcaptcha.com https://*.hcaptcha.com"
+        else:
+            script_src = "'self'"
+            frame_src = "'self'"
+            connect_src = "'self' https://tiles.openfreemap.org"
+            style_src = "'self' 'unsafe-inline'"
+        response.headers["Content-Security-Policy"] = (
+            f"default-src 'self'; script-src {script_src}; frame-src {frame_src}; worker-src 'self' blob:; "
+            f"style-src {style_src}; img-src 'self' data: blob: https://tiles.openfreemap.org "
+            "https://tile.openstreetmap.org https://*.tile.openstreetmap.org; "
+            f"connect-src {connect_src}; object-src 'none'; base-uri 'self'; frame-ancestors 'none'")
         response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
         response.headers["Permissions-Policy"] = "geolocation=(self)"
         if app.config["HOSTED_MODE"]:
             response.headers["Strict-Transport-Security"] = "max-age=31536000"
+        return response
+
+    @app.route("/static/maps/india-soi-boundaries.geojson", methods=["GET", "HEAD"])
+    def india_soi_boundaries():
+        """Serve the phone map boundary data, using its gzip sidecar when accepted."""
+        raw_path = Path(app.static_folder) / "maps" / "india-soi-boundaries.geojson"
+        gzip_path = raw_path.with_name(raw_path.name + ".gz")
+        use_gzip = (gzip_path.is_file()
+                    and request.accept_encodings.quality("gzip") > 0)
+        response = send_file(
+            gzip_path if use_gzip else raw_path,
+            mimetype="application/geo+json",
+            conditional=True,
+            etag=True,
+        )
+        response.vary.add("Accept-Encoding")
+        if use_gzip:
+            response.headers["Content-Encoding"] = "gzip"
         return response
 
     @app.get("/")
@@ -604,7 +717,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         args = dict(
             page="faq" if request.path == "/faq" else "landing",
             language=request.args.get("lang", "en"), app_name=app.config["APP_DISPLAY_NAME"],
-            registration_enabled=phone_auth.enabled, payments_enabled=payment_service.enabled,
+            registration_enabled=phone_auth.public_enabled, payments_enabled=payment_service.enabled,
             support_email=support_email, operator_configured=operator_configured)
         if request.path in {"/welcome", "/welcome/latest"}:
             return render_template("public-site-latest.html", **public_site_latest_context(
@@ -625,7 +738,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
         return render_template("public-policy.html", privacy=request.path == "/privacy",
             app_name=str(app.config["APP_DISPLAY_NAME"])[:80], operator_name=operator_name,
             support_email=support_email, operator_configured=operator_configured,
-            registration_enabled=phone_auth.enabled,
+            registration_enabled=phone_auth.public_enabled,
             version=phone_auth.privacy_version if request.path == "/privacy" else phone_auth.terms_version,
             public_lang=normalize_public_language(request.args.get("lang", "en")))
 
@@ -688,6 +801,22 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             result = getattr(phone_auth, action)(body, ip)
         return jsonify(result)
 
+    @app.post("/api/phone/sdk/start")
+    @app.post("/api/phone/sdk/resend")
+    @app.post("/api/phone/sdk/verify")
+    def phone_sdk_signin():
+        if authenticated_user():
+            return jsonify({"error": "Sign out before signing in to another account.", "code": "sign_out_required"}), 409
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        action = request.path.rsplit("/", 1)[-1]
+        ip = request.remote_addr or "unknown"
+        result = getattr(phone_auth, "sdk_" + action)(body, ip, session.get("csrf_token"))
+        if action == "verify":
+            result["csrf_token"] = establish_web_session(result["user"])
+        return jsonify(result)
+
     @app.post("/api/phone/profile")
     def phone_profile():
         user = authenticated_user()
@@ -732,6 +861,57 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             voice_service.cancel_owner(user["id"])
             if getattr(g, "mobile_user", None) is None:
                 session.clear()
+        return jsonify(result)
+
+    @app.post("/api/account/backup-email/start")
+    @app.post("/api/account/backup-email/verify")
+    @app.post("/api/account/backup-email/remove")
+    def account_backup_email():
+        user = authenticated_user()
+        if not user:
+            return error("Authentication required", 401)
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        binding = account_session_binding()
+        ip = request.remote_addr or "unknown"
+        if request.path.endswith("/start"):
+            release_mobile_auth_lock(None)
+            result = backup_email.start_enrollment(user, body, binding, ip)
+        elif request.path.endswith("/verify"):
+            result = backup_email.verify_enrollment(user, body, binding, ip)
+        else:
+            result = backup_email.remove(user, body, binding)
+        return jsonify(result)
+
+    @app.post("/api/account/recovery/email/start")
+    @app.post("/api/account/recovery/email/verify")
+    @app.post("/api/account/recovery/phone/start")
+    @app.post("/api/account/recovery/phone/verify")
+    @app.post("/api/mobile/account/recovery/email/start")
+    @app.post("/api/mobile/account/recovery/email/verify")
+    @app.post("/api/mobile/account/recovery/phone/start")
+    @app.post("/api/mobile/account/recovery/phone/verify")
+    def account_email_recovery():
+        if authenticated_user():
+            return jsonify({"error": "Sign out before recovering an account.", "code": "sign_out_required"}), 409
+        body = json_body()
+        if not isinstance(body, dict):
+            return body
+        ip = request.remote_addr or "unknown"
+        native = request.path.startswith("/api/mobile/")
+        if request.path.endswith("/email/start"):
+            result = backup_email.start_recovery(body, ip)
+        elif request.path.endswith("/email/verify"):
+            result = backup_email.verify_recovery(body, ip)
+        elif request.path.endswith("/phone/start"):
+            result = backup_email.start_phone(body, ip)
+        else:
+            result = backup_email.verify_phone(body, ip, native=native)
+            live_locations.stop_actor(result["user"]["id"])
+            voice_service.cancel_owner(result["user"]["id"])
+            if not native:
+                result["csrf_token"] = establish_web_session(result["user"])
         return jsonify(result)
 
     @app.post("/api/account/recovery/start")
@@ -1065,7 +1245,7 @@ def create_app(config: dict[str, Any] | None = None) -> Flask:
             return error("Account and password are required", 400)
         if not record:
             return error("Invalid account or password", 401)
-        establish_web_session(record, rotate_csrf=False)
+        establish_web_session(record, rotate_csrf=False, expected_password_hash=record["password_hash"])
         return jsonify({"user": _safe_user(record)})
 
     @app.post("/api/logout")

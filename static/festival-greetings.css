@@ -1,0 +1,35 @@
+.festival-greeting {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin: 1rem 0;
+  padding: .9rem 1rem;
+  color: #292929;
+  background: #fffaf5;
+  border: 1px solid #ead7c6;
+  border-inline-start: 4px solid #d96b2b;
+  border-radius: .75rem;
+}
+.festival-greeting__copy { display: grid; gap: .2rem; }
+.festival-greeting__copy strong { font-weight: 700; }
+.festival-greeting__copy span { line-height: 1.45; }
+.festival-greeting__dismiss {
+  flex: 0 0 auto;
+  width: 44px;
+  min-width: 44px;
+  height: 44px;
+  min-height: 44px;
+  padding: 0;
+  color: #292929;
+  background: transparent;
+  border: 0;
+  border-radius: .4rem;
+  font: inherit;
+  font-size: 1.35rem;
+  line-height: 1;
+  cursor: pointer;
+}
+.festival-greeting__dismiss:hover { background: #f1e8df; }
+.festival-greeting__dismiss:focus-visible { outline: 2px solid #d96b2b; outline-offset: 2px; }
+.festival-greeting--remembrance { background: #f7f6f3; border-color: #dedbd5; border-inline-start-color: #77736d; }

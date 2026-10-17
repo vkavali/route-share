@@ -2,6 +2,7 @@
 import pytest
 from app import create_app
 from app.public_site import COPY, public_site_context
+from app.public_site_latest import public_site_latest_context
 from test_phone_http import SMSFixture
 
 
@@ -48,6 +49,10 @@ def test_disabled_copy_and_service_not_merely_requested_config(public_app):
         assert 'Direct UPI is available after' not in html
     spa = client.get('/')
     assert spa.status_code == 200 and spa.data == client.get('/static/index.html').data
+    assert b'<script src="/static/root-entry.js"></script>' in spa.data
+    assert client.get('/static/root-entry.js').status_code == 200
+    assert b'location.replace(`/welcome?lang=${lang}`)' in client.get('/static/root-entry.js').data
+    assert '"start_url": "/?app=1"' in client.get('/static/manifest.webmanifest').get_data(as_text=True)
 
 
 def test_enabled_service_copy_and_valid_support(tmp_path):
@@ -131,3 +136,83 @@ def test_policies_disclose_identity_review_and_actual_evidence_limits(public_app
     assert "uploaded identity and driver evidence" in privacy
     assert "Requesting a seat with a real member account requires verified phone sign-in" in terms
     assert "current identity approval" in terms and "not government authentication" in terms
+
+
+def test_valid_support_contact_is_independent_of_operator_readiness():
+    args = dict(page='faq', language='en', app_name='SeatPal', registration_enabled=False,
+                payments_enabled=False, support_email='info@seatpal.in', operator_configured=False)
+    result = public_site_context(**args)
+    assert result['support_email'] == 'info@seatpal.in'
+    assert result['operator_configured'] is False
+    assert result['registration_enabled'] is False
+    assert result['copy']['support_body'] == COPY['en']['support_body']
+
+
+@pytest.mark.parametrize('email', [
+    'info@seatpal.in\r\nBcc:attacker@example.test',
+    'info@seatpal.in?subject=unsafe',
+    '<img src=x>@seatpal.in',
+])
+def test_invalid_support_contact_is_not_exposed_without_operator(email):
+    result = public_site_context(page='faq', language='en', app_name='SeatPal',
+                                 registration_enabled=False, payments_enabled=False,
+                                 support_email=email, operator_configured=False)
+    assert result['support_email'] == ''
+    assert result['copy']['support_body'] == COPY['en']['support_unavailable']
+
+
+def test_policy_shows_valid_support_without_claiming_operator_or_open_signup(tmp_path):
+    app = create_app({'TESTING': True, 'DATABASE_PATH': str(tmp_path / 'policy-support.sqlite'),
+                      'SECRET_KEY': 'public-page-fixture-only', 'VOICE_ENABLED': False,
+                      'PHONE_AUTH_ENABLED': False, 'DIRECT_UPI_ENABLED': False,
+                      'PUBLIC_OPERATOR_NAME': '', 'PUBLIC_SUPPORT_EMAIL': 'info@seatpal.in',
+                      'APP_DISPLAY_NAME': 'SeatPal'})
+    client = app.test_client()
+    for path in ['/terms', '/privacy']:
+        html = client.get(path).get_data(as_text=True)
+        assert 'Public signup is not open because the legal operator has not yet been configured.' in html
+        assert 'mailto:info@seatpal.in' in html
+        assert 'contact <a href="mailto:info@seatpal.in">info@seatpal.in</a>' in html
+        assert 'A support contact has not yet been configured.' not in html
+        assert 'Operated by ' not in html
+
+
+def test_support_contact_renders_in_both_public_site_designs_without_operator(public_app):
+    args = dict(page='landing', language='en', app_name='SeatPal', registration_enabled=False,
+                payments_enabled=False, support_email='info@seatpal.in', operator_configured=False)
+    contexts = [
+        ('public-site.html', public_site_context(**args)),
+        ('public-site-latest.html', public_site_latest_context(**args)),
+    ]
+    with public_app.test_request_context('/welcome'):
+        for template, context in contexts:
+            context.update(operator_name='', public_lang='en', version='test-version', privacy=False)
+            html = public_app.jinja_env.get_template(template).render(**context)
+            assert 'mailto:info@seatpal.in' in html
+            assert 'info@seatpal.in' in html
+            assert 'A public support email is not available yet.' not in html
+            assert 'Public phone sign-up is not available in this beta yet.' in html
+            assert context['operator_configured'] is False
+            assert context['registration_enabled'] is False
+
+
+@pytest.mark.parametrize('email', [
+    'info@seatpal.in\r\nBcc:attacker@example.test',
+    'info@seatpal.in?subject=unsafe',
+    '<img src=x>@seatpal.in',
+])
+def test_malformed_support_never_renders_mailto_in_either_public_design(public_app, email):
+    args = dict(page='landing', language='en', app_name='SeatPal', registration_enabled=False,
+                payments_enabled=False, support_email=email, operator_configured=False)
+    contexts = [
+        ('public-site.html', public_site_context(**args)),
+        ('public-site-latest.html', public_site_latest_context(**args)),
+    ]
+    with public_app.test_request_context('/welcome'):
+        for template, context in contexts:
+            context.update(operator_name='', public_lang='en', version='test-version', privacy=False)
+            html = public_app.jinja_env.get_template(template).render(**context)
+            assert 'mailto:' not in html
+            assert 'A public support email is not available yet.' in html
+            assert 'attacker@example.test' not in html
+            assert '<img src=x>' not in html

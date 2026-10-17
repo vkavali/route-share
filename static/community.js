@@ -1,3 +1,4 @@
+import { busyMark, beginBusy } from './seatpal-busy.js';
 /* Community profile, chat and notification views. App shell owns navigation. */
 export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, render, navigate }) {
   const profile = { value: null, loading: false, loaded: false, failed: false };
@@ -30,7 +31,7 @@ export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, rend
   const loadError = (area, retryKey = 'communityRetry') => `<div class="empty-state"><p>${t('communityError')}</p><button type="button" class="secondary" data-community-action="retry">${t(retryKey)}</button></div>`;
 
   function loadingState() {
-    return `<div class="empty-state" role="status">${icon('chatCircleDots', 22)}<span>${t('communityLoading')}</span></div>`;
+    return `<div class="empty-state" role="status">${busyMark()}<span>${t('communityLoading')}</span></div>`;
   }
 
   function personSummary(person) {
@@ -256,7 +257,7 @@ export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, rend
     errors.profile = null;
     profile.loading = true;
     const submit = form.querySelector('button[type="submit"]');
-    if (submit) submit.disabled = true;
+    const finish = beginBusy(submit, `${t('communitySaveProfile')} · ${t('communityLoading')}`);
     try {
       const payload = submittedDraft;
       const response = await api('/api/update_profile', 'POST', payload);
@@ -280,7 +281,7 @@ export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, rend
         errors.profile = 'communityError';
         if (viewAtSubmit === generation && mountedView === 'profile') render?.();
       }
-    } finally { if (sessionAtSubmit === sessionGeneration) profile.loading = false; }
+    } finally { finish(); if (sessionAtSubmit === sessionGeneration) profile.loading = false; }
   }
 
   async function sendMessage(form) {
@@ -298,6 +299,7 @@ export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, rend
     const clientMessageId = pending?.text === text ? pending.id : (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`);
     pendingClientIds.set(bookingId, { id: clientMessageId, text });
     conversation.sending = true;
+    const finish = beginBusy(form.querySelector('button[type=submit]'), t('communityLoading'));
     try {
       const response = await api('/api/send_message', 'POST', { booking_id: bookingId, text, client_message_id: clientMessageId });
       if (sessionAtSubmit !== sessionGeneration || userAtSubmit !== state.user?.id) return;
@@ -314,7 +316,7 @@ export function makeCommunity({ state, t, icon, esc, escAttr, api, refresh, rend
         conversation.sending = false;
         if (viewAtSubmit === generation && mountedView === 'chat' && mountedBookingId === bookingId) render?.();
       }
-    } finally { if (sessionAtSubmit === sessionGeneration) conversation.sending = false; }
+    } finally { finish(); if (sessionAtSubmit === sessionGeneration) conversation.sending = false; }
   }
 
   function contactMarkup(contact, bookingId) {

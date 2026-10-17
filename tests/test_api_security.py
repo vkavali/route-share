@@ -67,6 +67,22 @@ def test_bootstrap_and_login_never_expose_password_hash(client):
     assert client.get("/api/bootstrap").json["user"]["id"] == "driver"
 
 
+def test_manual_upi_bootstrap_does_not_claim_paid_rides_or_verified_settlement(tmp_path):
+    app = create_app({
+        "TESTING": True,
+        "SECRET_KEY": "manual-upi-feature-flag-test",
+        "DATABASE_PATH": str(tmp_path / "manual-upi.sqlite3"),
+        "DIRECT_UPI_ENABLED": True,
+    })
+
+    flags = app.test_client().get("/api/bootstrap").json["flags"]
+
+    assert flags["direct_upi_enabled"] is True
+    assert flags["payment_provider_mode"] == "direct_upi_manual"
+    assert flags["paid_rides_enabled"] is False
+    assert flags["verified_payment_settlement_enabled"] is False
+
+
 def test_posts_require_csrf_and_same_origin_even_for_login(client):
     assert client.post("/api/login", json={"account": "driver", "password": "x"}).status_code == 403
     token = csrf(client)

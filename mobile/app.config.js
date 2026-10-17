@@ -28,12 +28,13 @@ module.exports = ({ config }) => {
       ...(config.ios || {}),
       bundleIdentifier: 'com.vkavali.routeshare',
       appleTeamId: '722J78K2H6',
-      buildNumber: '2',
+      buildNumber: '8',
       supportsTablet: true,
       infoPlist: {
         ...((config.ios && config.ios.infoPlist) || {}),
         CFBundleDisplayName: 'SeatPal',
         ITSAppUsesNonExemptEncryption: false,
+        NSFaceIDUsageDescription: 'Use Face ID to unlock your saved SeatPal sign-in on this iPhone.',
         NSLocationWhenInUseUsageDescription: 'Use your location to choose a pickup or destination, or share it with the other participant during an accepted booking. Sharing stops when you stop it or arrive.',
         NSAppTransportSecurity: api?.loopback && api.url.protocol === 'http:'
           ? {NSAllowsArbitraryLoads: false, NSAllowsLocalNetworking: true}
@@ -66,6 +67,7 @@ module.exports = ({ config }) => {
       }],
       'expo-font',
       'expo-secure-store',
+      ['expo-local-authentication', {faceIDPermission: 'Use Face ID to unlock your saved SeatPal sign-in on this iPhone.'}],
     ],
     locales: {
       ...(config.locales || {}),

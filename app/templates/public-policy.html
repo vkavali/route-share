@@ -10,13 +10,20 @@
     .note{padding:16px 20px;border:1px solid #cbd8bf;border-radius:16px;background:#edf2e7}.meta{color:#526860;font-size:14px}
     li{margin:8px 0}footer{border-top:1px solid #d5ddd4;margin-top:32px;padding-top:20px}nav{display:flex;flex-wrap:wrap;justify-content:space-between;gap:12px 20px}
   </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='seatpal-design.css') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='landing-clean.css') }}">
 </head>
-<body>
+<body class="public-site public-policy">
   <nav aria-label="Public pages"><a href="/welcome?lang={{ public_lang }}">{{ app_name }}</a><a href="/faq?lang={{ public_lang }}">FAQs</a><a href="{{ '/terms' if privacy else '/privacy' }}?lang={{ public_lang }}">{{ 'Beta terms' if privacy else 'Privacy notice' }}</a></nav>
   <h1>{{ 'Privacy notice' if privacy else 'Beta terms' }}</h1>
   <p class="meta">Version {{ version }} · India beta · {{ app_name }} is the current working product name.</p>
   {% if not operator_configured %}
-  <p class="note">Public signup is not open. The operator and support contact have not yet been configured. This notice describes the beta implementation; it is not an announcement of a public customer launch.</p>
+  <p class="note">Public signup is not open because the legal operator has not yet been configured. This notice describes the beta implementation; it is not an announcement of a public customer launch.</p>
+  {% if support_email %}
+  <p>For account help, complaints and privacy requests, contact <a href="mailto:{{ support_email }}">{{ support_email }}</a>. A support contact does not mean public signup is open.</p>
+  {% else %}
+  <p class="note">A support contact has not yet been configured.</p>
+  {% endif %}
   {% else %}
   <p>Operated by {{ operator_name }}. Contact <a href="mailto:{{ support_email }}">{{ support_email }}</a> for account help, complaints and privacy requests.</p>
   {% if not registration_enabled %}<p class="note">Public phone signup is currently unavailable. Existing beta access remains separate.</p>{% endif %}

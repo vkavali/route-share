@@ -29,6 +29,7 @@ class AccountLifecycleService:
         self.store, self.phone = store, phone_auth
         self.mobile_auth = mobile_auth or phone_auth.mobile_auth
         self.clock = clock or time.time
+        self.backup_email = None
 
     def _hash(self, purpose, value):
         if not isinstance(self.phone.key, bytes) or len(self.phone.key) < 32:
@@ -88,13 +89,14 @@ class AccountLifecycleService:
                       and row.get("expires_at", 0) > self.clock()]
             key = tx.get("account_recovery_keys", user.get("recovery_key_id", ""))
             configured = bool(key and key.get("user_id") == user["id"])
-        return {"deletion_allowed": not blockers, "blockers": blockers, "recovery_key_configured": configured,
+            email_status = self.backup_email.status_in(tx, user) if self.backup_email else {"enabled": False, "configured": False, "masked_email": None, "verified_at": None}
+        return {"backup_email": email_status, "deletion_allowed": not blockers, "blockers": blockers, "recovery_key_configured": configured,
                 "recently_reauthenticated_until": _iso(max(proofs)) if proofs else None,
                 "retained_categories": RETAINED.copy()}
 
     def reauth_start(self, actor, payload, session_binding, ip):
         purpose = payload.get("purpose")
-        if not isinstance(purpose, str) or purpose not in {"delete", "recovery_key"}:
+        if not isinstance(purpose, str) or purpose not in {"delete", "recovery_key", "backup_email"}:
             raise AccountLifecycleError("Choose an account action.")
         with self.store.read() as tx:
             user = self._actor(tx, actor, session_binding)
@@ -110,7 +112,7 @@ class AccountLifecycleService:
             context = challenge.get("context", {})
             if (context.get("user_id") != user["id"] or context.get("auth_epoch") != auth_epoch(user)
                     or context.get("binding_hash") != self._hash("binding", session_binding)
-                    or context.get("purpose") not in {"delete", "recovery_key"}
+                    or context.get("purpose") not in {"delete", "recovery_key", "backup_email"}
                     or challenge.get("phone") != user.get("auth_phone")):
                 raise AccountLifecycleError("This account verification is unavailable.")
             return user
@@ -194,7 +196,8 @@ class AccountLifecycleService:
                     "request_id": payload.get("request_id")}, ip, purpose="account_recovery", context=context, authorize=authorize)
 
     def _revoke(self, tx, user_id, *, phone_keys=(), except_challenge=None):
-        for collection in ("mobile_sessions", "web_sessions", "account_action_proofs", "account_recovery_keys"):
+        for collection in ("mobile_sessions", "web_sessions", "account_action_proofs", "account_recovery_keys",
+                           "email_challenges", "email_send_requests", "email_send_state", "email_recovery_proofs"):
             for row in tx.list(collection):
                 if row.get("user_id") == user_id:
                     tx.delete(collection, row["id"])
@@ -276,6 +279,7 @@ class AccountLifecycleService:
         delete_user_evidence(tx, user_id)
         keys = [row["id"] for row in tx.list("phone_identities") if row.get("user_id") == user_id]
         self._revoke(tx, user_id, phone_keys=keys)
+        tx.delete("account_backup_emails", user_id)
         for key in keys:
             tx.put("phone_identities", key, {"id": key, "user_id": user_id, "status": "deleted"})
         for doc in tx.list("driver_documents"):

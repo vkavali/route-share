@@ -1,6 +1,10 @@
 (() => {
   'use strict';
   const DURATION = 9400;
+  const FULL_VIEWBOX = '120 130 740 310';
+  const FULL_VIEWBOX_BOX = { x: 120, y: 130, width: 740, height: 310 };
+  const LOGO_CROP = { x: 285, y: 218, width: 410, height: 100 };
+  const DOCK_DURATION = 850;
   const init = (root) => {
     const $ = (id) => root.querySelector(`#sp-seatpal-${id}`);
     const el = {
@@ -26,6 +30,12 @@
     let time = 0, playing = false, last = null, raf = 0;
     const reduced = window.matchMedia('(prefers-reduced-motion: reduce)');
     let reduceMotion = reduced.matches;
+    const homeSlot = root.parentElement;
+    const headerLink = document.querySelector('.site-header .wordmark');
+    let dockWrap = null, dockWindow = null, docked = false, dockTimer = 0, slotTimer = 0, pendingSlot = null;
+
+    if (!headerLink) return;
+    headerLink.setAttribute('aria-label', 'SeatPal');
 
     function wheel(node, x, y, s, rotation, visibility) {
       node.setAttribute('transform', `translate(${x.toFixed(3)} ${y.toFixed(3)}) scale(${s.toFixed(4)})`);
@@ -99,16 +109,130 @@
         : state === 'paused' ? root.dataset.labelPlay : root.dataset.labelReplay;
       toggle.setAttribute('aria-label', label);
       toggle.setAttribute('title', label);
+      toggle.dataset.motion = state;
     };
+    function dock(animate = true) {
+      if (docked) return;
+      const sourceSlot = homeSlot;
+      const sourceSlotHeight = sourceSlot?.getBoundingClientRect().height || 0;
+      const firstScene = el.scene.getBoundingClientRect();
+      const firstLogo = {
+        left: firstScene.left + (LOGO_CROP.x - FULL_VIEWBOX_BOX.x) / FULL_VIEWBOX_BOX.width * firstScene.width,
+        top: firstScene.top + (LOGO_CROP.y - FULL_VIEWBOX_BOX.y) / FULL_VIEWBOX_BOX.height * firstScene.height,
+        width: LOGO_CROP.width / FULL_VIEWBOX_BOX.width * firstScene.width,
+        height: LOGO_CROP.height / FULL_VIEWBOX_BOX.height * firstScene.height,
+      };
+      const img = headerLink.querySelector('img');
+      const text = headerLink.querySelector('span');
+      if (img) img.hidden = true;
+      if (text) text.hidden = true;
+      headerLink.setAttribute('aria-label', 'SeatPal');
+      headerLink.classList.add('sp-seatpal-docked');
+
+      if (!dockWrap) {
+        dockWrap = document.createElement('div');
+        dockWrap.className = 'sp-seatpal-header-dock';
+        headerLink.parentNode.insertBefore(dockWrap, headerLink);
+        dockWrap.append(headerLink);
+      }
+      dockWindow = document.createElement('span');
+      dockWindow.className = 'sp-seatpal-dock-window';
+      headerLink.append(dockWindow);
+      toggle.remove();
+      root.classList.add('is-docked');
+      const targetWidth = dockWindow.getBoundingClientRect().width;
+      const rootWidth = targetWidth * FULL_VIEWBOX_BOX.width / LOGO_CROP.width;
+      const rootHeight = rootWidth * FULL_VIEWBOX_BOX.height / FULL_VIEWBOX_BOX.width;
+      root.style.setProperty('--sp-seatpal-dock-svg-width', `${rootWidth}px`);
+      root.style.setProperty('--sp-seatpal-dock-left', `${-(LOGO_CROP.x - FULL_VIEWBOX_BOX.x) / FULL_VIEWBOX_BOX.width * rootWidth}px`);
+      root.style.setProperty('--sp-seatpal-dock-top', `${-(LOGO_CROP.y - FULL_VIEWBOX_BOX.y) / FULL_VIEWBOX_BOX.height * rootHeight}px`);
+      dockWindow.append(root);
+      dockWrap.append(toggle);
+      docked = true;
+      document.body.classList.add('seatpal-brand-docked');
+      const illustration = homeSlot?.parentElement;
+      const collapseSlot = (smooth) => {
+        if (!sourceSlot) return;
+        pendingSlot = sourceSlot;
+        sourceSlot.classList.remove('is-collapsed', 'is-docked');
+        sourceSlot.style.height = `${sourceSlotHeight}px`;
+        sourceSlot.style.overflow = 'hidden';
+        if (!smooth || !sourceSlotHeight) {
+          sourceSlot.classList.add('is-collapsed');
+          sourceSlot.style.height = '';
+          sourceSlot.style.overflow = '';
+          illustration?.classList.add('is-collapsed');
+          return;
+        }
+        sourceSlot.classList.add('is-collapsing');
+        sourceSlot.getBoundingClientRect();
+        requestAnimationFrame(() => sourceSlot.classList.add('is-docked'));
+        slotTimer = window.setTimeout(() => {
+          sourceSlot.classList.add('is-collapsed');
+          sourceSlot.classList.remove('is-collapsing', 'is-docked');
+          sourceSlot.style.height = '';
+          sourceSlot.style.overflow = '';
+          illustration?.classList.add('is-collapsed');
+          pendingSlot = null;
+        }, DOCK_DURATION + 30);
+      };
+
+      const lastWindow = dockWindow.getBoundingClientRect();
+      const scale = firstLogo.width / lastWindow.width;
+      const translateX = firstLogo.left - lastWindow.left;
+      const translateY = firstLogo.top - lastWindow.top;
+      const reduce = !animate || reduceMotion || !lastWindow.width || !firstLogo.width;
+      if (reduce) {
+        dockWindow.style.transform = '';
+        dockWindow.style.transition = '';
+        collapseSlot(false);
+        return;
+      }
+
+      dockWindow.style.transformOrigin = 'top left';
+      dockWindow.style.transition = 'none';
+      dockWindow.style.transform = `translate(${translateX.toFixed(2)}px, ${translateY.toFixed(2)}px) scale(${scale.toFixed(4)})`;
+      dockWindow.getBoundingClientRect();
+      root.dataset.docking = 'true';
+      toggle.disabled = true;
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        dockWindow.style.transition = `transform ${DOCK_DURATION}ms cubic-bezier(.22, 1, .36, 1)`;
+        dockWindow.style.transform = 'none';
+        collapseSlot(true);
+      }));
+      dockTimer = window.setTimeout(() => {
+        dockWindow.style.transition = ''; dockWindow.style.transform = '';
+        delete root.dataset.docking;
+        toggle.disabled = false;
+      }, DOCK_DURATION + 40);
+    }
+    function undock() {
+      if (!docked) return;
+      window.clearTimeout(dockTimer); window.clearTimeout(slotTimer);
+      toggle.disabled = false;
+      root.classList.remove('is-docked');
+      root.style.cssText = '';
+      delete root.dataset.docking;
+      dockWindow?.remove(); dockWindow = null;
+      toggle.remove();
+      root.append(toggle);
+      const sourceSlot = homeSlot;
+      sourceSlot?.classList.remove('is-collapsing', 'is-collapsed', 'is-docked');
+      if (sourceSlot) { sourceSlot.style.height = ''; sourceSlot.style.overflow = ''; sourceSlot.append(root); }
+      homeSlot?.parentElement?.classList.remove('is-collapsed');
+      document.body.classList.remove('seatpal-brand-docked');
+      docked = false;
+    }
     function tick(now) {
       if (!playing) return;
       if (last !== null) time = Math.min(DURATION, time + Math.max(0, now - last));
       last = now; draw(time);
-      if (time >= DURATION) { playing = false; last = null; root.dataset.motion = 'finished'; render(); return; }
+      if (time >= DURATION) { playing = false; last = null; root.dataset.motion = 'finished'; render(); dock(true); return; }
       raf = requestAnimationFrame(tick);
     }
     function pause() { playing = false; last = null; cancelAnimationFrame(raf); root.dataset.motion = 'paused'; render(); }
     function start(restart = false) {
+      if (docked) undock();
       if (restart || time >= DURATION) time = 0;
       toggle.hidden = false; playing = true; last = null; root.dataset.motion = 'running';
       root.dataset.time = '0.0'; draw(time); render(); raf = requestAnimationFrame(tick);
@@ -124,13 +248,19 @@
       if (reduceMotion) {
         playing = false; last = null; cancelAnimationFrame(raf); time = DURATION; draw(time);
         root.dataset.motion = 'finished'; render(); toggle.hidden = true;
+        if (docked) {
+          window.clearTimeout(dockTimer); window.clearTimeout(slotTimer);
+          if (dockWindow) { dockWindow.style.transition = ''; dockWindow.style.transform = ''; }
+          delete root.dataset.docking; toggle.disabled = false;
+          if (pendingSlot) { pendingSlot.classList.add('is-collapsed'); pendingSlot.classList.remove('is-collapsing', 'is-docked'); pendingSlot.style.height = ''; pendingSlot.style.overflow = ''; pendingSlot.parentElement?.classList.add('is-collapsed'); pendingSlot = null; }
+        } else dock(false);
       } else {
         render(); toggle.hidden = false;
       }
     };
     if (reduced.addEventListener) reduced.addEventListener('change', onMotionChange);
     else reduced.addListener?.(onMotionChange);
-    if (reduceMotion) { time = DURATION; draw(time); root.dataset.motion = 'finished'; render(); toggle.hidden = true; }
+    if (reduceMotion) { time = DURATION; draw(time); root.dataset.motion = 'finished'; render(); toggle.hidden = true; dock(false); }
     else start(true);
   };
   const initAll = () => document.querySelectorAll('[data-seatpal-brand]').forEach(init);

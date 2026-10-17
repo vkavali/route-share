@@ -1,10 +1,12 @@
+import {SeatPalLoader} from './SeatPalLoader';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {ActivityIndicator, AppState, Pressable, ScrollView, StyleSheet, TextInput, View} from 'react-native';
+import { AppState, Pressable, ScrollView, StyleSheet, TextInput, View} from 'react-native';
 import * as Crypto from 'expo-crypto';
 import {Api} from './api';
 import {AppText} from './NativeTypography';
 import {Icon} from './Icon';
 import {serviceLabels,type ServiceScreen} from './ServiceScreens';
+import {SeatPalTheme} from './SeatPalTheme';
 
 type CommunityScreen = 'profile' | 'chats' | 'chat' | 'notifications';
 type Summary = {id: string; name: string; development?: boolean; verification?: unknown; rating_average?: number | null; rating_count?: number; completed_trip_count?: number};
@@ -23,11 +25,12 @@ type Props = {
   onOpenService?: (screen:ServiceScreen)=>void;
   onOpenIdentity?:(screen:'identity-verification'|'identity-review')=>void;
   onAccountSecurity?:()=>void;
+  profileExtra?: React.ReactNode;
 };
 type CommunityProfile = {id: string; name: string; phone: string | null; share_phone: boolean; verification?: unknown};
 type ChatMessage = {id: string; booking_id: string; sender_id: string; sender_name: string; text: string; client_message_id: string; created_at: string; read_at: string | null};
 
-const COLORS = {ink: '#153C32', muted: '#71857B', ivory: '#F5F4EC', white: '#FFFFFF', line: '#E4E8DD', pale: '#E7EDE2', citron: '#D8ED79'};
+const COLORS = {ink: SeatPalTheme.colors.text, accent: SeatPalTheme.colors.primary, muted: SeatPalTheme.colors.secondary, ivory: SeatPalTheme.colors.page, white: SeatPalTheme.colors.surface, line: SeatPalTheme.colors.border, pale: SeatPalTheme.colors.selected, citron: SeatPalTheme.colors.seat};
 
 export function CommunityScreens(props: Props) {
   const {api, screen, lang, t, user, bookingId, onBack, onOpenChat, onOpenBooking, onUserUpdate, onError} = props;
@@ -233,7 +236,7 @@ export function CommunityScreens(props: Props) {
   if (screen === 'profile') return <View style={styles.screen}>{header(t('communityProfile'))}<ScrollView contentContainerStyle={styles.body} keyboardShouldPersistTaps="handled">
     <View style={styles.profileIdentity}><View style={styles.profileAvatar}><Icon name="user" size={32} color={COLORS.ink}/></View><View style={styles.chatSummary}><AppText style={styles.profileName}>{profile?.name||user?.name||t('communityProfile')}</AppText><AppText style={styles.helper}>{t('communityProfile')}</AppText></View></View>
     {card(<>
-      {loading && !profile ? <ActivityIndicator color={COLORS.ink}/> : !profile ? <AppText style={styles.empty}>{localError || t('communityEmptyProfile')}</AppText> : <>
+      {loading && !profile ? <SeatPalLoader label={t('loading')}/> : !profile ? <AppText style={styles.empty}>{localError || t('communityEmptyProfile')}</AppText> : <>
         <AppText style={styles.label}>{t('communityName')}</AppText>
         <TextInput accessibilityLabel={t('communityName')} value={name} onChangeText={setName} maxLength={80} autoCapitalize="words" placeholder={t('communityName')} placeholderTextColor={COLORS.muted} style={[styles.input, {fontFamily: lang === 'te' ? 'AnekTelugu400' : 'Manrope400', lineHeight: lang === 'te' ? 24 : undefined}]}/>
         <AppText style={styles.label}>{t('communityPhone')}</AppText>
@@ -245,11 +248,13 @@ export function CommunityScreens(props: Props) {
           <AppText style={styles.consentText}>{t('communitySharePhone')}</AppText>
         </Pressable>
         <AppText style={styles.helper}>{t('communitySharePhoneHelp')}</AppText>
+        {saving?<SeatPalLoader label={t('communitySaving')}/>:null}
         <Pressable accessibilityRole="button" disabled={saving || loading} onPress={() => void saveProfile()} style={[styles.primary, (saving || loading) && styles.disabled]}>
           <AppText style={styles.primaryText}>{saving ? t('communitySaving') : t('communitySaveProfile')}</AppText>
         </Pressable>
       </>}
     </>)}
+    {props.profileExtra}
     <Pressable accessibilityRole="button" onPress={()=>props.onAccountSecurity?.()} style={styles.retry}><AppText style={styles.retryText}>{t('lcSecurity')} →</AppText></Pressable>
     {(['payments','verification','reviews'] as const).map(target=><Pressable key={target} accessibilityRole="button" onPress={()=>props.onOpenService?.(target)} style={styles.retry}><AppText style={styles.retryText}>{serviceLabels(lang)[target]} →</AppText></Pressable>)}
     <Pressable accessibilityRole="button" onPress={()=>props.onOpenIdentity?.('identity-verification')} style={styles.retry}><AppText style={styles.retryText}>{lang==='te'?'గుర్తింపు రివ్యూ':lang==='hi'?'पहचान की समीक्षा':'Identity review'} →</AppText></Pressable>
@@ -260,7 +265,7 @@ export function CommunityScreens(props: Props) {
 
   if (screen === 'chats') return <View style={styles.screen}>{header(t('communityChats'))}<ScrollView contentContainerStyle={styles.body}>
     <AppText style={styles.profileName}>{t('communityChats')}</AppText>
-    {loading && chats.length === 0 ? <ActivityIndicator color={COLORS.ink}/> : chats.length === 0 ? card(<><View style={styles.emptyIcon}><Icon name="chatCircleDots" size={36} color={COLORS.ink}/></View><AppText style={styles.empty}>{t('communityNoChats')}</AppText></>) : chats.map((item: any) => <Pressable key={item.booking_id} onPress={() => onOpenChat(item.booking_id)} style={styles.chatRow}>
+    {loading && chats.length === 0 ? <SeatPalLoader label={t('loading')}/> : chats.length === 0 ? card(<><View style={styles.emptyIcon}><Icon name="chatCircleDots" size={36} color={COLORS.ink}/></View><AppText style={styles.empty}>{t('communityNoChats')}</AppText></>) : chats.map((item: any) => <Pressable key={item.booking_id} onPress={() => onOpenChat(item.booking_id)} style={styles.chatRow}>
       <View style={styles.avatar}><Icon name="user" size={21} color={COLORS.ink}/></View>
       <View style={styles.chatSummary}><AppText style={styles.rowTitle}>{item.counterpart_summary?.name || t('communityChat')}</AppText><AppText numberOfLines={1} style={styles.preview}>{item.latest_message?.text || t('communityNoMessages')}</AppText></View>
       <View style={styles.rowEnd}>{item.unread_count > 0 ? <View style={styles.badge}><AppText style={styles.badgeText}>{item.unread_count}</AppText></View> : null}<AppText style={styles.date}>{date(item.latest_message?.created_at)}</AppText></View>
@@ -270,7 +275,7 @@ export function CommunityScreens(props: Props) {
   </ScrollView></View>;
 
   if (screen === 'notifications') return <View style={styles.screen}>{header(t('communityNotifications'))}<ScrollView contentContainerStyle={styles.body}>
-    {loading && notifications.length === 0 ? <ActivityIndicator color={COLORS.ink}/> : notifications.length === 0 ? card(<AppText style={styles.empty}>{t('communityNoNotifications')}</AppText>) : notifications.map((item: any) => <Pressable key={item.id} onPress={() => void openNotification(item)} style={[styles.notificationRow, !item.read_at && styles.unread]}>
+    {loading && notifications.length === 0 ? <SeatPalLoader label={t('loading')}/> : notifications.length === 0 ? card(<AppText style={styles.empty}>{t('communityNoNotifications')}</AppText>) : notifications.map((item: any) => <Pressable key={item.id} onPress={() => void openNotification(item)} style={[styles.notificationRow, !item.read_at && styles.unread]}>
       <View style={styles.notificationIcon}><Icon name={item.type === 'chat_message' ? 'chatCircleDots' : 'calendarBlank'} size={20} color={COLORS.ink}/></View>
       <View style={styles.chatSummary}><AppText style={styles.rowTitle}>{t(notificationKey(item.type))}</AppText><AppText style={styles.date}>{date(item.created_at)}</AppText></View>
       {!item.read_at ? <View style={styles.unreadDot}/> : null}
@@ -286,14 +291,15 @@ export function CommunityScreens(props: Props) {
         <AppText style={styles.messageText}>{message.text}</AppText>
         <AppText style={styles.date}>{date(message.created_at)}</AppText>
       </View>)}
-      {loading && !chat ? <ActivityIndicator color={COLORS.ink}/> : null}{!chat?.messages?.length && !localError && !loading ? <AppText style={styles.empty}>{t('communityNoMessages')}</AppText> : null}
+      {loading && !chat ? <SeatPalLoader label={t('loading')}/> : null}{!chat?.messages?.length && !localError && !loading ? <AppText style={styles.empty}>{t('communityNoMessages')}</AppText> : null}
       {localError ? <AppText accessibilityRole="alert" style={styles.message}>{localError}</AppText> : null}
       {localError ? <Pressable accessibilityRole="button" onPress={() => bookingId && void loadChat(bookingId)} style={styles.retry}><AppText style={styles.retryText}>{t('communityRetry')}</AppText></Pressable> : null}
     </ScrollView>
+    {sending?<SeatPalLoader label={`${t('communitySend')} · ${t('pending')}`}/>:null}
     {chat?.can_send ? <View style={styles.composer}>
       <TextInput accessibilityLabel={t('communityMessage')} value={draft} onChangeText={setDraft} editable={!sending} multiline maxLength={1000} placeholder={t('communityMessagePlaceholder')} placeholderTextColor={COLORS.muted} style={[styles.composerInput, {fontFamily: lang === 'te' ? 'AnekTelugu400' : 'Manrope400', lineHeight: lang === 'te' ? 24 : undefined}]}/>
       <Pressable accessibilityRole="button" accessibilityLabel={t('communitySend')} disabled={!draft.trim() || sending} onPress={() => void sendMessage()} style={[styles.send, (!draft.trim() || sending) && styles.disabled]}><Icon name="navigationArrow" size={19} color={COLORS.white}/></Pressable>
-    </View> : loading&&!chat ? <View style={styles.readOnly}><ActivityIndicator color={COLORS.ink}/></View> : <View style={styles.readOnly}><Icon name="lockKey" size={17} color={COLORS.muted}/><AppText style={styles.readOnlyText}>{t('communityReadOnly')}</AppText></View>}
+    </View> : loading&&!chat ? null : <View style={styles.readOnly}><Icon name="lockKey" size={17} color={COLORS.muted}/><AppText style={styles.readOnlyText}>{t('communityReadOnly')}</AppText></View>}
   </View>;
 }
 
@@ -313,16 +319,16 @@ function notificationKey(value: string): string {
 }
 
 const styles = StyleSheet.create({
-  profileIdentity:{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:14},profileAvatar:{width:68,height:68,borderRadius:34,alignItems:'center',justifyContent:'center',backgroundColor:'#E5EECF'},profileName:{fontSize:25,fontWeight:'700',color:COLORS.ink},privacyIntro:{flexDirection:'row',alignItems:'center',gap:10,paddingTop:16,borderTopWidth:1,borderColor:COLORS.line},emptyIcon:{alignSelf:'center',width:76,height:76,borderRadius:38,backgroundColor:'#EDF3DE',alignItems:'center',justifyContent:'center'},
+  profileIdentity:{flexDirection:'row',alignItems:'center',gap:14,paddingVertical:14},profileAvatar:{width:68,height:68,borderRadius:34,alignItems:'center',justifyContent:'center',backgroundColor:SeatPalTheme.colors.selected},profileName:{fontSize:25,fontWeight:'700',color:COLORS.ink},privacyIntro:{flexDirection:'row',alignItems:'center',gap:10,paddingTop:16,borderTopWidth:1,borderColor:COLORS.line},emptyIcon:{alignSelf:'center',width:76,height:76,borderRadius:38,backgroundColor:SeatPalTheme.colors.selected,alignItems:'center',justifyContent:'center'},
   screen: {flex:  1, backgroundColor: COLORS.ivory},
   header: {minHeight: 58, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: COLORS.line},
   back: {width: 44, height: 44, flexShrink:0, alignItems: 'center', justifyContent: 'center'}, title: {flex:1,marginHorizontal:12,fontSize: 18, fontWeight: '700', color: COLORS.ink}, headerTail: {width: 42},
   body: {padding: 16, paddingBottom: 24, gap: 16}, card: {padding: 16, borderWidth:1,borderColor:COLORS.line, backgroundColor: COLORS.white, borderRadius: 22, gap: 14},
   label: {fontSize: 14, fontWeight: '700', color: COLORS.ink}, input: {minHeight: 50, paddingHorizontal: 14, borderRadius: 14, backgroundColor: COLORS.ivory, color: COLORS.ink, fontSize: 16},
-  consentRow: {minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12}, check: {width: 23, height: 23, borderWidth: 1, borderColor: COLORS.muted, borderRadius: 6, alignItems: 'center', justifyContent: 'center'}, checkActive: {backgroundColor: COLORS.ink, borderColor: COLORS.ink}, consentText: {flex: 1, color: COLORS.ink, fontSize: 14, lineHeight: 21}, helper: {color: COLORS.muted, fontSize: 13, lineHeight: 19},
-  primary: {minHeight: 54,paddingVertical:12, borderRadius: 16, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16}, primaryText: {fontSize: 15, fontWeight: '700', color: COLORS.white}, disabled: {opacity: 0.5}, message: {paddingHorizontal: 4, color: COLORS.ink, fontSize: 14, lineHeight: 21}, empty: {paddingVertical: 14, color: COLORS.muted, fontSize: 15, lineHeight: 23, textAlign: 'center'},
+  consentRow: {minHeight: 48, flexDirection: 'row', alignItems: 'center', gap: 12}, check: {width: 23, height: 23, borderWidth: 1, borderColor: COLORS.muted, borderRadius: 6, alignItems: 'center', justifyContent: 'center'}, checkActive: {backgroundColor: COLORS.accent, borderColor: COLORS.accent}, consentText: {flex: 1, color: COLORS.ink, fontSize: 14, lineHeight: 21}, helper: {color: COLORS.muted, fontSize: 13, lineHeight: 19},
+  primary: {minHeight: 54,paddingVertical:12, borderRadius: 16, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 16}, primaryText: {fontSize: 15, fontWeight: '700', color: COLORS.white}, disabled: {opacity: 0.5}, message: {paddingHorizontal: 4, color: COLORS.ink, fontSize: 14, lineHeight: 21}, empty: {paddingVertical: 14, color: COLORS.muted, fontSize: 15, lineHeight: 23, textAlign: 'center'},
   chatRow: {borderWidth:1,borderColor:COLORS.line,minHeight: 90, flexDirection: 'row', alignItems: 'center', gap: 12, padding: 14, borderRadius: 18, backgroundColor: COLORS.white}, avatar: {width: 42, height: 42, borderRadius: 21, backgroundColor: COLORS.pale, alignItems: 'center', justifyContent: 'center'}, chatSummary: {flex: 1,minWidth:0, gap: 5}, rowTitle: {fontSize: 15, fontWeight: '700', color: COLORS.ink}, preview: {fontSize: 13, color: COLORS.muted}, rowEnd: {maxWidth:82,alignItems: 'flex-end', gap: 6}, badge: {minWidth: 22, height: 22, borderRadius: 11, alignItems: 'center', justifyContent: 'center', paddingHorizontal: 5, backgroundColor: COLORS.citron}, badgeText: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, date: {fontSize: 11, color: COLORS.muted},
-  notificationRow: {minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, borderRadius: 17, backgroundColor: COLORS.white}, unread: {backgroundColor: '#F0F3E8'}, notificationIcon: {width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.pale}, unreadDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: COLORS.ink},
-  thread: {padding: 16, gap: 10, flexGrow: 1, justifyContent: 'flex-end'}, bubble: {maxWidth: '88%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 17, gap: 5}, ownBubble: {alignSelf: 'flex-end', backgroundColor: '#DDE8D8', borderBottomRightRadius: 5}, otherBubble: {alignSelf: 'flex-start', backgroundColor: COLORS.white, borderBottomLeftRadius: 5}, sender: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, messageText: {fontSize: 15, lineHeight: 22, color: COLORS.ink}, composer: {flexDirection: 'row', alignItems: 'flex-end', gap: 9, padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, backgroundColor: COLORS.white}, composerInput: {flex: 1, minHeight: 45, maxHeight: 120, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: COLORS.ivory, color: COLORS.ink, fontSize: 15, lineHeight: 21}, send: {width: 45, height: 45, borderRadius: 23, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center'}, retry: {minHeight: 46, borderRadius: 15, backgroundColor: COLORS.ink, alignItems: 'center', justifyContent: 'center'}, retryText: {color: COLORS.white, fontSize: 15, fontWeight: '700'},
+  notificationRow: {minHeight: 74, flexDirection: 'row', alignItems: 'center', gap: 12, paddingHorizontal: 14, borderRadius: 17, backgroundColor: COLORS.white}, unread: {backgroundColor: SeatPalTheme.colors.subtle}, notificationIcon: {width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center', backgroundColor: COLORS.pale}, unreadDot: {width: 9, height: 9, borderRadius: 5, backgroundColor: COLORS.accent},
+  thread: {padding: 16, gap: 10, flexGrow: 1, justifyContent: 'flex-end'}, bubble: {maxWidth: '88%', paddingHorizontal: 14, paddingVertical: 10, borderRadius: 17, gap: 5}, ownBubble: {alignSelf: 'flex-end', backgroundColor: SeatPalTheme.colors.selected, borderBottomRightRadius: 5}, otherBubble: {alignSelf: 'flex-start', backgroundColor: COLORS.white, borderBottomLeftRadius: 5}, sender: {fontSize: 12, fontWeight: '700', color: COLORS.ink}, messageText: {fontSize: 15, lineHeight: 22, color: COLORS.ink}, composer: {flexDirection: 'row', alignItems: 'flex-end', gap: 9, padding: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: COLORS.line, backgroundColor: COLORS.white}, composerInput: {flex: 1, minHeight: 45, maxHeight: 120, paddingHorizontal: 14, paddingVertical: 10, borderRadius: 16, backgroundColor: COLORS.ivory, color: COLORS.ink, fontSize: 15, lineHeight: 21}, send: {width: 45, height: 45, borderRadius: 23, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center'}, retry: {minHeight: 46, borderRadius: 15, backgroundColor: COLORS.accent, alignItems: 'center', justifyContent: 'center'}, retryText: {color: COLORS.white, fontSize: 15, fontWeight: '700'},
   readOnly: {minHeight: 54, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 9, paddingHorizontal: 18, backgroundColor: COLORS.white}, readOnlyText: {flex:1,color: COLORS.muted, fontSize: 13, lineHeight: 20},
 });

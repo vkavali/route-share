@@ -33,6 +33,7 @@ export type Point = {
 export type Match = Record<string, any>;
 export type Booking = Record<string, any>;
 export type AppState = {
+  access?: Record<string, unknown>;
   user?: any;
   trips: any[];
   bookings: Booking[];
@@ -53,6 +54,14 @@ export class Api {
 
   async request(path: string, body?: unknown, method?: string): Promise<any> {
     if (!API_BASE) throw new Error('Configure EXPO_PUBLIC_API_URL before using the app.');
+    const requestToken = this.token;
+    const assertCurrentSession = () => {
+      if (this.token !== requestToken) {
+        const error = new Error('The account session changed while the request was running.') as ApiError;
+        error.code = 'ESESSION_CHANGED';
+        throw error;
+      }
+    };
     const headers: Record<string, string> = {Accept: 'application/json'};
     const multipart = typeof FormData !== 'undefined' && body instanceof FormData;
     if (body !== undefined && !multipart) headers['Content-Type'] = 'application/json';
@@ -70,6 +79,7 @@ export class Api {
           signal: controller.signal,
         });
       } catch (cause: any) {
+        assertCurrentSession();
         const error = new Error(cause?.name === 'AbortError'
           ? 'The request took too long. Check your connection and retry.'
           : (cause?.message || 'The service could not be reached.')) as ApiError;
@@ -78,10 +88,13 @@ export class Api {
         throw error;
       }
 
+      assertCurrentSession();
+
       let data: any;
       try {
         data = await response.json();
       } catch (cause) {
+        assertCurrentSession();
         if (response.ok) {
           const error = new Error('The service returned an unreadable response.') as ApiError;
           error.code = 'EBADRESPONSE';
@@ -90,6 +103,7 @@ export class Api {
         }
         data = {};
       }
+      assertCurrentSession();
       if (!response.ok) {
         const error = new Error(data.error || `Request failed (${response.status}).`) as ApiError;
         error.status = response.status;
@@ -141,6 +155,13 @@ export class Api {
   deleteAccount(body: Record<string, unknown>) { return this.request('/api/account/delete', body); }
   recoverAccountStart(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/start', body); }
   recoverAccountVerify(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/verify', body); }
+  backupEmailStart(body: Record<string, unknown>) { return this.request('/api/account/backup-email/start', body); }
+  backupEmailVerify(body: Record<string, unknown>) { return this.request('/api/account/backup-email/verify', body); }
+  backupEmailRemove(body: Record<string, unknown>) { return this.request('/api/account/backup-email/remove', body); }
+  recoverEmailStart(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/email/start', body); }
+  recoverEmailVerify(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/email/verify', body); }
+  recoverEmailPhoneStart(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/phone/start', body); }
+  recoverEmailPhoneVerify(body: Record<string, unknown>) { return this.request('/api/mobile/account/recovery/phone/verify', body); }
 
   logout() { return this.request('/api/mobile/logout', {}); }
   state(): Promise<AppState> { return this.request('/api/state'); }

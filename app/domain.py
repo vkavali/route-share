@@ -8,8 +8,9 @@ from .community import CommunityService
 from .auth import is_active_account, current_actor_matches
 from .matching import evaluate, inventory, Incompatible, distance, project
 from .permissions import PermissionDenied, access_summary, authorize, can_drive, can_request, identity_review_summary
-from .routing import RoutingError
+from .routing import RoutingError, RoutingBudgetExceeded, routing_budget, routing_checkpoint
 from .user_projection import account_user, operations_user
+from .ride_options import offer_fields, passenger_fields, price_quote, rank_matches, same_price_quote
 
 IST = timezone(timedelta(hours=5, minutes=30))
 BASELINE = '20 km endpoint-radius baseline among the same time-, detour- and capacity-eligible supply; not a replica of a competitor.'
@@ -29,9 +30,9 @@ CORRIDORS = [ [[78.357,17.460],[78.5522,17.3457],[79.620,17.139],[79.966,16.998]
 
 
 class DomainError(Exception):
-    def __init__(self, message, status=400):
+    def __init__(self, message, status=400, code=None):
         super().__init__(message)
-        self.message, self.status = message, status
+        self.message, self.status, self.code = message, status, code
 
 
 def now():
@@ -118,7 +119,8 @@ class Service:
         if method is None or action.startswith('_'):
             raise DomainError('Unknown action.', 404)
         try:
-            result = method(user, payload)
+            with routing_budget():
+                result = method(user, payload)
             if action == 'state' and isinstance(result, dict):
                 with self.store.read() as tx:
                     result['access'] = access_summary(tx.get('users', user['id']) or {})
@@ -238,9 +240,60 @@ class Service:
             trips, bookings = tx.list('trips'), tx.list('bookings')
             tripmap = {t['id']:t for t in trips}
             own = [b for b in bookings if user['id'] in (b['driver_id'],b['passenger_id'])]
+            own_requests = [r for r in tx.list('requests') if r.get('passenger_id') == user['id']]
+            latest_request = max(own_requests, key=lambda row: row.get('created_at') or '', default=None)
+            latest_search = None
+            if latest_request:
+                current_trips = {trip['id']: trip for trip in trips}
+                saved_matches = []
+                for saved in tx.list('matches'):
+                    if saved.get('request_id') != latest_request['id']:
+                        continue
+                    trip = current_trips.get(saved.get('trip_id'))
+                    if (not trip or trip.get('status') != 'published'
+                            or timestamp(trip.get('departure'), 'Departure') < now()
+                            or not self._driver_available(tx, trip)
+                            or not self._same_account_pool(tx, user['id'], trip['driver_id'])
+                            or self._pair_blocked(tx, user['id'], trip['driver_id'])):
+                        continue
+                    saved.update(self._current_driver_projection(trip))
+                    saved['driver_summary'] = self.community.public_summary(trip['driver_id'])
+                    saved_matches.append(saved)
+                saved_matches, ranking_context = rank_matches(
+                    saved_matches, arrive_by=latest_request.get('arrive_by'))
+                saved_metrics = dict(latest_request.get('metrics') or {})
+                if 'route_aware_match_count' in saved_metrics:
+                    saved_metrics['route_aware_match_count'] = len(saved_matches)
+                if 'traditional_match_count' in saved_metrics:
+                    saved_metrics['traditional_match_count'] = sum(
+                        bool(match.get('baseline_match')) for match in saved_matches)
+                if ('incremental_matches' in saved_metrics
+                        and 'route_aware_match_count' in saved_metrics
+                        and 'traditional_match_count' in saved_metrics):
+                    saved_metrics['incremental_matches'] = (
+                        saved_metrics['route_aware_match_count'] - saved_metrics['traditional_match_count'])
+                if ('match_lift_percentage' in saved_metrics
+                        and 'route_aware_match_count' in saved_metrics
+                        and 'traditional_match_count' in saved_metrics
+                        and 'incremental_matches' in saved_metrics):
+                    baseline = saved_metrics['traditional_match_count']
+                    saved_metrics['match_lift_percentage'] = (
+                        round(saved_metrics['incremental_matches'] / baseline * 100, 2) if baseline else None)
+                latest_search = {
+                    'saved_search': True,
+                    'saved_at': latest_request.get('created_at'),
+                    'request': {**latest_request,
+                                'baggage':latest_request.get('baggage') or {'small_bags':0,'large_suitcases':0},
+                                'baggage_notes':latest_request.get('baggage_notes',''),
+                                'arrive_by':latest_request.get('arrive_by')},
+                    'matches': saved_matches,
+                    'metrics': saved_metrics,
+                    'metrics_source': 'saved_search_with_current_match_eligibility',
+                    'ranking_context': ranking_context,
+                }
             return {'trips':[self._trip_view(t,bookings) for t in trips if t['driver_id']==user['id']],
                     'bookings':[self._booking_view(b,tripmap[b['trip_id']],user['id']) for b in own],
-                    'requests':[r for r in tx.list('requests') if r['passenger_id']==user['id']],
+                    'requests':own_requests,'latest_search':latest_search,
                     'ratings':[r for r in tx.list('ratings') if user['id'] in (r['author_id'],r['subject_id'])],
                     'safety_reports':[r for r in tx.list('safety_reports') if r['reporter_id']==user['id']],
                     'blocks':[b for b in tx.list('blocks') if b['blocker_id']==user['id']]}
@@ -256,12 +309,17 @@ class Service:
             raise DomainError('Choose a detour of 0, 5, 10 or 15 minutes.')
         if distance(origin,destination) < 1000:
             raise DomainError('Choose two different points at least 1 km apart.')
+        declared_offer = offer_fields(payload)
+        if declared_offer.get('seat_rate_paise_per_km') is not None and user.get('development') is not True:
+            raise DomainError('Per-kilometre fares are available only in local development preview.',403)
         route = self.router.route([origin,destination])
         row = {'id':uid(),'driver_id':user['id'],'origin':origin,'destination':destination,
                'departure':departure.astimezone(IST).isoformat(),'seats':seats,'max_detour_minutes':detour,
-               'route':route,'expires_at':(now()+timedelta(minutes=20)).isoformat()}
+               'route':route,'expires_at':(now()+timedelta(minutes=20)).isoformat(), **declared_offer}
         with self.store.transaction() as tx:
             user = self._current_actor(tx, user, 'preview')
+            if row.get('seat_rate_paise_per_km') is not None and user.get('development') is not True:
+                raise DomainError('Per-kilometre fares are available only in local development preview.',403)
             row['driver_vehicle'] = user.get('vehicle', {})
             tx.put('previews',row['id'],row)
             self._route_log(tx,route,'driver_preview',row['id'])
@@ -273,6 +331,8 @@ class Service:
             preview = self._get(tx,'previews',payload.get('preview_id'))
             if preview['driver_id'] != user['id']:
                 raise DomainError('Only the preview owner can publish it.',403)
+            if preview.get('seat_rate_paise_per_km') is not None and user.get('development') is not True:
+                raise DomainError('Per-kilometre fares are available only in local development preview.',403)
             self._require_available(tx, preview)
             if preview.get('trip_id'):
                 return {'trip':self._trip_view(tx.get('trips',preview['trip_id']),tx.list('bookings'))}
@@ -293,6 +353,9 @@ class Service:
                                           calculation.get('routed_pickup'), calculation.get('routed_dropoff'))
         return {'id':uid(),'request_id':request['id'],'trip_id':trip['id'],'driver_name':trip['driver_name'],
                 'vehicle':trip.get('driver_vehicle',{}), **self._current_driver_projection(trip),
+                'baggage_capacity':trip.get('baggage_capacity'),
+                'comfort':trip.get('comfort') or {'air_conditioning':'unknown'},
+                'price_quote':price_quote(trip, calculation),
                 'pickup':request['origin'],'dropoff':request['destination'],'passenger_seats':request['seats'],
                 'route_provider':trip['route']['provider'],'created_at':now().isoformat(),
                 'driver_completed_trips':completed,
@@ -306,15 +369,27 @@ class Service:
             raise DomainError('Choose a future pickup window up to 12 hours, within 90 days.')
         if distance(origin,destination) < 1000:
             raise DomainError('Choose points at least 1 km apart.')
+        baggage, baggage_notes = passenger_fields(payload)
+        arrive_by = payload.get('arrive_by')
+        if arrive_by == '':
+            arrive_by = None
+        if arrive_by is not None:
+            deadline = timestamp(arrive_by, 'Arrival deadline')
+            if not now() < deadline < now()+timedelta(days=90) or deadline < start:
+                raise DomainError('Choose a future arrival deadline within 90 days and no earlier than the pickup-window start.')
+            arrive_by = deadline.astimezone(IST).isoformat()
         request = {'id':uid(),'passenger_id':user['id'],'passenger_name':user['name'],'origin':origin,'destination':destination,
                    'window_start':start.astimezone(IST).isoformat(),'window_end':end.astimezone(IST).isoformat(),
-                   'seats':integer(payload.get('seats'),'Seats',1,1),'created_at':now().isoformat(),'development':user.get('development') is True}
+                   'seats':integer(payload.get('seats'),'Seats',1,1),'baggage':baggage,
+                   'baggage_notes':baggage_notes,'arrive_by':arrive_by,
+                   'created_at':now().isoformat(),'development':user.get('development') is True}
         with self.store.read() as tx:
             trips,bookings=tx.list('trips'),tx.list('bookings')
             available_trip_ids = {trip['id'] for trip in trips if self._driver_available(tx, trip)
                                   and self._same_account_pool(tx, user['id'], trip['driver_id'])}
             blocked_pairs={(b['blocker_id'],b['blocked_id']) for b in tx.list('blocks')}
         matches, errors, logs, evaluations = [],[],[],[]
+        attempted = 0
         for trip in trips:
             if trip['id'] not in available_trip_ids:
                 continue
@@ -323,13 +398,21 @@ class Service:
             departure=timestamp(trip['departure'],'Departure')
             if trip['status'] != 'published' or trip['driver_id']==user['id'] or departure < now() or departure > end:
                 continue
+            if trip.get('seat_rate_paise_per_km') is not None and user.get('development') is not True:
+                continue
             # Avoid irrelevant dates without claiming traffic-aware timing.
             if departure+timedelta(seconds=trip['route']['duration_s']+trip['max_detour_minutes']*60) < start:
                 continue
             try:
+                routing_checkpoint()
+                if attempted >= 100:
+                    raise RoutingBudgetExceeded('This search reached its calculation limit. Narrow the pickup window and search again.')
+                attempted += 1
                 calculation=evaluate(trip,request,[b for b in bookings if b['trip_id']==trip['id']],self.router)
                 completed=sum(t['status']=='completed' and t['driver_id']==trip['driver_id'] for t in trips)
                 match=self._new_match(trip,request,calculation,completed)
+                if trip.get('seat_rate_paise_per_km') is not None and not isinstance(match.get('price_quote'), dict):
+                    raise Incompatible('This route has no valid passenger fare quote.')
                 match['driver_summary']=self.community.public_summary(trip['driver_id'])
                 matches.append(match)
                 logs.append(calculation['proposed_route'])
@@ -337,6 +420,9 @@ class Service:
             except Incompatible as exc:
                 evaluations.append({'trip_id':trip['id'],'outcome':'incompatible','reason':str(exc),'details':exc.details})
                 continue
+            except RoutingBudgetExceeded as exc:
+                errors.append({'trip_id':trip['id'],'error':str(exc),'code':'search_budget_exceeded'})
+                break
             except RoutingError as exc:
                 errors.append({'trip_id':trip['id'],'error':str(exc)})
         with self.store.transaction() as tx:
@@ -350,6 +436,7 @@ class Service:
                        and not self._pair_blocked(tx, user['id'], current_trips[m['trip_id']]['driver_id'])]
             for match in matches:
                 match.update(self._current_driver_projection(current_trips[match['trip_id']]))
+            matches, ranking_context = rank_matches(matches, arrive_by=arrive_by)
             traditional=sum(m['baseline_match'] for m in matches)
             metrics={'traditional_match_count':traditional,'route_aware_match_count':len(matches),
                      'incremental_matches':len(matches)-traditional,
@@ -364,7 +451,7 @@ class Service:
             for match in matches: tx.put('matches',match['id'],match)
             for route in logs: self._route_log(tx,route,'passenger_search',request['id'])
             self._event(tx,user,'search_completed' if not errors else 'search_incomplete',request['id'],{'metrics':metrics,'errors':errors})
-        return {'request':request,'matches':sorted(matches,key=lambda m:m['pickup_at']),'metrics':metrics}
+        return {'request':request,'matches':matches,'metrics':metrics,'ranking_context':ranking_context}
 
     def _request(self, user, payload):
         with self.store.transaction() as tx:
@@ -382,16 +469,33 @@ class Service:
             if self._pair_blocked(tx,user['id'],trip['driver_id']):
                 raise DomainError('This ride is no longer available.',409)
             allbookings = tx.list('bookings')
+            # A retry of the original request is an idempotent read, including
+            # after a terminal outcome. Match identity matters: a new search can
+            # describe a different segment or fare on this same trip.
+            for booking in allbookings:
+                if booking['request_id'] == request['id'] and booking['trip_id'] == trip['id']:
+                    return {'booking':self._booking_view(booking,trip,user['id'])}
             # A passenger may hold only one pending or accepted segment per trip,
-            # even if they have created more than one search request.
+            # even if they have created more than one search request. Do not make
+            # a new search appear to have changed the terms of an existing booking.
             for booking in allbookings:
                 if (booking.get('passenger_id') == user['id'] and booking.get('trip_id') == trip['id']
                         and booking.get('status') in {'pending', 'accepted'}):
-                    return {'booking':self._booking_view(booking,trip,user['id'])}
-            # Preserve terminal outcomes for retries of the original request.
-            for booking in allbookings:
-                if booking['request_id']==request['id'] and booking['trip_id']==trip['id']:
-                    return {'booking':self._booking_view(booking,trip,user['id'])}
+                    raise DomainError(
+                        'You already have a request for this trip. Review or cancel it before requesting a different segment.',
+                        409, 'booking_already_exists')
+            # Rate quotes are validated against the immutable original search route,
+            # never against a later re-route or client-supplied values.
+            quote = match.get('price_quote')
+            if trip.get('seat_rate_paise_per_km') is not None:
+                if user.get('development') is not True:
+                    raise DomainError('Per-kilometre fares are available only in local development preview.',403)
+                expected_quote = price_quote(trip, match)
+                if (not isinstance(expected_quote, dict) or not isinstance(quote, dict)
+                        or not same_price_quote(quote, expected_quote)):
+                    raise DomainError('This match has a stale price quote. Search again for the current offer.',409)
+            elif not same_price_quote(quote, price_quote(trip)):
+                raise DomainError('This match has a stale price quote. Search again for the current offer.',409)
             if trip['status']!='published' or timestamp(trip['departure'],'Departure')<now():
                 raise DomainError('This trip is no longer accepting requests.',409)
             if now()-timestamp(match['created_at'],'Match date')>timedelta(minutes=20):
@@ -414,67 +518,119 @@ class Service:
                      'passenger_name':user['name'],'pickup':request['origin'],'dropoff':request['destination'],
                      'seats':request['seats'],'status':'pending','match':match,'start_m':match['start_m'],'end_m':match['end_m'],
                      'window_start':request['window_start'],'window_end':request['window_end'],
+                     'baggage':request.get('baggage') or {'small_bags':0,'large_suitcases':0},
+                     'baggage_notes':request.get('baggage_notes',''),
+                     'arrive_by':request.get('arrive_by'),'price_quote':match.get('price_quote'),
                      'created_at':now().isoformat(),'development':user.get('development') is True}
             tx.put('bookings',booking['id'],booking)
             self._event(tx,user,'seat_requested',booking['id'])
             return {'booking':self._booking_view(booking,trip,user['id'])}
 
+    def _accept_context(self, tx, user, payload):
+        """Recheck eligibility, quote and request constraints in one snapshot."""
+        user = self._current_actor(tx, user, 'accept')
+        booking=self._get(tx,'bookings',payload.get('booking_id'))
+        trip=self._get(tx,'trips',booking['trip_id'])
+        if trip['driver_id']!=user['id']: raise DomainError('Only the driver can accept.',403)
+        self._require_available(tx, trip)
+        self._require_passenger_identity(tx, booking)
+        if not self._same_account_pool(tx, booking['driver_id'], booking['passenger_id']):
+            raise DomainError('This ride is no longer available.',409)
+        if self._pair_blocked(tx,booking['driver_id'],booking['passenger_id']):
+            raise DomainError('This ride is no longer available.',409)
+        if booking['status']=='accepted': return user, booking, trip, [], None
+        if booking['status']!='pending' or trip['status']!='published' or timestamp(trip['departure'],'Departure')<now():
+            raise DomainError('This request or trip is no longer available.',409)
+        original_match = booking.get('match') or {}
+        authoritative_match = tx.get('matches', booking.get('match_id')) if trip.get('seat_rate_paise_per_km') is not None else None
+        expected_quote = (price_quote(trip, authoritative_match) if trip.get('seat_rate_paise_per_km') is not None
+                          else price_quote(trip))
+        rate_evidence_keys = ('passenger_route_distance_m','route_calculation_id','route_calculated_at','route_provider')
+        if (trip.get('seat_rate_paise_per_km') is not None and user.get('development') is not True
+                or trip.get('seat_rate_paise_per_km') is not None and not isinstance(authoritative_match, dict)
+                or trip.get('seat_rate_paise_per_km') is not None and isinstance(authoritative_match, dict) and (
+                    authoritative_match.get('request_id') != booking.get('request_id')
+                    or authoritative_match.get('trip_id') != booking.get('trip_id'))
+                or trip.get('seat_rate_paise_per_km') is not None and (
+                    not isinstance(expected_quote, dict) or not isinstance(booking.get('price_quote'), dict))
+                or not same_price_quote(booking.get('price_quote'), expected_quote)
+                or not same_price_quote(booking.get('price_quote'), original_match.get('price_quote'))
+                or trip.get('seat_rate_paise_per_km') is not None and (
+                    not same_price_quote(booking.get('price_quote'), authoritative_match.get('price_quote'))
+                    or any(original_match.get(key) != authoritative_match.get(key) for key in rate_evidence_keys))):
+            raise DomainError('This booking has a stale price quote. Cancel it and search again.',409)
+        allbookings=tx.list('bookings')
+        if any(b['request_id']==booking['request_id'] and b['status'] in ('accepted','segment_completed') for b in allbookings):
+            raise DomainError('Another driver has already confirmed this passenger request.',409)
+        if any(b['id'] != booking['id'] and b['passenger_id']==booking['passenger_id']
+               and b['trip_id']==trip['id'] and b['status']=='accepted' for b in allbookings):
+            raise DomainError('This passenger already has an accepted booking on this trip.',409)
+        request=self._get(tx,'requests',booking['request_id'])
+        return user, booking, trip, allbookings, request
+
+    @staticmethod
+    def _acceptance_inventory(trip_id, bookings):
+        return sorted((b for b in bookings if b['trip_id'] == trip_id
+                       and b['status'] in ('accepted', 'segment_completed')), key=lambda b: b['id'])
+
     def _accept(self, user, payload):
-        # BEGIN IMMEDIATE is deliberately held through road re-evaluation in this small
-        # local slice. Other processes cannot confirm capacity using a stale snapshot.
-        with self.store.transaction() as tx:
-            user = self._current_actor(tx, user, 'accept')
-            booking=self._get(tx,'bookings',payload.get('booking_id'))
-            trip=self._get(tx,'trips',booking['trip_id'])
-            if trip['driver_id']!=user['id']: raise DomainError('Only the driver can accept.',403)
-            self._require_available(tx, trip)
-            self._require_passenger_identity(tx, booking)
-            if not self._same_account_pool(tx, booking['driver_id'], booking['passenger_id']):
-                raise DomainError('This ride is no longer available.',409)
-            if self._pair_blocked(tx,booking['driver_id'],booking['passenger_id']):
-                raise DomainError('This ride is no longer available.',409)
-            if booking['status']=='accepted': return {'booking':self._booking_view(booking,trip,user['id'])}
-            if booking['status']!='pending' or trip['status']!='published' or timestamp(trip['departure'],'Departure')<now():
-                raise DomainError('This request or trip is no longer available.',409)
-            allbookings=tx.list('bookings')
-            if any(b['request_id']==booking['request_id'] and b['status'] in ('accepted','segment_completed') for b in allbookings):
-                raise DomainError('Another driver has already confirmed this passenger request.',409)
-            if any(b['id'] != booking['id'] and b['passenger_id']==booking['passenger_id']
-                   and b['trip_id']==trip['id'] and b['status']=='accepted' for b in allbookings):
-                raise DomainError('This passenger already has an accepted booking on this trip.',409)
-            request=self._get(tx,'requests',booking['request_id'])
+        # Network work must not hold SQLite's writer reservation. Revalidate
+        # all authorization/quote guards and route inputs before committing.
+        for _ in range(3):
+            routing_checkpoint()
+            with self.store.read() as tx:
+                actor, snapshot_booking, snapshot_trip, snapshot_bookings, snapshot_request = self._accept_context(tx, user, payload)
+            if snapshot_booking['status'] == 'accepted':
+                return {'booking': self._booking_view(snapshot_booking, snapshot_trip, actor['id'])}
             try:
-                calculation=evaluate(trip,request,[b for b in allbookings if b['trip_id']==trip['id']],self.router)
+                calculation = evaluate(snapshot_trip, snapshot_request,
+                    self._acceptance_inventory(snapshot_trip['id'], snapshot_bookings), self.router,
+                    require_rate_distance=False)
             except Incompatible as exc:
-                raise DomainError('Availability changed: '+str(exc),409)
-            # Routing can take seconds even while this write transaction excludes revocation.
-            # Recheck wall-clock expiry immediately before accepting the seat.
-            user = self._current_actor(tx, user, 'accept')
-            self._require_available(tx, trip)
-            self._require_passenger_identity(tx, booking)
-            booking.update(status='accepted',accepted_at=now().isoformat())
-            booking['match']={**booking['match'],**{k:v for k,v in calculation.items() if k not in ('proposed_route','pickup_schedule')}}
-            tx.put('bookings',booking['id'],booking)
-            for alternative in allbookings:
-                if alternative['id']!=booking['id'] and alternative['request_id']==booking['request_id'] and alternative['status']=='pending':
-                    alternative.update(status='cancelled',reason='Passenger request confirmed on another trip',cancelled_by='system')
-                    tx.put('bookings',alternative['id'],alternative)
-                    self._event(tx,user,'booking_cancelled',alternative['id'],{'reason':alternative['reason']})
-            trip['version']+=1
-            trip['detour_minutes']=calculation['total_driver_detour_minutes']
-            trip['current_route']=calculation['proposed_route']
-            # Keep every accepted booking's latest promised pickup/drop time consistent.
-            departure=timestamp(trip['departure'],'Departure')
-            for old in allbookings:
-                if old['trip_id']==trip['id'] and old['status']=='accepted':
-                    times=calculation['pickup_schedule'][old['id']]
-                    old['match']['pickup_at']=(departure+timedelta(seconds=times['pickup'])).isoformat()
-                    old['match']['dropoff_at']=(departure+timedelta(seconds=times['dropoff'])).isoformat()
-                    tx.put('bookings',old['id'],old)
-            tx.put('trips',trip['id'],trip)
-            self._route_log(tx,calculation['proposed_route'],'acceptance_recheck',booking['id'])
-            self._event(tx,user,'seat_accepted',booking['id'],{'detour_minutes':trip['detour_minutes'],'trip_version':trip['version']})
-            return {'booking':self._booking_view(booking,trip,user['id'])}
+                raise DomainError('Availability changed: ' + str(exc), 409) from exc
+            routing_checkpoint()
+            with self.store.transaction() as tx:
+                actor, booking, trip, allbookings, request = self._accept_context(tx, user, payload)
+                if booking['status'] == 'accepted':
+                    return {'booking': self._booking_view(booking, trip, actor['id'])}
+                routing_checkpoint()
+                if (trip != snapshot_trip or booking != snapshot_booking or request != snapshot_request
+                        or self._acceptance_inventory(trip['id'], allbookings)
+                        != self._acceptance_inventory(snapshot_trip['id'], snapshot_bookings)):
+                    continue
+                return self._commit_acceptance(tx, actor, booking, trip, allbookings, calculation)
+        raise DomainError('The trip changed while confirming this seat. Refresh and try again.', 409)
+
+    def _commit_acceptance(self, tx, user, booking, trip, allbookings, calculation):
+        # Caller holds the writer reservation and has checked the complete
+        # current route/inventory snapshot. Preserve the agreed fare evidence.
+        booking.update(status='accepted',accepted_at=now().isoformat())
+        immutable_rate_evidence = {'passenger_route_distance_m','route_calculation_id','route_calculated_at'}
+        if trip.get('seat_rate_paise_per_km') is not None:
+            immutable_rate_evidence.add('route_provider')
+        booking['match']={**booking['match'],**{k:v for k,v in calculation.items()
+            if k not in ('proposed_route','pickup_schedule', *immutable_rate_evidence)}}
+        tx.put('bookings',booking['id'],booking)
+        for alternative in allbookings:
+            if alternative['id']!=booking['id'] and alternative['request_id']==booking['request_id'] and alternative['status']=='pending':
+                alternative.update(status='cancelled',reason='Passenger request confirmed on another trip',cancelled_by='system')
+                tx.put('bookings',alternative['id'],alternative)
+                self._event(tx,user,'booking_cancelled',alternative['id'],{'reason':alternative['reason']})
+        trip['version']+=1
+        trip['detour_minutes']=calculation['total_driver_detour_minutes']
+        trip['current_route']=calculation['proposed_route']
+        # Keep every accepted booking's latest promised pickup/drop time consistent.
+        departure=timestamp(trip['departure'],'Departure')
+        for old in allbookings:
+            if old['trip_id']==trip['id'] and old['status']=='accepted':
+                times=calculation['pickup_schedule'][old['id']]
+                old['match']['pickup_at']=(departure+timedelta(seconds=times['pickup'])).isoformat()
+                old['match']['dropoff_at']=(departure+timedelta(seconds=times['dropoff'])).isoformat()
+                tx.put('bookings',old['id'],old)
+        tx.put('trips',trip['id'],trip)
+        self._route_log(tx,calculation['proposed_route'],'acceptance_recheck',booking['id'])
+        self._event(tx,user,'seat_accepted',booking['id'],{'detour_minutes':trip['detour_minutes'],'trip_version':trip['version']})
+        return {'booking':self._booking_view(booking,trip,user['id'])}
 
     def _decline(self,user,payload):
         return self._change_booking(user,payload,'declined')
