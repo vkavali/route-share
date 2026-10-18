@@ -645,12 +645,17 @@ class Service:
             if status=='declined' and user['id']!=booking['driver_id']: raise DomainError('Only the driver can decline.',403)
             if user['id'] not in (booking['driver_id'],booking['passenger_id']): raise DomainError('This booking belongs to other people.',403)
             if booking['status']==status: return {'booking':self._booking_view(booking,trip,user['id'])}
-            if booking['status'] not in ('pending','accepted') or (status=='declined' and booking['status']!='pending') or trip['status']!='published':
-                raise DomainError('This booking can no longer be changed. In-progress trips require operator assistance.',409)
+            allowed_trip_statuses = ('published', 'started') if status == 'cancelled' else ('published',)
+            if (booking['status'] not in ('pending','accepted')
+                    or (status=='declined' and booking['status']!='pending')
+                    or trip['status'] not in allowed_trip_statuses):
+                raise DomainError('This booking can no longer be changed.',409)
             reason=str(payload.get('reason','')).strip()
             if status=='cancelled' and not reason: raise DomainError('Add a cancellation reason.')
-            booking.update(status=status,reason=reason[:500],cancelled_by=user['id'],updated_at=now().isoformat())
+            stamp = now().isoformat()
+            booking.update(status=status,reason=reason[:500],cancelled_by=user['id'],updated_at=stamp)
             if status == 'cancelled':
+                booking['cancelled_at'] = stamp
                 self._flag_late_cancellation(booking)
             tx.put('bookings',booking['id'],booking)
             trip['version']+=1
@@ -686,17 +691,23 @@ class Service:
                     if passenger_booking['status'] == 'accepted':
                         self._require_passenger_identity(tx, passenger_booking)
             if trip['status']==status: return {'trip':self._trip_view(trip,bookings)}
-            allowed={'started':'published','completed':'started','cancelled':'published'}
-            if trip['status']!=allowed[status]: raise DomainError('This trip status cannot make that transition.',409)
+            allowed={'started':'published','completed':'started','cancelled':('published','started')}
+            allowed_status = allowed[status]
+            if trip['status'] not in (allowed_status if isinstance(allowed_status, tuple) else (allowed_status,)):
+                raise DomainError('This trip status cannot make that transition.',409)
             if status=='completed' and any(b['status']=='accepted' for b in bookings):
                 raise DomainError('Complete every accepted passenger segment before completing the trip.',409)
             if status=='cancelled' and not str(payload.get('reason','')).strip(): raise DomainError('Add a cancellation reason.')
+            stamp = now().isoformat()
             trip.update(status=status,version=trip['version']+1)
-            trip[status+'_at']=now().isoformat()
+            trip[status+'_at']=stamp
+            if status == 'cancelled':
+                trip['cancelled_by'] = user['id']
             for b in bookings:
                 if (status=='cancelled' and b['status'] in ('pending','accepted')) or (status=='started' and b['status']=='pending'):
                     was_accepted = b['status'] == 'accepted'
-                    b.update(status='cancelled',cancelled_by=user['id'],reason='Trip cancelled' if status=='cancelled' else 'Trip started before acceptance')
+                    reason = str(payload.get('reason', '')).strip()[:500] if status == 'cancelled' else 'Trip started before acceptance'
+                    b.update(status='cancelled',cancelled_by=user['id'],cancelled_at=stamp,updated_at=stamp,reason=reason)
                     if status == 'cancelled' and was_accepted:
                         self._flag_late_cancellation(b)
                     tx.put('bookings',b['id'],b)

@@ -269,6 +269,54 @@ def test_domain_actions_and_logout_purge_ephemeral_locations(app):
     assert store._samples == {}
 
 
+def test_http_started_booking_cancellation_purges_location_and_closes_contact_and_trusted_link(app):
+    driver, passenger, visitor = (app.test_client() for _ in range(3))
+    login(driver, "driver")
+    login(passenger, "passenger")
+    store = app.extensions["beta_store"]
+    now = datetime.now(timezone.utc)
+    with store.transaction() as tx:
+        trip = tx.get("trips", "trip-live")
+        trip.update(status="started", started_at=now.isoformat())
+        tx.put("trips", trip["id"], trip)
+        booking = tx.get("bookings", "booking-live")
+        booking["match"]["pickup_at"] = (now - timedelta(minutes=5)).isoformat()
+        booking["match"]["dropoff_at"] = (now + timedelta(hours=1)).isoformat()
+        tx.put("bookings", booking["id"], booking)
+        passenger_record = tx.get("users", "passenger")
+        passenger_record.update(phone="+919876543210", share_phone=True)
+        tx.put("users", passenger_record["id"], passenger_record)
+
+    sharing_id = post(driver, "/api/start_sharing", {"booking_id": "booking-live"}).json["sharing_id"]
+    assert post(driver, "/api/share_location", {"booking_id": "booking-live", "sharing_id": sharing_id,
+        "lat": 17.02, "lon": 78.02, "accuracy": 20}).status_code == 200
+    assert app.extensions["live_location_store"]._samples["booking-live"]["driver"]["lat"] == 17.02
+
+    csrf = passenger.get("/api/bootstrap").json["csrf_token"]
+    created = passenger.post("/api/create_trip_link", json={"booking_id": "booking-live"}, headers={
+        **origin_headers(), "X-CSRF-Token": csrf,
+    })
+    assert created.status_code == 200
+    token = created.json["url"].split("#", 1)[1]
+
+    cancelled = post(driver, "/api/cancel_booking", {
+        "booking_id": "booking-live", "reason": "Fixture in-progress cancellation",
+    })
+    assert cancelled.status_code == 200 and cancelled.json["booking"]["status"] == "cancelled"
+    assert app.extensions["live_location_store"]._samples == {}
+    assert app.extensions["live_location_store"]._leases == {}
+    assert driver.get("/api/live_location?booking_id=booking-live").status_code == 409
+    stale_update = post(driver, "/api/share_location", {"booking_id": "booking-live", "sharing_id": sharing_id,
+        "lat": 17.03, "lon": 78.03, "accuracy": 20})
+    assert stale_update.status_code == 409
+    assert passenger.get("/api/contact?booking_id=booking-live").status_code == 409
+
+    visitor_csrf = visitor.get("/api/bootstrap").json["csrf_token"]
+    shared = visitor.post("/api/shared_trip", json={"token": token}, headers={
+        **origin_headers(), "X-CSRF-Token": visitor_csrf,
+    })
+    assert shared.status_code == 410
+
 def test_location_samples_expire_without_a_followup_request(monkeypatch):
     monkeypatch.setattr(live_location_module, "LOCATION_TTL_SECONDS", 0.05)
     store = LiveLocationStore()
